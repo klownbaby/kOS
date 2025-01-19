@@ -15,14 +15,11 @@
  */
 
 #include <stdbool.h>
+#include "kernel.h"
 #include "drivers/tty.h"
 #include "drivers/keyboard.h"
 #include "drivers/rtc.h"
 #include "drivers/pit.h"
-#include "gdt.h"
-#include "syscall.h"
-#include "multiboot.h"
-#include "pmm.h"
 
 
 /* Kernel entry point (init hardware and drivers) */
@@ -50,15 +47,12 @@ kernel_main(__attribute__((used)) uint32_t magic, volatile multiboot_info_t* mbd
     syscall_init();
 
     // print ascii art welcome message
-    tty_welcome();
+    tty_neofetch();
     tty_writecolor("> ", VGA_COLOR_LIGHT_BLUE, VGA_COLOR_BLACK);
 
-    // testing syscalls
     // __asm__ __volatile__("movl %0, %%ecx" : : "r"(&k) : "memory");
     // __asm__ __volatile__("movl $1, %edx");
     // __asm__ __volatile__("movl $0, %eax\n\tint $0x80");
     
-    // hang, technically uneccessary due to
-    // the way this is handled in boot.S
     for(;;);
 }

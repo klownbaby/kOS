@@ -40,4 +40,4 @@ void tty_writecolor(const char* str, vga_color_t fg, vga_color_t bg);
 void tty_putc(char c);
 void tty_clear();
 void tty_setcolor(vga_color_t fg, vga_color_t bg);
-void tty_welcome();
+void tty_neofetch();

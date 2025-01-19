@@ -53,8 +53,14 @@ typedef enum {
 
 } drive_status_t;
 
-void delay_400ns();
-void select_drive(uint8_t bus, uint8_t dn);
-void rw_sectors(uint8_t mode, uint8_t drive, uint32_t sector_count, uint32_t lba, void* dest);
+void 
+delay_400ns();
 
-drive_status_t drive_status(uint8_t drive);
+void 
+select_drive(uint8_t bus, uint8_t dn);
+
+void 
+rw_sectors(uint8_t mode, uint8_t drive, uint32_t sector_count, uint32_t lba, void* dest);
+
+drive_status_t 
+drive_status(uint8_t drive);

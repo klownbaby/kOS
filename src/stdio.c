@@ -216,10 +216,8 @@ kcli(char pkeybuffer[], size_t bufsize)
 {
     if (kstrcmp(pkeybuffer, "clear")) {
         tty_clear();
-    } else if (kstrcmp(pkeybuffer, "art")) {
-        tty_welcome();
-    } else if (kstrcmp(pkeybuffer, "memmap")) {
-        
+    } else if (kstrcmp(pkeybuffer, "neofetch")) {
+        tty_neofetch();
     }
 
     tty_writecolor("> ", VGA_COLOR_LIGHT_BLUE, VGA_COLOR_BLACK);

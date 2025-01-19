@@ -101,11 +101,11 @@ tty_setcolor(vga_color_t fg, vga_color_t bg)
 
 /* Just a somewhat unecessary boot success message */
 void 
-tty_welcome() 
+tty_neofetch() 
 {
     // temporarily set text color to green
     vga_setcolor(VGA_COLOR_GREEN, tty_state.bgcolor);
-    tty_write("\nkOS booted and initialized successfully!\n");
+    tty_write("\nYou're not that guy, pal..\n");
 
     // set text color back to default
     vga_setcolor(tty_state.fgcolor, tty_state.bgcolor);
@@ -120,6 +120,7 @@ tty_welcome()
     tty_write("| $$_  $$ | $$  | $$ /$$  \\ $$\n");
     tty_write("| $$ \\  $$|  $$$$$$/|  $$$$$$/\n");
     tty_write("|__/  \\__/ \\______/  \\______/ \n");
+    tty_write("\nv0.0.2\n");
 
     tty_write("\n\nWelcome to kOS!\n");
 
