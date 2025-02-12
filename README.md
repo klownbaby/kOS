@@ -14,7 +14,9 @@ to deal with some unexpected BS. Sorry, you're building a kernel, it kinda sucks
 
 
 ## Yes, kOS supports both C and Rust! 
-You can write drivers in either C, Rust, or x86 assembly. Go wild!
+I fucking hate `rust`, however I know quite a few people who love it. Not throwing any shade, just my opinion.
+Figured I'd add support for those who are insane enough to want to use it. So, in short, yes kOS supports
+`rust`.
 
 ## What kOS Is:
 kOS (short for "kevin's OS") pronounced as "chaos", is a lightweight operating system intended to provide absolute freedom while retaining ~some~ safety. It started out of a desire to create
