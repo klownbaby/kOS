@@ -14,7 +14,8 @@
  * Have fun creating kOS (pronounced "Chaos")
  */
 
-#include "string.h"
+#include <stddef.h>
+#include "kernel.h"
 
 size_t 
 kstrlen(const char* str) 

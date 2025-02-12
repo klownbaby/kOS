@@ -17,11 +17,14 @@
 #pragma once
 
 /* For fast error handling */
-#define KASSERT_GOTO_FAIL(__cond) do { if (__cond) { goto fail; } } while(0)
+#define KASSERT_GOTO_FAIL(__cond) if (__cond) { goto fail; }
+
+/* Tack on a messge */
+#define KASSERT_GOTO_FAIL_MSG(__cond, __msg) \
+  if (__cond) { printk(__msg); goto fail; }
 
 /* Assert condition with panic failover */
-#define KASSERT(__cond, __s) \
-    do { if (__cond) { kpanic(__s); } } while(0)
+#define KASSERT_PANIC(__cond, __msg) if (__cond) { kpanic(__msg); }
 
 /* Null typdef */
 #define NULL (void *) 0x0

@@ -14,13 +14,7 @@
  * Have fun creating kOS (pronounced "Chaos")
  */
 
-#include "kutils.h"
-#include "pmm.h"
-#include "multiboot.h"
-#include "stddef.h"
-#include "stdio.h"
-#include "memory.h"
-
+#include "kernel.h"
 
 /* Get initial page directory defined in boot.S */
 static page_dir_t page_directory[PD_ENTRIES] __attribute__((aligned(PAGE_SIZE)));
@@ -39,28 +33,19 @@ display_mm(multiboot_info_t* mbd)
 }
 
 /* Init physical memory manager */
-void 
+kstatus_t 
 pmm_init(volatile multiboot_info_t* mbd)
 {
+    kstatus_t status = STATUS_UNKNOWN;
+
+    // zero-out our page directory
+    kmemset(page_directory, 0, PD_ENTRIES);
+
     // set first page directory entry to initial directory
     page_directory[0] = initial_page_dir;
 
-    if (mbd == NULL)
-    {
-        mbd = (multiboot_info_t*) mbd;
-    }
-
-    uint32_t mem_high = mbd->mem_upper;
-    uint32_t phys_alloc_start = (mem_high + 0xFFF) & ~0xFFF;
-    uint32_t size = 0;
-
-    KASSERT(!mbd->flags >> 6 & 0x1, "Corrupt memory map!");
-
-    for (uint32_t i = 0; i < mbd->mmap_length; i += sizeof(multiboot_memory_map_t)) {
-        multiboot_memory_map_t* mbentry = (multiboot_memory_map_t*) (mbd->mmap_addr + i);
-    }
+    return status;
 }
-
 
 void* 
 pm_alloc_frame()

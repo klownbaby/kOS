@@ -1,6 +1,5 @@
 #include <stdint.h>
 
-
 /**
  * Define all Kernel globals here
  */

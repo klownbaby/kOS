@@ -14,8 +14,7 @@
  * Have fun creating kOS (pronounced "Chaos")
  */
 
-#include "kmalloc.h"
-
+#include "kernel.h"
 
 void 
 kmalloc_init() 

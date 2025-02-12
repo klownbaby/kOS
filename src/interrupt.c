@@ -14,12 +14,9 @@
  * Have fun creating kOS (pronounced "Chaos")
  */
 
+#include "kernel.h"
 #include "drivers/tty.h"
 #include "drivers/vga.h"
-#include "interrupt.h"
-#include "io.h"
-#include "kutils.h"
-#include "stdio.h"
 
 __attribute__((aligned(0x10))) static idt_entry_t idt[256];
 
@@ -159,7 +156,7 @@ idt_init()
     BOOT_LOG("IDT Loaded.")
 
     // check if interrupts are successfully enabled
-    KASSERT(!__check_interrupts_enabled(), "Interrupt init fail!");
+    KASSERT_PANIC(!__check_interrupts_enabled(), "Interrupt init fail!");
 }
 
 void 

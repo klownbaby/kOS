@@ -14,13 +14,10 @@
  * Have fun creating kOS (pronounced "Chaos")
  */
 
+#include "kernel.h"
 #include "drivers/keyboard.h"
 #include "drivers/tty.h"
 #include "drivers/vga.h"
-#include "io.h"
-#include "string.h"
-#include "stdio.h"
-#include "interrupt.h"
 
 static const uint32_t lowercase[128] = {
     UNKNOWN,ESC,'1','2','3','4','5','6','7','8',
@@ -49,6 +46,7 @@ static const uint32_t uppercase[128] = {
 static bool caps;
 static bool caps_lock;
 
+/* TODO allocate this shit on the heap obviously */
 static char keybuffer[256];
 static char prevkb[256];
 

@@ -14,8 +14,8 @@
  * Have fun creating kOS (pronounced "Chaos")
  */
 
+#include "kernel.h"
 #include "drivers/ata.h"
-#include "io.h"
 
 
 /* Get drive status */

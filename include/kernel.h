@@ -1,9 +1,11 @@
 #pragma once
 
 #include <stdint.h>
+#include <stdbool.h>
 #include "gdt.h"
 #include "interrupt.h"
 #include "io.h"
+#include "file.h"
 #include "kmalloc.h"
 #include "kutils.h"
 #include "memory.h"
@@ -18,5 +20,5 @@
 extern uint32_t g_num_cores;
 
 /* Kernel heap */
-extern uint32_t g_heap_start;
-extern uint32_t g_heap_end;
+extern uint32_t g_kheap_start;
+extern uint32_t g_kheap_end;

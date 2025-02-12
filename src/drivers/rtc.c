@@ -14,10 +14,9 @@
  * Have fun creating kOS (pronounced "Chaos")
  */
 
+#include "kernel.h"
 #include "drivers/rtc.h"
 #include "drivers/tty.h"
-#include "stdio.h"
-#include "io.h"
 
 bool 
 cmos_update()

@@ -14,11 +14,10 @@
  * Have fun creating kOS (pronounced "Chaos")
  */
 
+#include "kernel.h"
 #include "drivers/pit.h"
 #include "drivers/tty.h"
 #include "drivers/rtc.h"
-#include "io.h"
-
 
 /* Initialize count down for sleep function */
 static volatile uint32_t count_down;

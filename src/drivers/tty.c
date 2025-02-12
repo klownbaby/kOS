@@ -14,9 +14,9 @@
  * Have fun creating kOS (pronounced "Chaos")
  */
 
+#include "kernel.h"
 #include "drivers/tty.h"
 #include "drivers/vga.h"
-#include "string.h"
 
 static tty_state_t tty_state;
 

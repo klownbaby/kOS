@@ -14,11 +14,8 @@
  * Have fun creating kOS (pronounced "Chaos")
  */
 
+#include "kernel.h"
 #include "drivers/tty.h"
-#include "syscall.h"
-#include "kutils.h"
-#include "stdio.h"
-#include "file.h"
 
 /* Init syscall table */
 static syscall_t syscall_entries[10] = {
@@ -75,7 +72,7 @@ syscall_pop_regs()
 static void 
 syscall_cb(i_register_t registers) 
 {
-    KASSERT(registers.eax > (SYSCALL_MAX - 1), "Invalid syscall!");
+    KASSERT_PANIC(registers.eax > (SYSCALL_MAX - 1), "Invalid syscall!");
 
     // lookup syscall from table and call
     syscall_entries[registers.eax](&registers);
@@ -95,7 +92,7 @@ __write(i_register_t* registers)
     size_t n = registers->edx;
 
     // check for standard file descriptors
-    KASSERT(fd == STDIN_FD, "stdin not yet supported.");
+    KASSERT_PANIC(fd == STDIN_FD, "stdin not yet supported.");
 
     if (fd == STDOUT_FD) tty_write(buffer);            // redirect stdout to tty for now
     else if (fd == STDERR_FD) printk("stderr: Error %s\n");

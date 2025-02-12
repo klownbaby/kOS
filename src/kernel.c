@@ -14,13 +14,11 @@
  * Have fun creating kOS (pronounced "Chaos")
  */
 
-#include <stdbool.h>
 #include "kernel.h"
 #include "drivers/tty.h"
 #include "drivers/keyboard.h"
 #include "drivers/rtc.h"
 #include "drivers/pit.h"
-
 
 /* Kernel entry point (init hardware and drivers) */
 void 
@@ -40,7 +38,7 @@ kernel_main(__attribute__((used)) uint32_t magic, volatile multiboot_info_t* mbd
     pit_init();
     keyboard_init();
 
-    // init memory map
+    // init physical memory manager
     pmm_init(mbd);
 
     // init syscalls after interrupts setup

@@ -14,15 +14,10 @@
  * Have fun creating kOS (pronounced "Chaos")
  */
 
-#include <stdbool.h>
 #include <stdarg.h>
+#include "kernel.h"
 #include "drivers/tty.h"
 #include "drivers/vga.h"
-#include "stdio.h"
-#include "pmm.h"
-#include "string.h"
-#include "io.h"
-
 
 /* Converts int to ascii representation (used for printing) */
 char* 

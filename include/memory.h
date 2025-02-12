@@ -18,26 +18,30 @@
 
 #include "multiboot.h"
 
-
+/* Page-specific */
 #define PD_ENTRIES      1024
 #define PD_NOT_PRESENT  0x00000002
 #define SUP_RW_PRESENT  0x00000003
 #define PAGE_SIZE       4096
 
 /* 4GB of addressable memory */
-#define MAX_PAGES 1024 * 1024
+#define MAX_PAGES       1024 * 1024
 
-#define KB 1024
-#define MB (1024 * 1024)
-#define GB (1024 * 1024 * 1024)
+/* Common size mappings */
+#define KB              1024
+#define MB              (1024 * 1024)
+#define GB              (1024 * 1024 * 1024)
+
+/* Common page sizes */
+#define FOURKB          4096
 
 #define PTE_ENTRY(pte, attr) \
     ((uint32_t) pte) | attr
 #define ALIGN_UP(size) \
     size + (PG_SIZE - (size % PG_SIZE))
 
-typedef union {
     uint32_t data;
+typedef union {
 
     struct {
         uint32_t present : 1;

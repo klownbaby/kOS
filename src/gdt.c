@@ -14,8 +14,8 @@
  * Have fun creating kOS (pronounced "Chaos")
  */
 
+#include "kernel.h"
 #include "drivers/tty.h"
-#include "gdt.h"
 
 static gdt_entry_t gdt_entries[GDT_ENTRIES];
 static gdtr_t gdt_ptr;

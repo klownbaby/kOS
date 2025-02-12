@@ -24,9 +24,9 @@ ISO := $(OBJECTDIR)/$(KERNELTARGET).iso
 
 .PHONY: all kernel env image verify grub run debug clean
 
-all: clean kernel image run
+all: kernel image run
 
-kernel:
+kernel: clean
 		$(ASC) $(ASMDIR)/boot.S -o $(OBJECTDIR)/boot.o
 		$(ASC) $(ASMDIR)/gdt.S -o $(OBJECTDIR)/_gdt.o
 		$(ASC) $(ASMDIR)/idt.S -o $(OBJECTDIR)/_idt.o

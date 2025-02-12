@@ -14,9 +14,8 @@
  * Have fun creating kOS (pronounced "Chaos")
  */
 
+#include "kernel.h"
 #include "drivers/vga.h"
-#include "io.h"
-#include "string.h"
 
 static uint16_t g_vga_color;
 

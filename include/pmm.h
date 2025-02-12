@@ -17,10 +17,10 @@
 #pragma once
 
 #include "multiboot.h"
-
+#include "ktypes.h"
 
 void display_mm(multiboot_info_t* mbd);
-void pmm_init(volatile multiboot_info_t* mbd);
+kstatus_t pmm_init(volatile multiboot_info_t* mbd);
 
 void* pm_alloc_frame();
 
