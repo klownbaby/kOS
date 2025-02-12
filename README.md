@@ -1,5 +1,14 @@
 # kOS
 
+## Setup and Installation
+Most of the toolchain is dockerized, so the required installs are quite limited
+    - Ensure you have `nasm`, `qemu-system`, `docker`, (OPTIONAL) `cargo` and `rust`
+    - You can create the build environment for the first time with `make env`
+    - Use `make` to build without `rust` support, and `make RUST=1` for the inverse
+
+You should be good to go at this point but honestly, shit happens so be prepared
+to deal with some unexpected BS. Sorry, you're building a kernel, it kinda sucks.
+
 ## Screenshots:
 <img width="720" alt="Screenshot 2024-03-09 at 2 46 07 PM" src="https://github.com/kevinkleiman/kOS/assets/36178104/ad756ebe-e555-4eb3-9603-c9b35ba8858c">
 
