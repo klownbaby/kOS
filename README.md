@@ -1,7 +1,7 @@
 # kOS
 
 ## Setup and Installation
-Most of the toolchain is dockerized, so the required installs are quite limited
+Most of the toolchain is dockerized, so the required installs are quite limited:
     - Ensure you have `nasm`, `qemu-system`, `docker`, (OPTIONAL) `cargo` and `rust`
     - You can create the build environment for the first time with `make env`
     - Use `make` to build without `rust` support, and `make RUST=1` for the inverse
