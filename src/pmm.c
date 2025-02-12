@@ -17,7 +17,7 @@
 #include "kernel.h"
 
 /* Get initial page directory defined in boot.S */
-static page_dir_t page_directory[PD_ENTRIES] __attribute__((aligned(PAGE_SIZE)));
+static page_dir_t root_pgdir[PD_ENTRIES] __attribute__((aligned(PAGE_SIZE)));
 
 /* Print memory regions from multiboot memory map */
 void 
@@ -32,6 +32,16 @@ display_mm(multiboot_info_t* mbd)
     }
 }
 
+void* find_pte(page_dir_t* pgdir, const uint32_t va)
+{
+  page_dir_t* pde = NULL;
+  pte_t* pte = NULL;
+
+  pde = &pgdir[va];
+
+  return pte;
+}
+
 /* Init physical memory manager */
 kstatus_t 
 pmm_init(volatile multiboot_info_t* mbd)
@@ -39,10 +49,10 @@ pmm_init(volatile multiboot_info_t* mbd)
     kstatus_t status = STATUS_UNKNOWN;
 
     // zero-out our page directory
-    kmemset(page_directory, 0, PD_ENTRIES);
+    kmemset(root_pgdir, 0, PD_ENTRIES * sizeof(page_dir_t));
 
     // set first page directory entry to initial directory
-    page_directory[0] = initial_page_dir;
+    root_pgdir[0] = initial_page_dir;
 
     return status;
 }

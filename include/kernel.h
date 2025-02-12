@@ -8,13 +8,15 @@
 #include "file.h"
 #include "kmalloc.h"
 #include "kutils.h"
-#include "memory.h"
 #include "multiboot.h"
 #include "pmm.h"
 #include "stdio.h"
 #include "string.h"
 #include "syscall.h"
 
+/* Kernel start/end mappings */
+extern uint32_t g_kernel_start;
+extern uint32_t g_kernel_end;
 
 /* Number of enabled cores */
 extern uint32_t g_num_cores;
