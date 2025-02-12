@@ -2,9 +2,9 @@
 
 ## Setup and Installation
 Most of the toolchain is dockerized, so the required installs are quite limited:
-    - Ensure you have `nasm`, `qemu-system`, `docker`, (OPTIONAL) `cargo` and `rust`
-    - You can create the build environment for the first time with `make env`
-    - Use `make` to build without `rust` support, and `make RUST=1` for the inverse
+- Ensure you have `nasm`, `qemu-system`, `docker`, (OPTIONAL) `cargo` and `rust`
+- You can create the build environment for the first time with `make env`
+- Use `make` to build without `rust` support, and `make RUST=1` for the inverse
 
 You should be good to go at this point but honestly, shit happens so be prepared
 to deal with some unexpected BS. Sorry, you're building a kernel, it kinda sucks.
