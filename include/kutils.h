@@ -19,22 +19,17 @@
 /* For fast error handling */
 #define KASSERT_GOTO_FAIL(__cond) if (__cond) { goto fail; }
 
+/* Tack on an error */
+#define KASSERT_GOTO_FAIL_ERR(__cond, __err) \
+    if (__cond) { status = __err; goto fail; }
+
 /* Tack on a messge */
 #define KASSERT_GOTO_FAIL_MSG(__cond, __msg) \
   if (__cond) { printk(__msg); goto fail; }
 
+/* Tack on a message and error */
+#define KASSERT_GOTO_FAIL_ERR_MSG(__cond, __err, __msg) \
+  if (__cond) { status = __err; printk(__msg); goto fail; }
+
 /* Assert condition with panic failover */
 #define KASSERT_PANIC(__cond, __msg) if (__cond) { kpanic(__msg); }
-
-/* Null typdef */
-#define NULL (void *) 0x0
-
-/* Type for checking common return values (success/fail) */
-typedef enum {
-    SUCCESS,
-    ERROR_UNKNOWN,
-    ERROR_CONFIGURE,
-    ERROR_IN_USE,
-    ERROR_TIMEOUT
-} retval;
-

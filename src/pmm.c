@@ -16,30 +16,19 @@
 
 #include "kernel.h"
 
-/* Get initial page directory defined in boot.S */
-static page_dir_t root_pgdir[PD_ENTRIES] __attribute__((aligned(PAGE_SIZE)));
+/* Create our physical frame bitmap */
+static uint8_t pmm_bitmap[MAX_PAGE_FRAMES];
 
-/* Print memory regions from multiboot memory map */
-void 
-display_mm(multiboot_info_t* mbd)
+/* Find a page table entry */
+static void* 
+find_pte(pde_t* pgdir, const uint32_t va)
 {
-    for (uint32_t i = 0; i < mbd->mmap_length; i += sizeof(multiboot_memory_map_t)) {
-        multiboot_memory_map_t* mbentry = (multiboot_memory_map_t*) (mbd->mmap_addr + i);
+    pde_t* pde = NULL;
+    pte_t* pte = NULL;
 
-        printk("Region -- addr_low=%x addr_high=%x len_low=%x len_high=%x type=%d\n",
-               mbentry->addr_low, mbentry->addr_high, mbentry->len_low, mbentry->len_high,
-               mbentry->type);
-    }
-}
+    pde = &pgdir[va];
 
-void* find_pte(page_dir_t* pgdir, const uint32_t va)
-{
-  page_dir_t* pde = NULL;
-  pte_t* pte = NULL;
-
-  pde = &pgdir[va];
-
-  return pte;
+    return pte;
 }
 
 /* Init physical memory manager */
@@ -48,23 +37,65 @@ pmm_init(volatile multiboot_info_t* mbd)
 {
     kstatus_t status = STATUS_UNKNOWN;
 
-    // zero-out our page directory
-    kmemset(root_pgdir, 0, PD_ENTRIES * sizeof(page_dir_t));
+    // zero-out our physical page bitmap 
+    kmemset(pmm_bitmap, 0, MAX_PAGE_FRAMES);
 
-    // set first page directory entry to initial directory
-    root_pgdir[0] = initial_page_dir;
+    status = pm_map_page(0x40000000, 0x7FF70000);
+    printk("Successfully mapped page.\n");
 
     return status;
 }
 
-void* 
-pm_alloc_frame()
+/* Map a physical address to respective PTE */
+kstatus_t 
+pm_map_page(void* paddr, void* vaddr)
 {
-    return (void*) 0x0;
+    kstatus_t status = STATUS_UNKNOWN;
+    uint32_t* pt = NULL;
+    uint32_t pde_idx = 0;
+    uint32_t pte_idx = 0;
+
+    // get page directory index
+    pde_idx = (uint32_t)vaddr >> 22;
+
+    // check if page table is present
+    pt = initial_pgdir[pde_idx] & PAGE_PRESENT 
+        ? initial_pgdir[pde_idx] : 0x20000;
+
+    // get page table index
+    pte_idx = (uint32_t)vaddr >> 12 & 0x03FF;
+
+    // ensure the page is not in use
+    KASSERT_GOTO_FAIL_ERR_MSG(
+        pt[pte_idx] & PAGE_PRESENT, STATUS_IN_USE, "Page in use!");
+
+    // set physical address at page table index
+    pt[pte_idx] = PAGE_ALIGN(paddr) | PAGE_PRESENT;
+
+    status = STATUS_SUCCESS;
+
+fail:
+    return status;
 }
 
-int 
-pm_free()
+/* Unmap a physical address to respective PTE */
+kstatus_t 
+pm_umap_page(void* paddr, void* vaddr)
 {
-    return 0;
+    kstatus_t status = STATUS_UNKNOWN;
+
+    return status;
+}
+
+/* Print memory regions from multiboot memory map */
+void 
+pm_display_mm(multiboot_info_t* mbd)
+{
+    for (uint32_t i = 0; i < mbd->mmap_length; i += sizeof(multiboot_memory_map_t)) {
+        multiboot_memory_map_t* mbentry = (multiboot_memory_map_t*) (mbd->mmap_addr + i);
+
+        printk("Region -- addr_low=%x addr_high=%x len_low=%x len_high=%x type=%d\n",
+               mbentry->addr_low, mbentry->addr_high, mbentry->len_low, mbentry->len_high,
+               mbentry->type);
+    }
 }

@@ -23,7 +23,7 @@ stack_top:
 section .boot
 global _start
 _start:
-    mov ecx, (initial_page_dir - 0xC0000000)
+    mov ecx, (initial_pgdir - 0xC0000000)
     mov cr3, ecx
 
     mov ecx, cr4
@@ -34,7 +34,7 @@ _start:
     or ecx, 0x80000000
     mov cr0, ecx
 
-    JMP higher_half
+    jmp higher_half
 
 ; Kernel entry, setup stack pointer and enter kernel_main()
 section .text
@@ -49,17 +49,19 @@ higher_half:
 ; Fall-through in case kernel_main() returns (it shouldn't ever return)
 halt:
     hlt
-    JMP halt
+    jmp halt
 
-; Initialize first page directory
+; Initialize page directory
 section .data
 align 4096
-global initial_page_dir
-initial_page_dir:
-    ; Equivalent to struct defined in memory.h
+global initial_pgdir
+initial_pgdir:
+    ; Map PDE 0x0 to 0x10000000 and set flags
     dd 10000011b
+    ; Map PDE 0xc00
     times 768-1 dd 0
 
+    ; Set page flags
     dd (0 << 22) | 10000011b
     dd (1 << 22) | 10000011b
     dd (2 << 22) | 10000011b

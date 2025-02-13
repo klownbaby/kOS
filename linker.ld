@@ -14,8 +14,9 @@ SECTIONS
         *(.boot)
     }
 
+    /* Mapping higher half kernel */
     . += 0xC0000000;
-    _kernel_start = .;
+    g_kernel_start = .;
 
 	.text ALIGN(4K) : AT(ADDR(.text) - 0xC0000000)
 	{
@@ -39,7 +40,7 @@ SECTIONS
 	{
 		*(COMMON)
 		*(.bss)
-        _kernel_end = .;
 	}
 
+    g_kernel_end = .;
 }

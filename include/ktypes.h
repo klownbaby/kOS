@@ -1,5 +1,8 @@
 #pragma once
 
+/* Null typdef */
+#define NULL (void *) 0x0
+
 /* Define a standard status check return value */
 typedef enum kstatus {
   STATUS_SUCCESS,
@@ -7,6 +10,7 @@ typedef enum kstatus {
   STATUS_INVALID,
   STATUS_NOT_CONFIGURED,
   STATUS_INSUFFICIENT_SPACE,
+  STATUS_IN_USE,
   STATUS_UNKNOWN
 } kstatus_t;
 
@@ -26,7 +30,7 @@ typedef union {
         uint32_t avail_high : 4;
         uint32_t pt_addr : 20;
     } page_dir;
-} page_dir_t;
+} pde_t;
 
 typedef union {
     uint32_t data;
