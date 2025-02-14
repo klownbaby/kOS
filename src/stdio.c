@@ -209,7 +209,8 @@ sprintk(const char* fmt, char* buffer, ...)
 void 
 kcli(char pkeybuffer[], size_t bufsize)
 {
-    if (kstrcmp(pkeybuffer, "clear")) {
+    if (kstrcmp(pkeybuffer, "clear")) 
+    {
         tty_clear();
     } else if (kstrcmp(pkeybuffer, "neofetch")) {
         tty_neofetch();
@@ -221,20 +222,33 @@ kcli(char pkeybuffer[], size_t bufsize)
 }
 
 /* Kernel memset, nearly identical to glibc implementation */
-void* 
+void
 kmemset(void* dest, register int data, register size_t length) 
 {
     // Cast destination pointer to char pointer to dereference later
-    unsigned char* ptr = (unsigned char*) dest;
+    unsigned char* ptr = (unsigned char*)dest;
+    size_t i;
 
     // Loop through each byte until end of data
-    for (size_t i = 0; i < length; ++i) {
+    for (i = 0; i < length; ++i) 
+    {
         // Set dereferenced destination to data at index
         *ptr++ = data;
     }
+}
 
-    // Return destination pointer
-    return dest;
+void
+kmemcpy(void* dest, void* src, register size_t size)
+{
+    unsigned char* dptr = (unsigned char*)dest;
+    unsigned char* sptr = (unsigned char*)src;
+    size_t i;
+
+    for (i = 0; i < size; ++i)
+    {
+        // do the copy
+        *dptr++ = *sptr++;
+    }
 }
 
 /* Kernel panic/exception handler, nothing fancy */

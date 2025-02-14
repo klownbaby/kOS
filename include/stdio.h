@@ -27,8 +27,11 @@
 char* 
 kitoa(int value, char* str, int base);
 
-void* 
+void
 kmemset(void* dest, register int data, register size_t length);
+
+void
+kmemcpy(void* dest, void* src, register size_t size);
 
 void 
 kpanic(char* msg);
