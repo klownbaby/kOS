@@ -84,8 +84,6 @@ pmm_mappage(uint32_t paddr, uint32_t vaddr)
 void 
 pmm_init(volatile multiboot_info_t* mbd)
 {
-    kstatus_t status = STATUS_UNKNOWN;
-
     // zero out or initial page directory
     kmemset(kpd, 0, 1024);
     // zero-out our physical page bitmap 
