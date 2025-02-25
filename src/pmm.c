@@ -31,11 +31,10 @@ enable_paging()
 
     // we can now enable paging by setting cr0
     __asm__ __volatile__ (
-        "mov %%cr0, %%eax     \n" 
-        "or $0x80000000, %%eax\n"
-        "mov %%eax, %%cr0"
-        :
-        :
+        "mov %%cr0,       %%eax  \n" 
+        "or  $0x80000000, %%eax  \n"
+        "mov %%eax,       %%cr0"
+        ::
         : "eax", "memory"
     );
 }
@@ -50,7 +49,7 @@ idmap(uint32_t* pt, uint32_t pd_index)
     for (i = 0; i < PT_NENTRIES; ++i)
     {
         // mark each page as present and offset accordingly
-        pt[i] = (pd_index + 1) * (i * PAGE_SIZE) | 0x3;
+        pt[i] = (pd_index + 1) * (i * PAGE_SIZE) | PAGE_WRITE | PAGE_PRESENT;
     }
 }
 
@@ -62,6 +61,7 @@ map_pt(uint32_t pt, uint32_t pd_index)
     kpd[pd_index] = pt | PAGE_WRITE | PAGE_PRESENT;
 }
 
+/* Map a physical page to a virtual address */
 void
 pmm_mappage(uint32_t paddr, uint32_t vaddr)
 {

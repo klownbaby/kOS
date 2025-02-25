@@ -19,21 +19,18 @@ stack_bottom:
     resb 16384 * 8
 stack_top:
 
-; Load initial page directory and jump to kernel entry
+; Kernel entry, setup stack pointer and enter kernel_main()
 section .boot
 global _start
-_start:
-    ; This is redundant for now
-    jmp higher_half
-
-; Kernel entry, setup stack pointer and enter kernel_main()
-section .text
 extern kernel_main
-higher_half:
+_start:
+    ; Set stack pointer
     mov esp, stack_top
     push ebx
     push eax
     xor ebp, ebp
+
+    ; Finally, jump to high level language (C lol)
     call kernel_main
 
 ; Fall-through in case kernel_main() returns (it shouldn't ever return)

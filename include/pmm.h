@@ -44,10 +44,6 @@
 #define PAGE_ALIGN(__addr) \
   ((uint32_t)(__addr) & ~(0xFFF))
 
-/* Write an entry into the page directory table */
-#define WRITE_PDE(__pde, __msb, __val) \
-    __pde[(__msb / PD_NENTRIES)] = (pde_t){ .data = __val }
-
 #define IS_PRESENT(__addr) \
     ((uint32_t)__addr & PAGE_PRESENT)
 
