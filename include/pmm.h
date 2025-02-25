@@ -51,9 +51,6 @@
 #define IS_PRESENT(__addr) \
     ((uint32_t)__addr & PAGE_PRESENT)
 
-/* Initial page directory defined in boot.S */
-extern uint32_t g_initial_pd[PD_NENTRIES] __attribute__((aligned(PAGE_SIZE)));
-
 /* Flush page from TLB */
 static inline void __invlpg(uint32_t vaddr)
 {
@@ -61,26 +58,28 @@ static inline void __invlpg(uint32_t vaddr)
 }
 
 /* Get current kernel cr3 register */
-static inline uint32_t* __get_cr3()
+static inline uint32_t __get_cr3()
 {
     uint32_t cr3 = 0;
 
     __asm__ __volatile__ ("mov %%cr3, %0" : "=r"(cr3));
 
-    return (uint32_t*)cr3;
+    return cr3;
 }
 
-/* Set new cr3 register valule */
-static inline void __set_cr3(uint32_t* cr3)
+/* Set new cr3 value */
+static inline void __set_cr3(uint32_t cr3)
 {
-    __asm__ __volatile__ (
-                          "mov %0, %%eax\n"
-                          "mov %%eax, %%cr3"
-                           :: "m"(cr3)
-                         );
+     __asm__ __volatile__ (
+        "mov %0, %%eax\n"
+        "mov %%eax, %%cr3"
+        :
+        : "r"(cr3)
+        : "eax", "memory"
+    );
 }
 
-kstatus_t pmm_init(volatile multiboot_info_t* mbd);
-kstatus_t pm_map_page(uint32_t* cr3, void* paddr, void* vaddr);
-kstatus_t pm_umap_page(uint32_t* cr3, void* paddr, void* vaddr);
-void pm_display_mm(multiboot_info_t* mbd);
+kstatus_t pmm_map_page(uint32_t* cr3, void* paddr, void* vaddr);
+kstatus_t pmm_umap_page(uint32_t* cr3, void* paddr, void* vaddr);
+void pmm_init(volatile multiboot_info_t* mbd);
+void pmm_display_mm(multiboot_info_t* mbd);

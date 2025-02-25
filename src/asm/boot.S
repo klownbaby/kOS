@@ -23,17 +23,7 @@ stack_top:
 section .boot
 global _start
 _start:
-    mov ecx, (g_initial_pd - 0xC0000000)
-    mov cr3, ecx
-
-    mov ecx, cr4
-    or ecx, 0x10
-    mov cr4, ecx
-
-    mov ecx, cr0
-    or ecx, 0x80000000
-    mov cr0, ecx
-
+    ; This is redundant for now
     jmp higher_half
 
 ; Kernel entry, setup stack pointer and enter kernel_main()
@@ -50,22 +40,3 @@ higher_half:
 halt:
     hlt
     jmp halt
-
-; Initialize page directory
-section .data
-align 4096
-global g_initial_pd
-g_initial_pd:
-    ; Map PDE 0x0 to 0x10000000 and set flags
-    dd 10000011b
-
-    ; Pad and map PDE 0xc00
-    times 768-1 dd 0
-
-    dd (0 << 22) | 10000011b
-    dd (1 << 22) | 10000011b
-    dd (2 << 22) | 10000011b
-    dd (3 << 22) | 10000011b
-
-    ; Pad out the rest
-    times 256-4 dd 0
