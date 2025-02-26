@@ -18,5 +18,11 @@
 
 #include <stddef.h>
 
+/* Define type for heap free list */
+typedef struct free_list {
+    // next free buffer in linked list
+    struct freelist* next;
+} free_list_t;
+
 void kmalloc_init();
 void* kmalloc(size_t size);

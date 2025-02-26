@@ -17,11 +17,11 @@
 #include "kernel.h"
 
 /* Create our physical frame bitmap */
-static uint8_t pmm_bitmap[MAX_PAGE_FRAMES];
+static pmm_bitmap_entry_t pmm_bitmap[MAX_PAGE_FRAMES];
 
 /* Initialize page directory and both high/low page tables */
-uint32_t kpd[1024] __attribute__((aligned (4096)));
-uint32_t kpt_low_fourmb[1024] __attribute__((aligned (4096)));
+static volatile uint32_t kpd[PD_NENTRIES] __attribute__((aligned (4096)));
+static volatile uint32_t kpt_low_fourmb[PT_NENTRIES] __attribute__((aligned (4096)));
 
 static void
 enable_paging()
@@ -61,9 +61,40 @@ map_pt(uint32_t pt, uint32_t pd_index)
     kpd[pd_index] = pt | PAGE_WRITE | PAGE_PRESENT;
 }
 
+/* Allocate a physcial page in pmm_bitmap */
+kstatus_t
+pmm_alloc(uint32_t frame)
+{
+    kstatus_t status = STATUS_UNKNOWN;
+    uint32_t bitmap_index = 0;
+
+    // make sure we are page-aligned
+    KASSERT_GOTO_FAIL_ERR_MSG(
+        !IS_PAGE_ALIGNED(frame), 
+        STATUS_FAILED,
+        "Frame not aligned on page boundary!\n");
+
+    // get index into pmm_bitmap
+    bitmap_index = frame / PAGE_SIZE;
+
+    // make sure our frame isn't already in use
+    KASSERT_GOTO_FAIL_ERR_MSG(
+        pmm_bitmap[bitmap_index].used, 
+        STATUS_IN_USE, 
+        "Frame is already allocated!\n");
+
+    // mark frame as allocated
+    pmm_bitmap[bitmap_index].used = 1;
+
+    status = STATUS_SUCCESS;
+
+fail:
+    return status;
+}
+
 /* Map a physical page to a virtual address */
 void
-pmm_mappage(uint32_t paddr, uint32_t vaddr)
+pmm_map_page(uint32_t paddr, uint32_t vaddr)
 {
     uint32_t pd_index = 0;
     uint32_t pt_index = 0;
@@ -72,6 +103,9 @@ pmm_mappage(uint32_t paddr, uint32_t vaddr)
     // get page directory and table index from vaddr
     pd_index = vaddr >> 22;
     pt_index = vaddr >> 12 & 0x03FF;
+
+    // invalidate vaddr in TLB
+    __invlpg(vaddr);
 
     // get page table from page directory entry
     pt = (uint32_t*)kpd[pd_index];
@@ -84,6 +118,10 @@ pmm_mappage(uint32_t paddr, uint32_t vaddr)
 void 
 pmm_init(volatile multiboot_info_t* mbd)
 {
+    /* Set our kernel start/end globals on init */
+    g_kernel_start = (uint32_t)&_kernel_start;
+    g_kernel_end = (uint32_t)&_kernel_end;
+
     // zero out or initial page directory
     kmemset(kpd, 0, 1024);
     // zero-out our physical page bitmap 

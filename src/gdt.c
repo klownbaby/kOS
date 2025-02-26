@@ -50,6 +50,6 @@ gdt_init()
 
     load_gdt(&gdt_ptr);
 
-    BOOT_LOG("GDT Loaded.")
+    BOOT_LOG("GDT Loaded.");
 }
 

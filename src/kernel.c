@@ -19,6 +19,7 @@
 #include "drivers/keyboard.h"
 #include "drivers/rtc.h"
 #include "drivers/pit.h"
+#include "kmalloc.h"
 
 /* Kernel entry point (init hardware and drivers) */
 void 
@@ -40,6 +41,9 @@ kernel_main(__attribute__((used)) uint32_t magic, volatile multiboot_info_t* mbd
 
     // init physical memory manager
     pmm_init(mbd);
+
+    // init heap
+    kmalloc_init();
 
     // init syscalls after interrupts setup
     syscall_init();

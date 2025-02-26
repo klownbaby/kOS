@@ -14,12 +14,16 @@
 #include "string.h"
 #include "syscall.h"
 
-/* Kernel start/end mappings */
-extern uint32_t g_kernel_start;
-extern uint32_t g_kernel_end;
+/* Kernel start/end mappings from linker */
+extern volatile uint32_t _kernel_start;
+extern volatile uint32_t _kernel_end;
 
 /* Number of enabled cores */
 extern uint32_t g_num_cores;
+
+/* Avoiding having to define at compile-time */
+extern uint32_t g_kernel_start;
+extern uint32_t g_kernel_end;
 
 /* Kernel heap */
 extern uint32_t g_kheap_start;

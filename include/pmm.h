@@ -40,12 +40,25 @@
 #define FOURKB          4 * KB
 #define ONEMB           1 * MB
 
-/* Align address with default page size */
-#define PAGE_ALIGN(__addr) \
+/* Align address down to default page size */
+#define PAGE_ALIGN_DOWN(__addr) \
   ((uint32_t)(__addr) & ~(0xFFF))
+
+/* Align address up to default page size */
+#define PAGE_ALIGN_UP(__addr) \
+  ((uint32_t)__addr + (PAGE_SIZE - (__addr & 0xFFF)))
+
+#define IS_PAGE_ALIGNED(__addr) \
+  ((__addr & 0xFFF) == 0)
 
 #define IS_PRESENT(__addr) \
     ((uint32_t)__addr & PAGE_PRESENT)
+
+/* Physical memory bitmap entry */
+typedef struct pmm_bitmap_entry {
+    /* Set single bitfield for efficiency */
+    uint8_t used: 1;
+} pmm_bitmap_entry_t;
 
 /* Flush page from TLB */
 static inline void __invlpg(uint32_t vaddr)
@@ -67,7 +80,7 @@ static inline uint32_t __get_cr3()
 static inline void __set_cr3(uint32_t cr3)
 {
      __asm__ __volatile__ (
-        "mov %0, %%eax\n"
+        "mov %0,    %%eax\n"
         "mov %%eax, %%cr3"
         :
         : "r"(cr3)
@@ -75,7 +88,8 @@ static inline void __set_cr3(uint32_t cr3)
     );
 }
 
-kstatus_t pmm_map_page(uint32_t* cr3, void* paddr, void* vaddr);
 kstatus_t pmm_umap_page(uint32_t* cr3, void* paddr, void* vaddr);
+kstatus_t pmm_alloc(uint32_t frame);
 void pmm_init(volatile multiboot_info_t* mbd);
+void pmm_map_page(uint32_t paddr, uint32_t vaddr);
 void pmm_display_mm(multiboot_info_t* mbd);
