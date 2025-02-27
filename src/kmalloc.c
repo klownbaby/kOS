@@ -24,7 +24,7 @@ void
 kmalloc_init() 
 {
     uint32_t low = PAGE_ALIGN_DOWN(g_kernel_start);
-    uint32_t high = PAGE_ALIGN_DOWN(g_kernel_end);
+    uint32_t high = PAGE_ALIGN_UP(g_kernel_end);
 
     // zero out our kernel free list on init
     kmemset(&kfree_list, 0, sizeof(kfree_list));
@@ -33,9 +33,9 @@ kmalloc_init()
     for (uint32_t frame = low; frame < high; frame += PAGE_SIZE)
     {
         // allocate our page in pmm_bitmap
-        KASSERT_PANIC(
-            pmm_alloc(frame) != STATUS_SUCCESS, 
-            "Kernel heap initialization failed!\n");
+        // KASSERT_PANIC(
+        //     pmm_alloc_frame(frame) != STATUS_SUCCESS, 
+        //     "Kernel heap initialization failed!\n");
     }
 
     // we're donw

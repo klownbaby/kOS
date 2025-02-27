@@ -88,8 +88,21 @@ static inline void __set_cr3(uint32_t cr3)
     );
 }
 
-kstatus_t pmm_umap_page(uint32_t* cr3, void* paddr, void* vaddr);
-kstatus_t pmm_alloc(uint32_t frame);
-void pmm_init(volatile multiboot_info_t* mbd);
-void pmm_map_page(uint32_t paddr, uint32_t vaddr);
-void pmm_display_mm(multiboot_info_t* mbd);
+/* PMM function definitions */
+kstatus_t 
+pmm_umap_page(uint32_t* cr3, void* paddr, void* vaddr);
+
+kstatus_t 
+pmm_alloc_frame(uint32_t frame);
+
+kstatus_t
+pmm_alloc_range(uint32_t start, uint32_t end);
+
+void 
+pmm_init(volatile multiboot_info_t* mbd);
+
+void 
+pmm_map_page(uint32_t paddr, uint32_t vaddr);
+
+void 
+pmm_display_mm(multiboot_info_t* mbd);

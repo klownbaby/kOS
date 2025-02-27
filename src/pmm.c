@@ -14,7 +14,10 @@
  * Have fun creating kOS (pronounced "Chaos")
  */
 
+#include "pmm.h"
 #include "kernel.h"
+#include "kutils.h"
+#include "multiboot.h"
 
 /* Create our physical frame bitmap */
 static pmm_bitmap_entry_t pmm_bitmap[MAX_PAGE_FRAMES];
@@ -63,7 +66,7 @@ map_pt(uint32_t pt, uint32_t pd_index)
 
 /* Allocate a physcial page in pmm_bitmap */
 kstatus_t
-pmm_alloc(uint32_t frame)
+pmm_alloc_frame(uint32_t frame)
 {
     kstatus_t status = STATUS_UNKNOWN;
     uint32_t bitmap_index = 0;
@@ -86,6 +89,35 @@ pmm_alloc(uint32_t frame)
     // mark frame as allocated
     pmm_bitmap[bitmap_index].used = 1;
 
+    status = STATUS_SUCCESS;
+
+fail:
+    return status;
+}
+
+/* Allocate all page frames within range */
+kstatus_t
+pmm_alloc_range(uint32_t start, uint32_t end)
+{
+    kstatus_t status = STATUS_UNKNOWN;
+
+    // ensure our start and end pointers are page-aligned
+    start = PAGE_ALIGN_DOWN(start);
+    end = PAGE_ALIGN_UP(end);
+
+    for (uint32_t frame = start; frame < end; frame += PAGE_SIZE)
+    {
+        // allocate each frame
+        status = pmm_alloc_frame(frame);
+
+        // ensure our allocation succeeded
+        KASSERT_GOTO_FAIL_ERR_MSG(
+            status != STATUS_SUCCESS, 
+            STATUS_FAILED, 
+            "Failed to map range!");
+    }
+
+    // successfully mapped all page frames
     status = STATUS_SUCCESS;
 
 fail:
@@ -118,6 +150,11 @@ pmm_map_page(uint32_t paddr, uint32_t vaddr)
 void 
 pmm_init(volatile multiboot_info_t* mbd)
 {
+    uint32_t mem_high = 0;
+    uint32_t phys_alloc_start = 0;
+    uint32_t size = 0;
+    multiboot_memory_map_t* mbentry = NULL;
+
     /* Set our kernel start/end globals on init */
     g_kernel_start = (uint32_t)&_kernel_start;
     g_kernel_end = (uint32_t)&_kernel_end;
@@ -135,5 +172,25 @@ pmm_init(volatile multiboot_info_t* mbd)
 
     // finally, enable paging
     enable_paging();
+
+    mem_high = mbd->mem_upper;
+    phys_alloc_start = (mem_high + 0xFFF) & ~0xFFF;
+
+    // now we need to parse our GRUB memory map
+    for (uint32_t i = 0; i < mbd->mmap_length; i += sizeof(multiboot_memory_map_t)) 
+    {
+        mbentry = (multiboot_memory_map_t*)(mbd->mmap_addr + i);
+
+        // mark each page frame as used within non-available regions
+        if (mbentry->type != MULTIBOOT_MEMORY_AVAILABLE)
+        {
+            // allocate range from start of region to end
+            KASSERT_PANIC(
+                pmm_alloc_range(
+                    mbentry->addr_low, 
+                    (mbentry->addr_low + mbentry->len_low)) != STATUS_SUCCESS, 
+                "Failed to initialize physical memory map!");
+        }
+    }
 }
 

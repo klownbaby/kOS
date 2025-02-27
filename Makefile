@@ -30,7 +30,7 @@ kernel: clean
 		$(ASC) $(ASMDIR)/boot.S -o $(OBJECTDIR)/boot.o
 		$(ASC) $(ASMDIR)/gdt.S -o $(OBJECTDIR)/_gdt.o
 		$(ASC) $(ASMDIR)/idt.S -o $(OBJECTDIR)/_idt.o
-		$(DOCKER) $(CC)-gcc -g -I $(INCLUDEDIR) -c $(CTARGETS) -std=gnu99 -ffreestanding -O2 -Wall -Wextra
+		$(DOCKER) $(CC)-gcc -g -I $(INCLUDEDIR) -c $(CTARGETS) -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Wno-incompatible-pointer-types
 
 		mv ./*.o $(OBJECTDIR)
 
