@@ -117,10 +117,13 @@ uint32_t
 pmm_alloc_next();
 
 void 
-pmm_init(volatile multiboot_info_t* mbd);
+pmm_map_page(uint32_t paddr, uint32_t vaddr);
+
+int32_t
+pmm_virt_to_phys(uint32_t vaddr);
 
 void 
-pmm_map_page(uint32_t paddr, uint32_t vaddr);
+pmm_init(volatile multiboot_info_t* mbd);
 
 void 
 pmm_display_mm(multiboot_info_t* mbd);

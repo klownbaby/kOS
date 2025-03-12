@@ -157,6 +157,37 @@ fail:
     return frame;
 }
 
+/* Find physical address mapping for virtual address */
+int32_t
+pmm_virt_to_phys(uint32_t vaddr)
+{
+    uint32_t pd_index = 0;
+    uint32_t pt_index = 0;
+    uint32_t* pt = NULL;
+    int32_t paddr = -1;
+    
+    // get page directory and table index from vaddr
+    pd_index = vaddr >> 22;
+    pt_index = vaddr >> 12 & 0x03FF;
+
+    // ensure our page table is present
+    KASSERT_GOTO_FAIL_MSG(
+        !IS_PRESENT(kpd[pd_index]), "Page table not mapped for vaddr!\n");
+
+    // get virtual address for recursive mapping
+    pt = (uint32_t*)(PT_VADDR_BASE + (pd_index * PAGE_SIZE));
+
+    // ensure a frame has been mapped
+    KASSERT_GOTO_FAIL_MSG(
+        !IS_PRESENT(pt[pt_index]), "Frame not mapped in page table!\n");
+
+    // ok, we're good
+    paddr = pt[pt_index] & ~(0xF);
+
+fail:
+    return paddr;
+}
+
 /* Map a physical page to a virtual address */
 void
 pmm_map_page(uint32_t paddr, uint32_t vaddr)
