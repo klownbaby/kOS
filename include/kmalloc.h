@@ -21,13 +21,7 @@
 /* Define our default kernel heap size */
 #define KERNEL_HEAP_DEFAULT_SIZE 0x4000
 
-/* Define type for heap free list */
-typedef struct free_list {
-    // next free buffer in linked list
-    struct freelist* next;
-} free_list_t;
-
-/* Kernel heap API definition */
+/* Kernel heap function defs */
 void
 ksbrk(size_t size);
 
@@ -36,3 +30,6 @@ kmalloc_init();
 
 void*
 kmalloc(size_t size);
+
+void 
+kfree(void* addr);

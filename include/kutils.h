@@ -31,5 +31,8 @@
 #define KASSERT_GOTO_FAIL_ERR_MSG(__cond, __err, __msg) \
   if (__cond) { status = __err; printk(__msg); goto fail; }
 
+/* For fast checks */
+#define KASSERT_GOTO_SUCCESS(__cond) if (__cond) { goto success; }
+
 /* Assert condition with panic failover */
 #define KASSERT_PANIC(__cond, __msg) if (__cond) { kpanic(__msg); }

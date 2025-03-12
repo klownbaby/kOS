@@ -23,6 +23,9 @@ typedef struct pmm_bitmap_entry {
 } pmm_bitmap_entry_t;
 
 /* Heap free list */
-struct freelist {
-    struct freelist* next;
-};
+typedef struct free_chunk {
+    /* Size of free buffer */
+    uint32_t size;
+    /* Next free buffer node */
+    struct free_chunk* next;
+} free_chunk_t;
