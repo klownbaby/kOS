@@ -60,8 +60,6 @@ kmalloc_init()
     // map kernel heap at start vaddr
     ksbrk(KERNEL_HEAP_DEFAULT_SIZE);
 
-    printk("conversion -> %x\n", pmm_virt_to_phys(g_heap_start));
-
     // we're done
     BOOT_LOG("Kernel heap initialized.");
 }
