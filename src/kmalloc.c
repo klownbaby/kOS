@@ -35,7 +35,7 @@ ksbrk(size_t size)
     }
 
     // start our mapping at the current tail of heap
-    map_start = (uint32_t)(g_heap_end - g_kernel_start);
+    map_start = (uint32_t)(g_heap_end - g_heap_start);
 
     for (uint32_t i = map_start; i < size; i += PAGE_SIZE)
     {
