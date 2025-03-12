@@ -27,7 +27,7 @@ __attribute__((aligned (4096))) static volatile uint32_t kpd[PD_NENTRIES];
 
 /* Identity map first 4MB of address space */
 static void 
-idmap4mb()
+id_map_4mb()
 {
     uint32_t* id_pt = NULL;
     
@@ -220,10 +220,10 @@ pmm_init(volatile multiboot_info_t* mbd)
     }
 
     // id map first 4MB
-    idmap4mb();
+    id_map_4mb();
 
     // recursive page direcotory mapping
-    map_pt((uint32_t)kpd, 1023);
+    map_pt((uint32_t)kpd, (PT_VADDR_BASE >> 22));
 
     // finally, enable paging
     enable_paging((uint32_t)kpd);

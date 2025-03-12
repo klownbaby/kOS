@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 /* Null typdef */
 #define NULL (void *) 0x0
 
@@ -14,47 +16,13 @@ typedef enum kstatus {
   STATUS_UNKNOWN
 } kstatus_t;
 
-/* Paging structures */
-typedef union {
-    uint32_t data;
+/* Physical memory bitmap entry */
+typedef struct pmm_bitmap_entry {
+    /* Set single bitfield for efficiency */
+    uint8_t used: 1;
+} pmm_bitmap_entry_t;
 
-    struct {
-        uint32_t present : 1;
-        uint32_t rw : 1;
-        uint32_t us : 1;
-        uint32_t write_through : 1;
-        uint32_t cache_disable : 1;
-        uint32_t accessed : 1;
-        uint32_t avail_low : 1;
-        uint32_t page_size : 1;
-        uint32_t avail_high : 4;
-        uint32_t pt_addr : 20;
-    } page_dir;
-} pde_t;
-
-typedef union {
-    uint32_t data;
-
-    struct {
-        uint32_t present : 1;
-        uint32_t rw : 1;
-        uint32_t us : 1;
-        uint32_t write_through : 1;
-        uint32_t cache_disable : 1;
-        uint32_t accessed : 1;
-        uint32_t avail_low : 1;
-        uint32_t page_size : 1;
-        uint32_t global : 1;
-        uint32_t avail_high : 3;
-        uint32_t pt_addr : 20;
-    } pte;
-} pte_t;
-
+/* Heap free list */
 struct freelist {
     struct freelist* next;
 };
-
-typedef struct {
-    struct freelist* freelist;
-} mmap_t;
-

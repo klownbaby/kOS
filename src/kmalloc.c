@@ -21,18 +21,45 @@
 /* Initialize our kernel free list */
 static free_list_t kfree_list;
 
+/* Increment kernel heap aligned on page, map new pages */
+void
+ksbrk(size_t size)
+{
+    uint32_t map_start = 0;
+
+    // align our size up on page boundary
+    size = PAGE_ALIGN_UP(size);
+    // start our mapping at the current tail of heap
+    map_start = (uint32_t)(g_heap_end - g_kernel_start);
+
+    for (uint32_t i = map_start; i < size; i += PAGE_SIZE)
+    {
+        // map a new page
+        pmm_map_page(pmm_alloc_next(), (uint32_t)g_heap_start + i);
+    }
+
+    // increment our heap end pointer
+    g_heap_end += size;
+}
+
+/* Initialize kernel heap */
 void 
 kmalloc_init() 
 {
-    size_t heap_size = 0;
+    // set heap size to zero
+    g_heap_end = g_heap_start;
 
     // zero out our kernel free list on init
     kmemset(&kfree_list, 0, sizeof(kfree_list));
 
-    // we're donw
+    // map kernel heap at start vaddr
+    ksbrk(KERNEL_HEAP_DEFAULT_SIZE);
+
+    // we're done
     BOOT_LOG("Kernel heap initialized.");
 }
 
+/* Kernel heap allocator */
 void* 
 kmalloc(size_t size)
 {

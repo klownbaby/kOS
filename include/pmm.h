@@ -52,17 +52,13 @@
 #define PAGE_ALIGN_UP(__addr) \
   ((uint32_t)__addr + (PAGE_SIZE - (__addr & 0xFFF)))
 
+/* Checks that a page aligned on page boundary */
 #define IS_PAGE_ALIGNED(__addr) \
   ((__addr & 0xFFF) == 0)
 
+/* Checks that a page is marked present */
 #define IS_PRESENT(__addr) \
     ((uint32_t)__addr & PAGE_PRESENT)
-
-/* Physical memory bitmap entry */
-typedef struct pmm_bitmap_entry {
-    /* Set single bitfield for efficiency */
-    uint8_t used: 1;
-} pmm_bitmap_entry_t;
 
 /* Flush page from TLB */
 static inline void __invlpg(uint32_t vaddr)

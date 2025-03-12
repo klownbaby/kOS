@@ -18,7 +18,8 @@
 
 #include <stddef.h>
 
-#define KHEAP_PAGE_TABLE_START  0x005A0000
+/* Define our default kernel heap size */
+#define KERNEL_HEAP_DEFAULT_SIZE 0x4000
 
 /* Define type for heap free list */
 typedef struct free_list {
@@ -26,5 +27,12 @@ typedef struct free_list {
     struct freelist* next;
 } free_list_t;
 
-void kmalloc_init();
-void* kmalloc(size_t size);
+/* Kernel heap API definition */
+void
+ksbrk(size_t size);
+
+void 
+kmalloc_init();
+
+void*
+kmalloc(size_t size);

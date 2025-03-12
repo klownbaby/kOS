@@ -26,5 +26,5 @@ extern uint32_t g_kernel_start;
 extern uint32_t g_kernel_end;
 
 /* Kernel heap */
-extern uint32_t g_kheap_start;
-extern uint32_t g_kheap_end;
+extern uint8_t* g_heap_start;
+extern uint8_t* g_heap_end;

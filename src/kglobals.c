@@ -11,5 +11,5 @@ uint32_t g_kernel_start = 0;
 uint32_t g_kernel_end = 0;
 
 /* Heap globals */
-uint32_t g_heap_start = 0xfff00000;
-uint32_t g_heap_end = 0;
+uint8_t* g_heap_start = (uint8_t*)0x7ff00000;
+uint8_t* g_heap_end = 0;
