@@ -27,8 +27,13 @@ ksbrk(size_t size)
 {
     uint32_t map_start = 0;
 
-    // align our size up on page boundary
-    size = PAGE_ALIGN_UP(size);
+    // size must be aligned on page boundary
+    if (!IS_PAGE_ALIGNED(size))
+    {
+        // align our size up on page boundary
+        size = PAGE_ALIGN_UP(size);
+    }
+
     // start our mapping at the current tail of heap
     map_start = (uint32_t)(g_heap_end - g_kernel_start);
 
