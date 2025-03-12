@@ -22,38 +22,29 @@
 /* Create our physical frame bitmap */
 static pmm_bitmap_entry_t pmm_bitmap[MAX_PAGE_FRAMES];
 
-/* Initialize page directory and both high/low page tables */
-static volatile uint32_t kpd[PD_NENTRIES] __attribute__((aligned (4096)));
-static volatile uint32_t kpt_low_fourmb[PT_NENTRIES] __attribute__((aligned (4096)));
+/* Kernel page directory */
+__attribute__((aligned (4096))) static volatile uint32_t kpd[1024];
 
-static void
-enable_paging()
-{
-    // set cr3 to our initial kernel page directory
-    __set_cr3((uint32_t)kpd);
-
-    // we can now enable paging by setting cr0
-    __asm__ __volatile__ (
-        "mov %%cr0,       %%eax  \n" 
-        "or  $0x80000000, %%eax  \n"
-        "mov %%eax,       %%cr0"
-        ::
-        : "eax", "memory"
-    );
-}
-
-/* Identity map virt/phys memory at given page dir index */
+/* Identity map first 4MB of address space */
 static void 
-idmap(uint32_t* pt, uint32_t pd_index)
+idmap4mb()
 {
-    uint32_t i;
+    uint32_t* id_pt = NULL;
+    
+    /* Allocate physical page for new page table */
+    id_pt = (uint32_t*)pmm_alloc_next();
 
     // set each pte a valid paddr (identity mapping)
-    for (i = 0; i < PT_NENTRIES; ++i)
+    for (uint32_t i = 0; i < PT_NENTRIES; ++i)
     {
         // mark each page as present and offset accordingly
-        pt[i] = (pd_index + 1) * (i * PAGE_SIZE) | PAGE_WRITE | PAGE_PRESENT;
+        id_pt[i] = (i * PAGE_SIZE) | PAGE_WRITE | PAGE_PRESENT;
+        // mark page as used
+        pmm_bitmap[i].used = 1;
     }
+
+    /* Reserve first page in pt mapping for id mapped pages */
+    kpd[0] = (uint32_t)id_pt | PAGE_WRITE | PAGE_PRESENT;
 }
 
 /* Map a new page table for given page dir entry */
@@ -62,6 +53,30 @@ map_pt(uint32_t pt, uint32_t pd_index)
 {
     // map page table at index with WP permissions
     kpd[pd_index] = pt | PAGE_WRITE | PAGE_PRESENT;
+}
+
+/* Find first available page frame */
+static uint32_t
+first_free_frame()
+{
+    pmm_bitmap_entry_t entry = { 0 };
+    uint32_t frame = 0;
+
+    // loop through each bitmap entry to find first unused
+    for (uint32_t i = 0; i < MAX_PAGE_FRAMES; ++i)
+    {
+        entry = pmm_bitmap[i];
+
+        // check if used, if not then set and break
+        if (!entry.used)
+        {
+            frame = i * PAGE_SIZE;
+            break;
+        }
+    }
+
+    // finally, return our free frame
+    return frame;
 }
 
 /* Allocate a physcial page in pmm_bitmap */
@@ -124,6 +139,24 @@ fail:
     return status;
 }
 
+/* Allocate physical frame automatically using next free */
+uint32_t
+pmm_alloc_next()
+{
+    uint32_t frame = 0;
+
+    // get first free page frame
+    frame = first_free_frame();
+
+    // make sure we can actually allocate the frame
+    KASSERT_PANIC(
+        pmm_alloc_frame(frame) != STATUS_SUCCESS, 
+        "First free frame already in use?!");
+
+fail:
+    return frame;
+}
+
 /* Map a physical page to a virtual address */
 void
 pmm_map_page(uint32_t paddr, uint32_t vaddr)
@@ -136,22 +169,26 @@ pmm_map_page(uint32_t paddr, uint32_t vaddr)
     pd_index = vaddr >> 22;
     pt_index = vaddr >> 12 & 0x03FF;
 
-    // invalidate vaddr in TLB
-    __invlpg(vaddr);
+    // should we allocate a new page table
+    if (!IS_PRESENT(kpd[pd_index]))
+    {
+        map_pt(pmm_alloc_next(), pd_index);
+    }
 
-    // get page table from page directory entry
-    pt = (uint32_t*)kpd[pd_index];
+    // get virtual address for recursive mapping
+    pt = (uint32_t*)(0xFFC00000 + (pd_index * PAGE_SIZE));
 
     // map as WP for now
     pt[pt_index] = paddr | PAGE_WRITE | PAGE_PRESENT;
+
+    // invalidate vaddr in TLB
+    __invlpg(vaddr);
 }
 
 /* Init physical memory manager */
 void 
 pmm_init(volatile multiboot_info_t* mbd)
 {
-    uint32_t mem_high = 0;
-    uint32_t phys_alloc_start = 0;
     uint32_t size = 0;
     multiboot_memory_map_t* mbentry = NULL;
 
@@ -163,18 +200,6 @@ pmm_init(volatile multiboot_info_t* mbd)
     kmemset(kpd, 0, 1024);
     // zero-out our physical page bitmap 
     kmemset(pmm_bitmap, 0, MAX_PAGE_FRAMES);
-
-    // identity map first 4MB of kernel memory
-    idmap(kpt_low_fourmb, 0x0);
-
-    // map initial page table
-    map_pt((uint32_t)kpt_low_fourmb, 0x0);
-
-    // finally, enable paging
-    enable_paging();
-
-    mem_high = mbd->mem_upper;
-    phys_alloc_start = (mem_high + 0xFFF) & ~0xFFF;
 
     // now we need to parse our GRUB memory map
     for (uint32_t i = 0; i < mbd->mmap_length; i += sizeof(multiboot_memory_map_t)) 
@@ -189,8 +214,16 @@ pmm_init(volatile multiboot_info_t* mbd)
                 pmm_alloc_range(
                     mbentry->addr_low, 
                     (mbentry->addr_low + mbentry->len_low)) != STATUS_SUCCESS, 
-                "Failed to initialize physical memory map!");
+                "Failed to initialize physical memory map!\n");
         }
     }
-}
 
+    // id map first 4MB
+    idmap4mb();
+
+    // recursive page direcotory mapping
+    map_pt((uint32_t)kpd, 1023);
+
+    // finally, enable paging
+    enable_paging((uint32_t)kpd);
+}

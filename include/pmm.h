@@ -23,6 +23,7 @@
 #define PD_NENTRIES     1024
 #define PT_NENTRIES     1024
 #define PAGE_SIZE       4096
+#define ID_MAP_END      4 * MB
 
 /* Page acccess masks */
 #define PAGE_PRESENT    (1 << 0)
@@ -39,6 +40,16 @@
 /* Common sizes */
 #define FOURKB          4 * KB
 #define ONEMB           1 * MB
+
+/* Default index for recursive mapping */
+#define KERNEL_PT_INDEX 768
+
+/* Virtual address for base of recursive page direcotry mapping */
+#define PT_VADDR_BASE   0xFFC00000
+
+/* Get kernel page table virtual address */
+#define KERNEL_PAGE_TABLE_VADDR(__idx) \
+  ((uint32_t*)((uint32_t)kpd | (__idx << 12)))
 
 /* Align address down to default page size */
 #define PAGE_ALIGN_DOWN(__addr) \
@@ -63,7 +74,7 @@ typedef struct pmm_bitmap_entry {
 /* Flush page from TLB */
 static inline void __invlpg(uint32_t vaddr)
 {
-    __asm__ __volatile__ ("invlpg %0" :: "m"(vaddr));
+   asm volatile("invlpg (%0)" ::"r" (vaddr) : "memory"); 
 }
 
 /* Get current kernel cr3 register */
@@ -88,6 +99,21 @@ static inline void __set_cr3(uint32_t cr3)
     );
 }
 
+static inline void enable_paging(uint32_t pd)
+{
+    // set cr3 to our initial kernel page directory
+    __set_cr3((uint32_t)pd);
+
+    // we can now enable paging by setting cr0
+    __asm__ __volatile__ (
+        "mov %%cr0,       %%eax  \n" 
+        "or  $0x80000000, %%eax  \n"
+        "mov %%eax,       %%cr0"
+        ::
+        : "eax", "memory"
+    );
+}
+
 /* PMM function definitions */
 kstatus_t 
 pmm_umap_page(uint32_t* cr3, void* paddr, void* vaddr);
@@ -97,6 +123,9 @@ pmm_alloc_frame(uint32_t frame);
 
 kstatus_t
 pmm_alloc_range(uint32_t start, uint32_t end);
+
+uint32_t
+pmm_alloc_next();
 
 void 
 pmm_init(volatile multiboot_info_t* mbd);

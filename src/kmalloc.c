@@ -16,27 +16,24 @@
 
 #include "kernel.h"
 #include "drivers/tty.h"
+#include "pmm.h"
 
 /* Initialize our kernel free list */
 static free_list_t kfree_list;
 
+#define TEST ((uint32_t*)0xd02000)
+
 void 
 kmalloc_init() 
 {
-    uint32_t low = PAGE_ALIGN_DOWN(g_kernel_start);
-    uint32_t high = PAGE_ALIGN_UP(g_kernel_end);
+    size_t heap_size = 0;
+    uint32_t test = 0xc0a00000;
+
+    pmm_map_page(test, (uint32_t)TEST);
+    TEST[0] = 1;
 
     // zero out our kernel free list on init
     kmemset(&kfree_list, 0, sizeof(kfree_list));
-
-    // map each kernel page as used
-    for (uint32_t frame = low; frame < high; frame += PAGE_SIZE)
-    {
-        // allocate our page in pmm_bitmap
-        // KASSERT_PANIC(
-        //     pmm_alloc_frame(frame) != STATUS_SUCCESS, 
-        //     "Kernel heap initialization failed!\n");
-    }
 
     // we're donw
     BOOT_LOG("Kernel heap initialized.");

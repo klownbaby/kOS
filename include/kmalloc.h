@@ -18,6 +18,8 @@
 
 #include <stddef.h>
 
+#define KHEAP_PAGE_TABLE_START  0x005A0000
+
 /* Define type for heap free list */
 typedef struct free_list {
     // next free buffer in linked list
