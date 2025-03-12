@@ -41,15 +41,8 @@
 #define FOURKB          4 * KB
 #define ONEMB           1 * MB
 
-/* Default index for recursive mapping */
-#define KERNEL_PT_INDEX 768
-
 /* Virtual address for base of recursive page direcotry mapping */
 #define PT_VADDR_BASE   0xFFC00000
-
-/* Get kernel page table virtual address */
-#define KERNEL_PAGE_TABLE_VADDR(__idx) \
-  ((uint32_t*)((uint32_t)kpd | (__idx << 12)))
 
 /* Align address down to default page size */
 #define PAGE_ALIGN_DOWN(__addr) \

@@ -21,16 +21,10 @@
 /* Initialize our kernel free list */
 static free_list_t kfree_list;
 
-#define TEST ((uint32_t*)0xd02000)
-
 void 
 kmalloc_init() 
 {
     size_t heap_size = 0;
-    uint32_t test = 0xc0a00000;
-
-    pmm_map_page(test, (uint32_t)TEST);
-    TEST[0] = 1;
 
     // zero out our kernel free list on init
     kmemset(&kfree_list, 0, sizeof(kfree_list));

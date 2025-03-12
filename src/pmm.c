@@ -23,7 +23,7 @@
 static pmm_bitmap_entry_t pmm_bitmap[MAX_PAGE_FRAMES];
 
 /* Kernel page directory */
-__attribute__((aligned (4096))) static volatile uint32_t kpd[1024];
+__attribute__((aligned (4096))) static volatile uint32_t kpd[PD_NENTRIES];
 
 /* Identity map first 4MB of address space */
 static void 
@@ -176,7 +176,7 @@ pmm_map_page(uint32_t paddr, uint32_t vaddr)
     }
 
     // get virtual address for recursive mapping
-    pt = (uint32_t*)(0xFFC00000 + (pd_index * PAGE_SIZE));
+    pt = (uint32_t*)(PT_VADDR_BASE + (pd_index * PAGE_SIZE));
 
     // map as WP for now
     pt[pt_index] = paddr | PAGE_WRITE | PAGE_PRESENT;
@@ -204,6 +204,7 @@ pmm_init(volatile multiboot_info_t* mbd)
     // now we need to parse our GRUB memory map
     for (uint32_t i = 0; i < mbd->mmap_length; i += sizeof(multiboot_memory_map_t)) 
     {
+        // get current map entry
         mbentry = (multiboot_memory_map_t*)(mbd->mmap_addr + i);
 
         // mark each page frame as used within non-available regions
