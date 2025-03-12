@@ -31,7 +31,7 @@ idmap4mb()
 {
     uint32_t* id_pt = NULL;
     
-    /* Allocate physical page for new page table */
+    // allocate physical page for new page table
     id_pt = (uint32_t*)pmm_alloc_next();
 
     // set each pte a valid paddr (identity mapping)
@@ -43,7 +43,7 @@ idmap4mb()
         pmm_bitmap[i].used = 1;
     }
 
-    /* Reserve first page in pt mapping for id mapped pages */
+    // reserve first page in pt mapping for id mapped pages
     kpd[0] = (uint32_t)id_pt | PAGE_WRITE | PAGE_PRESENT;
 }
 
@@ -192,11 +192,11 @@ pmm_init(volatile multiboot_info_t* mbd)
     uint32_t size = 0;
     multiboot_memory_map_t* mbentry = NULL;
 
-    /* Set our kernel start/end globals on init */
+    // set our kernel start/end globals on init
     g_kernel_start = (uint32_t)&_kernel_start;
     g_kernel_end = (uint32_t)&_kernel_end;
 
-    // zero out or initial page directory
+    // zero out or initial page directory and page table
     kmemset(kpd, 0, 1024);
     // zero-out our physical page bitmap 
     kmemset(pmm_bitmap, 0, MAX_PAGE_FRAMES);
