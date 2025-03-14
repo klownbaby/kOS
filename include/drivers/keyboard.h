@@ -16,6 +16,9 @@
 
 #pragma once
 
+#include <stdint.h>
+#include "ktypes.h"
+
 #define UNKNOWN 0xFFFFFFFF
 #define ESC 0xFFFFFFFF - 1
 #define CTRL 0xFFFFFFFF - 2
@@ -50,4 +53,12 @@
 #define ALTGR 0xFFFFFFFF - 31
 #define NUMLCK 0xFFFFFFFF - 32
 
-void keyboard_init();
+/* Keyboard function defs */
+void 
+keyboard_init();
+
+char
+keyboard_scan_to_char(uint8_t scan);
+
+void
+keyboard_set_notify_cb(keyboard_notify_cb cb);

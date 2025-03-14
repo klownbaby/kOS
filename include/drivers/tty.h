@@ -17,6 +17,7 @@
 #pragma once
 
 #include <stddef.h>
+#include <stdbool.h>
 #include "vga.h"
 
 #define BOOT_LOG(msg) \
@@ -34,10 +35,20 @@ typedef struct {
     vga_color_t bgcolor;
 } tty_state_t;
 
-void tty_init();
-void tty_write(const char* str);
-void tty_writecolor(const char* str, vga_color_t fg, vga_color_t bg);
-void tty_putc(char c);
-void tty_clear();
-void tty_setcolor(vga_color_t fg, vga_color_t bg);
-void tty_neofetch();
+/* TTY function defs */
+void 
+tty_init();
+void 
+tty_write(const char* str);
+void 
+tty_writecolor(const char* str, vga_color_t fg, vga_color_t bg);
+void 
+tty_putc(char c);
+void 
+tty_putc_relative(char c, int relx, int rely, bool cursor);
+void 
+tty_clear();
+void 
+tty_setcolor(vga_color_t fg, vga_color_t bg);
+void 
+tty_neofetch();

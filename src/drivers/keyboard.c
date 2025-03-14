@@ -17,8 +17,8 @@
 #include "kernel.h"
 #include "drivers/keyboard.h"
 #include "drivers/tty.h"
-#include "drivers/vga.h"
 
+/* Define uppercase and lowercase char mappings */
 static const uint32_t lowercase[128] = {
     UNKNOWN,ESC,'1','2','3','4','5','6','7','8',
     '9','0','-','=','\b','\t','q','w','e','r',
@@ -42,98 +42,53 @@ static const uint32_t uppercase[128] = {
     UNKNOWN,UNKNOWN,UNKNOWN,UNKNOWN,UNKNOWN,UNKNOWN,UNKNOWN
 };
 
-
+/* Shift and caps lock state */
 static bool caps;
 static bool caps_lock;
 
-/* TODO allocate this shit on the heap obviously */
+/* Keystroke buffer front and back */
 static char keybuffer[256];
 static char prevkb[256];
 
+static keyboard_notify_cb notify_cb;
+
 static void 
-__keyboard_cb(__attribute__((unused)) i_register_t registers) {
+keyboard_cb(__attribute__((unused)) i_register_t registers) 
+{
     unsigned char scan = inb(0x60) & 0x7F;
     unsigned char pressed = inb(0x60) & 0x80;
 
-    switch(scan) {
-        // unused for now
-        case 1:
-        case 29:
-        case 56:
-        case 59:
-        case 60:
-        case 61:
-        case 62:
-        case 63:
-        case 64:
-        case 65:
-        case 66:
-        case 67:
-        case 68:
-        case 87:
-        case 88:
-            break;
-        // start of usable keys
-        case 96:
-            // TODO: this is fucked up
-            if (pressed == 0) {
-                kstrncpy(keybuffer, prevkb, 256);
-                tty_write(keybuffer);
-            }
+    // if no notify callback attached, we're done
+    KASSERT_GOTO_SUCCESS(notify_cb == NULL);
 
-            break;
-        case 28:
-            if (pressed == 0) {
-                tty_putc(lowercase[scan]);
-                kstrncpy(prevkb, keybuffer, 256);
+    // call our notification callback
+    notify_cb(scan, pressed);
 
-                // kernel cli for interpreting basic commands
-                kcli(keybuffer, sizeof(keybuffer));
-            }
-
-            break;
-        case 41:
-            tty_write("\n\nRebooting...\n");
-            warm_reboot();
-
-            break;
-        case 54:
-        case 42:
-            caps = (pressed == 0) ? true : false;
-
-            break;
-        case 58:
-            if (!caps_lock && pressed == 0) {
-                caps_lock = true;
-            } else if (caps_lock && pressed == 0) {
-                caps_lock = false;
-            }
-
-            break;
-        case 14:
-            if (pressed == 0) {
-                cursor_pos_t pos = vga_get_cursor_position();
-            }
-
-            break;
-        default:
-            if (pressed == 0) {
-                if (caps || caps_lock) {
-                    keybuffer[kstrlen(keybuffer)] = uppercase[scan];
-
-                    tty_putc(uppercase[scan]);
-                } else {
-                    keybuffer[kstrlen(keybuffer)] = lowercase[scan];
-
-                    tty_putc(lowercase[scan]);
-                }
-            }
-    }
+success:
+    return;
 }
 
+/* Initialize keyboard driver */
 void 
-keyboard_init() {
-    register_interrupt_handler(IRQ1, __keyboard_cb);
+keyboard_init() 
+{
+    // register our interrupt handler for irq1
+    register_interrupt_handler(IRQ1, keyboard_cb);
 
     BOOT_LOG("Keyboard initialized.")
+}
+
+/* Convert a scan code into ascii char */
+char
+keyboard_scan_to_char(uint8_t scan)
+{
+    return (caps || caps_lock) ? uppercase[scan] : lowercase[scan];
+}
+
+/* Set a keypress notification callback */
+void
+keyboard_set_notify_cb(keyboard_notify_cb cb)
+{
+    // set our new notify callback
+    notify_cb = cb;
 }

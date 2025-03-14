@@ -77,6 +77,19 @@ tty_putc(char c)
     vga_update_cursor(tty_state.col, tty_state.row);
 }
 
+/* Write a character to the screen relative to current tty_state */
+void 
+tty_putc_relative(char c, int relx, int rely, bool cursor)
+{
+    tty_state.col += relx;
+    tty_state.row += rely;
+
+    if (c != '\n') vga_putc(c, tty_state.row, tty_state.col);
+
+    // update cursor after string is written to tty
+    if (cursor) vga_update_cursor(tty_state.col, tty_state.row);
+}
+
 /* Clear screen and reset row, col pointers */
 void 
 tty_clear() 

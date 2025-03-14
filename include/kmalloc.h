@@ -19,7 +19,7 @@
 #include <stddef.h>
 
 /* Define our default kernel heap size */
-#define KERNEL_HEAP_DEFAULT_SIZE 0x4000
+#define KERNEL_HEAP_DEFAULT_SIZE 8 * MB
 
 /* Kernel heap function defs */
 void

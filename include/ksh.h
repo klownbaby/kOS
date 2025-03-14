@@ -16,31 +16,11 @@
 
 #pragma once
 
-#include <stddef.h>
-#include <stdbool.h>
+#define KSH_INPUT_BUF_SIZE 0xFF
 
-#define DECIMAL 10
-#define HEX 16
-#define BINARY 2
-
-
-char* 
-kitoa(int value, char* str, int base);
+/* Shell function defs */
+void
+ksh_init();
 
 void
-kmemset(void* dest, register int data, register size_t length);
-
-void
-kmemcpy(void* dest, void* src, register size_t size);
-
-void 
-kpanic(char* msg);
-
-void 
-kputs(const char* str);
-
-void 
-printk(const char* fmt, ...);
-
-void 
-sprintk(const char* fmt, char* buffer, ...);
+ksh_deinit();

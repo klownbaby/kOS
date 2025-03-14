@@ -2,19 +2,32 @@
 
 #include <stdint.h>
 
-/* Null typdef */
-#define NULL (void *) 0x0
+/* Boolean types */
+#define TRUE  1
+#define FALSE 0
+
+/* Define function pointer types */
+typedef void (*keyboard_notify_cb)(uint8_t scan, uint8_t pressed);
 
 /* Define a standard status check return value */
 typedef enum kstatus {
-  STATUS_SUCCESS,
-  STATUS_FAILED,
-  STATUS_INVALID,
-  STATUS_NOT_CONFIGURED,
-  STATUS_INSUFFICIENT_SPACE,
-  STATUS_IN_USE,
-  STATUS_UNKNOWN
+    STATUS_SUCCESS,
+    STATUS_FAILED,
+    STATUS_INVALID,
+    STATUS_NOT_CONFIGURED,
+    STATUS_INSUFFICIENT_SPACE,
+    STATUS_IN_USE,
+    STATUS_UNKNOWN
 } kstatus_t;
+
+typedef enum keypress {
+    KEY_BACKSPACE = 14,
+    KEY_ENTER = 28,
+    KEY_TILDE = 41,
+    KEY_SHIFT = 42,
+    KEY_CAPS = 54,
+    KEY_UP_ARROW = 96,
+} keypress_t;
 
 /* Physical memory bitmap entry */
 typedef struct pmm_bitmap_entry {
@@ -29,3 +42,29 @@ typedef struct free_chunk {
     /* Next free buffer node */
     struct free_chunk* next;
 } free_chunk_t;
+
+typedef struct write_callback {
+    /* Current callback */
+    void (*cb)(void* data);
+    /* Next callback in list */
+    struct write_callback* next;
+} write_callback_t;
+
+typedef struct pipe {
+    /* Write notification callback */
+    write_callback_t* write_cb_list;
+    /* Pointer to data buffer */
+    void* buf;
+} pipe_t;
+
+typedef struct file {
+    /* Filename on disk */
+    char* name;
+    /* Size in clusters */
+    uint32_t size;
+
+    /* Standard file ops */
+    void (*read)(void* outbuf);
+    void (*write)(void* inbuf);
+    void (*delete)(void);
+} file_t;

@@ -205,22 +205,6 @@ sprintk(const char* fmt, char* buffer, ...)
     }
 }
 
-/* A very minimal, shitty cli for kernel ops */
-void 
-kcli(char pkeybuffer[], size_t bufsize)
-{
-    if (kstrcmp(pkeybuffer, "clear")) 
-    {
-        tty_clear();
-    } else if (kstrcmp(pkeybuffer, "neofetch")) {
-        tty_neofetch();
-    }
-
-    tty_writecolor("> ", VGA_COLOR_LIGHT_BLUE, VGA_COLOR_BLACK);
-
-    kmemset(pkeybuffer, 0, bufsize);
-}
-
 /* Kernel memset, nearly identical to glibc implementation */
 void
 kmemset(void* dest, register int data, register size_t length) 
