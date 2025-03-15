@@ -79,6 +79,22 @@ first_free_frame()
     return frame;
 }
 
+/* Dump page table and directory mappings */
+void
+pmm_dumpt()
+{
+    uint32_t* pt = NULL;
+
+    printk("Page Directory Mappings:\n");
+
+    for (uint32_t i = 0; i < PD_NENTRIES; ++i)
+    {
+        if (!IS_PRESENT(kpd[i])) continue;
+        
+        printk("    PDE virt[%x] phys[%x]\n", (i << 22), kpd[i]);
+    }
+}
+
 /* Allocate a physcial page in pmm_bitmap */
 kstatus_t
 pmm_alloc_frame(uint32_t frame)

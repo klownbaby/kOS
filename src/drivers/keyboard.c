@@ -46,10 +46,6 @@ static const uint32_t uppercase[128] = {
 static bool caps;
 static bool caps_lock;
 
-/* Keystroke buffer front and back */
-static char keybuffer[256];
-static char prevkb[256];
-
 static keyboard_notify_cb notify_cb;
 
 static void 

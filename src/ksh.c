@@ -17,6 +17,7 @@
 #include "kernel.h"
 #include "drivers/keyboard.h"
 #include "drivers/tty.h"
+#include "kutils.h"
 
 /* Our keyboard input buffer */
 static char* inputbuf;
@@ -28,15 +29,33 @@ static void
 process_cmd()
 {
     // a temporary shitty way to process commands
+    // this should really be a hashmap
+    KASSERT_GOTO_SUCCESS(kstrlen(inputbuf) == 0);
+
     if (kstrcmp(inputbuf, "clear"))
     {
         tty_clear();
     } 
+    else if (kstrcmp(inputbuf, "reboot"))
+    {
+        // explicitly zero out our input buffer
+        kmemset(inputbuf, 0, KSH_INPUT_BUF_SIZE);
+
+        // then reboot
+        warm_reboot();
+    }
+    else if (kstrcmp(inputbuf, "dumpt"))
+    {
+        pmm_dumpt();
+    }
     else if (kstrcmp(inputbuf, "neofetch"))
     {
         tty_neofetch();
+    } else {
+        printk("Command not found: %s\n", inputbuf);
     }
 
+success:
     // reset input buffer head
     inputbuf_head = 0;
 
@@ -60,6 +79,12 @@ notify_cb(uint8_t scan, uint8_t pressed)
     switch (scan)
     {
         case KEY_BACKSPACE:
+            // check that we're not at the start of input buffer
+            if (inputbuf_head == 0)
+            {
+                break;
+            }
+
             // remove last char from input buffer
             inputbuf[--inputbuf_head] = 0;
 

@@ -104,8 +104,8 @@ static inline void enable_paging(uint32_t pd)
 }
 
 /* PMM function definitions */
-kstatus_t 
-pmm_umap_page(uint32_t* cr3, void* paddr, void* vaddr);
+void
+pmm_dumpt();
 
 kstatus_t 
 pmm_alloc_frame(uint32_t frame);
