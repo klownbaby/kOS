@@ -20,6 +20,7 @@ typedef enum kstatus {
     STATUS_UNKNOWN
 } kstatus_t;
 
+/* Keypress scan code enum for readability */
 typedef enum keypress {
     KEY_BACKSPACE = 14,
     KEY_ENTER = 28,

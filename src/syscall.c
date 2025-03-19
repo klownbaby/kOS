@@ -24,8 +24,8 @@ static syscall_t syscall_entries[10] = {
 };
 
 /* Unused for now */
-__attribute__((naked, used)) static void 
-syscall_push_regs() 
+ static void 
+__attribute__((naked, used)) syscall_push_regs() 
 {
     __asm__ __volatile__(
                          "pushl %eax\n"
@@ -45,8 +45,8 @@ syscall_push_regs()
 }
 
 /* Unused for now */
-__attribute__((naked, used)) static void 
-syscall_pop_regs() 
+static void 
+__attribute__((naked, used)) syscall_pop_regs() 
 {
     __asm__ __volatile__(
                          "addl $4, %esp\n"

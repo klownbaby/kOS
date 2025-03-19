@@ -30,7 +30,7 @@ kernel_main(__attribute__((used)) uint32_t magic, volatile multiboot_info_t* mbd
 
     // check GRUB version
     tty_writecolor("Booted with ", VGA_COLOR_CYAN, VGA_COLOR_BLACK);
-    tty_writecolor((const char*) mbd->boot_loader_name, VGA_COLOR_CYAN, VGA_COLOR_BLACK);
+    tty_writecolor((const char*)mbd->boot_loader_name, VGA_COLOR_CYAN, VGA_COLOR_BLACK);
     tty_write("\n\n");
 
     // essential inits

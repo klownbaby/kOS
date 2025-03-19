@@ -30,6 +30,7 @@ SECTIONS
 	/* Read-write data (initialized) */
 	.data ALIGN(4K) : AT(ADDR(.data))
 	{
+        _data_start = .;
 		*(.data)
 	}
  

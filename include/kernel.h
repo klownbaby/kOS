@@ -19,6 +19,9 @@
 extern volatile uint32_t _kernel_start;
 extern volatile uint32_t _kernel_end;
 
+/* Kernel data section from linker */
+extern volatile uint32_t _data_start;
+
 /* Number of enabled cores */
 extern uint32_t g_num_cores;
 

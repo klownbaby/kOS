@@ -25,9 +25,9 @@ drive_status(uint8_t drive)
     uint8_t status = inb(STATUS);
 
     // check if drive is busy first
-    if(status & (1 << BSY)) return BSY;
-    if(status & (1 << ERR)) return ERR;
-    if(status & (1 << RDY)) return RDY;
+    if (status & (1 << BSY)) return BSY;
+    if (status & (1 << ERR)) return ERR;
+    if (status & (1 << RDY)) return RDY;
 
     return status & (1 >> DF);
 }
@@ -36,12 +36,21 @@ drive_status(uint8_t drive)
 void 
 select_drive(uint8_t bus, uint8_t dn)
 {
-    if(bus == ATA_MASTER) {
-        if(dn == ATA_MASTER) outb(DRIVE_SEL, MASTER_DRIVE);
-        else outb(DRIVE_SEL, SLAVE_DRIVE);
-    } else {
-        if(dn == ATA_MASTER) outb(ATA_SLAVE_BASE + 6, SLAVE_DRIVE);
-        else outb(ATA_SLAVE_BASE + 6, SLAVE_DRIVE);
+    switch (bus)
+    {
+        // master bus
+        case ATA_MASTER:
+            if (dn == ATA_MASTER) outb(DRIVE_SEL, MASTER_DRIVE);
+            else outb(DRIVE_SEL, SLAVE_DRIVE);
+            break;
+        // slave bus
+        case ATA_SLAVE:
+            if (dn == ATA_MASTER) outb(ATA_SLAVE_BASE + 6, SLAVE_DRIVE);
+            else outb(ATA_SLAVE_BASE + 6, SLAVE_DRIVE);
+            break;
+        default:
+            kpanic("Invalid bus!");
+            break;
     }
 }
 
@@ -84,5 +93,5 @@ rw_sectors(
         delay_400ns();
     }
 
-    dest = (void*) tmp;
+    dest = (void*)tmp;
 }

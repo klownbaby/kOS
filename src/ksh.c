@@ -46,10 +46,12 @@ process_cmd()
     }
     else if (kstrcmp(inputbuf, "dumpt"))
     {
+        // dump kernel page table/directory mappings
         pmm_dumpt();
     }
     else if (kstrcmp(inputbuf, "neofetch"))
     {
+        // display the dopest shit
         tty_neofetch();
     } else {
         printk("Command not found: %s\n", inputbuf);
