@@ -17,22 +17,8 @@
 #include "kernel.h"
 #include "drivers/ata.h"
 
-/* Get drive status */
-drive_status_t 
-drive_status(uint8_t drive)
-{
-    uint8_t status = inb(STATUS);
-
-    // check if drive is busy first
-    if (status & (1 << BSY)) return BSY;
-    if (status & (1 << ERR)) return ERR;
-    if (status & (1 << RDY)) return RDY;
-
-    return status & (1 >> DF);
-}
-
 /* Select a drive to read/write */
-void 
+static void 
 select_drive(uint8_t bus, uint8_t dn)
 {
     switch (bus)
@@ -54,22 +40,38 @@ select_drive(uint8_t bus, uint8_t dn)
 }
 
 /* Wait 400 nano seconds for read delay */
-void 
+static void 
 delay_400ns()
 {
+    // ah fuck it, this will do for now
     for (int i = 0; i < 4; i++);
 }
 
-/* Read n sectors from disk */
+/* Get drive status */
+drive_status_t 
+drive_status(uint8_t drive)
+{
+    uint8_t status = inb(STATUS);
+
+    // check if drive is busy first
+    if (status & (1 << BSY)) return BSY;
+    if (status & (1 << ERR)) return ERR;
+    if (status & (1 << RDY)) return RDY;
+
+    return status & (1 >> DF);
+}
+
+/* Read n sectors from disk into outdata */
 void 
-rw_sectors(
-    uint8_t mode,
+read_sectors(
     uint8_t drive,
     uint32_t sector_count,
     uint32_t lba,
     void* outdata
 )
 {
+    // this is messy, but leaving for now
+    // select our drive, lba, and sector count
     outb(DRIVE_SEL, drive | (uint8_t) ((lba >> 24) & 0xF));
     outb(FEATURES, 0x0);
     outb(SECT_CNT, sector_count);
@@ -80,17 +82,21 @@ rw_sectors(
 
     uint16_t* tmp = (uint16_t*)outdata;
 
+    // pretty sure 256 byte sectors
     for(int i = 0; i < (sector_count * 256); i += 256)
     {
         // poll drive status
         while(drive_status(0) == BSY);
 
-        for(int j = 0; j < 256; ++j) {
+        for(int j = 0; j < 256; ++j) 
+        {
             tmp[j + i] = inw(ATA_BASE);
         }
 
+        // ensure we delay
         delay_400ns();
     }
 
+    // set our out pointer
     outdata = (void*)tmp;
 }
