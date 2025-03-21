@@ -17,7 +17,6 @@
 #include "kernel.h"
 #include "drivers/ata.h"
 
-
 /* Get drive status */
 drive_status_t 
 drive_status(uint8_t drive)
@@ -68,7 +67,7 @@ rw_sectors(
     uint8_t drive,
     uint32_t sector_count,
     uint32_t lba,
-    void* dest
+    void* outdata
 )
 {
     outb(DRIVE_SEL, drive | (uint8_t) ((lba >> 24) & 0xF));
@@ -79,7 +78,7 @@ rw_sectors(
     outb(CYL_HIGH, (uint8_t) lba >> 16);
     outb(COMMAND, READ_SECTORS);
 
-    uint16_t* tmp = (uint16_t*) dest;
+    uint16_t* tmp = (uint16_t*)outdata;
 
     for(int i = 0; i < (sector_count * 256); i += 256)
     {
@@ -93,5 +92,5 @@ rw_sectors(
         delay_400ns();
     }
 
-    dest = (void*)tmp;
+    outdata = (void*)tmp;
 }

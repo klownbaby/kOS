@@ -22,45 +22,52 @@ ASMTARGETS := $(ASMDIR)/*.S
 ISO := $(OBJECTDIR)/$(KERNELTARGET).iso
 
 
-.PHONY: all kernel env image verify grub run debug clean
+.PHONY: all kernel env image verify grub fs vfs run debug clean
 
 all: kernel image run
 
 kernel: clean
-		$(ASC) $(ASMDIR)/boot.S -o $(OBJECTDIR)/boot.o
-		$(ASC) $(ASMDIR)/gdt.S -o $(OBJECTDIR)/_gdt.o
-		$(ASC) $(ASMDIR)/idt.S -o $(OBJECTDIR)/_idt.o
-		$(ASC) $(ASMDIR)/tss.S -o $(OBJECTDIR)/_tss.o
-		$(DOCKER) $(CC)-gcc -g -I $(INCLUDEDIR) -c $(CTARGETS) -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Wno-incompatible-pointer-types
+	$(ASC) $(ASMDIR)/boot.S -o $(OBJECTDIR)/boot.o
+	$(ASC) $(ASMDIR)/gdt.S -o $(OBJECTDIR)/_gdt.o
+	$(ASC) $(ASMDIR)/idt.S -o $(OBJECTDIR)/_idt.o
+	$(ASC) $(ASMDIR)/tss.S -o $(OBJECTDIR)/_tss.o
+	$(DOCKER) $(CC)-gcc -g -I $(INCLUDEDIR) -c $(CTARGETS) -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Wno-incompatible-pointer-types
 
-		mv ./*.o $(OBJECTDIR)
+	mv ./*.o $(OBJECTDIR)
 
 ifeq ($(RUST),1)
-			CARGO_TARGET_DIR=$(RUSTBIN) cargo build --target ./lib/$(RUSTTARGET).json
-			$(DOCKER) $(CC)-gcc -T linker.ld -o $(BOOTDIR)/$(KERNELTARGET).bin -ffreestanding -O2 -nostdlib $(OBJECTS) $(RUSTENTRY) -lgcc
+	CARGO_TARGET_DIR=$(RUSTBIN) cargo build --target ./lib/$(RUSTTARGET).json
+	$(DOCKER) $(CC)-gcc -T linker.ld -o $(BOOTDIR)/$(KERNELTARGET).bin -ffreestanding -O2 -nostdlib $(OBJECTS) $(RUSTENTRY) -lgcc
 else
-			$(DOCKER) $(CC)-gcc -T linker.ld -o $(BOOTDIR)/$(KERNELTARGET).bin -ffreestanding -O2 -nostdlib $(OBJECTS) -lgcc
+	$(DOCKER) $(CC)-gcc -T linker.ld -o $(BOOTDIR)/$(KERNELTARGET).bin -ffreestanding -O2 -nostdlib $(OBJECTS) -lgcc
 endif
 
 env:
-		docker build env -t kos
+	docker build env -t kos
 
 image: $(OBJECTS) 
-		docker run -it --rm -v .:/root/env kos make grub
+	$(DOCKER) make grub
+
+fs:
+	$(DOCKER) make vfs
+
+vfs:
+	dd if=/dev/zero of=fs.img bs=1M count=10
+	mkfs.fat -F 16 -n 0 fs.img
 
 verify:
-		grub-file --is-x86-multiboot $(BOOTDIR)/$(KERNELTARGET).bin
+	grub-file --is-x86-multiboot $(BOOTDIR)/$(KERNELTARGET).bin
 
 grub:
-		grub-mkrescue -o $(OBJECTDIR)/$(KERNELTARGET).iso multiboot
+	grub-mkrescue -o $(OBJECTDIR)/$(KERNELTARGET).iso multiboot
 
 run: $(ISO)
-		sudo $(EMU) $(ISO) -hdb fs.img
+	sudo $(EMU) $(ISO) -hdb fs.img
 
 debug: clean kernel image $(ISO)
-		sudo $(EMU) $(ISO) -s -S -hdb fs.img
+	sudo $(EMU) $(ISO) -s -S -hdb fs.img
 
 clean:
-		rm -rf $(OBJECTDIR)/*.*
-		rm -rf $(KERNELTARGET).iso
-		rm -rf $(BOOTDIR)/$(KERNELTARGET).bin
+	rm -rf $(OBJECTDIR)/*.*
+	rm -rf $(KERNELTARGET).iso
+	rm -rf $(BOOTDIR)/$(KERNELTARGET).bin

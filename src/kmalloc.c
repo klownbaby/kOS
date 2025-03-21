@@ -88,7 +88,7 @@ kmalloc_init()
     BOOT_LOG("Kernel heap initialized.");
 }
 
-/* Kernel heap allocator */
+/* Kernel heap allocator, very inefficient */
 void* 
 kmalloc(size_t size)
 {
@@ -129,9 +129,9 @@ kfree(void* addr)
     free_chunk_t* header = NULL;
 
     // get our current chunk's header
-    header = addr - sizeof(free_chunk_t);
+    header = (free_chunk_t*)(addr - sizeof(free_chunk_t));
 
     // insert at head of free list
     header->next = kfree_list;
-    kfree_list = addr - sizeof(free_chunk_t);
+    kfree_list = header;
 }

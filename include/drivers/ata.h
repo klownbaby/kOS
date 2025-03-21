@@ -39,9 +39,9 @@
 #define SLAVE_DRIVE         0xF0
 #define IDENTIFY            0xEC
 #define READ_SECTORS        0x20
-#define WRITE_SECTORS        0x30
+#define WRITE_SECTORS       0x30
 
-typedef enum {
+typedef enum drive_status {
     ERR,
     IDX,
     CORR,
@@ -50,8 +50,10 @@ typedef enum {
     DF,
     RDY,
     BSY
-
 } drive_status_t;
+
+drive_status_t 
+drive_status(uint8_t drive);
 
 void 
 delay_400ns();
@@ -60,7 +62,4 @@ void
 select_drive(uint8_t bus, uint8_t dn);
 
 void 
-rw_sectors(uint8_t mode, uint8_t drive, uint32_t sector_count, uint32_t lba, void* dest);
-
-drive_status_t 
-drive_status(uint8_t drive);
+rw_sectors(uint8_t mode, uint8_t drive, uint32_t sector_count, uint32_t lba, void* outdata);
