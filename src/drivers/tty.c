@@ -38,7 +38,8 @@ void
 tty_write(const char* str) 
 {
     // loop through each character and putc to screen
-    for (size_t i = 0; i < kstrlen(str); ++i) {
+    for (size_t i = 0; i < kstrlen(str); ++i) 
+    {
         // detect when a newline character is present
         tty_putc(str[i]);
     }
@@ -63,11 +64,13 @@ tty_putc(char c)
     if (c != '\n') vga_putc(c, tty_state.row, tty_state.col);
 
     // if we are at the end of the line (80 columns), break line
-    if (++tty_state.col == VGA_WIDTH || c == '\n') {
+    if (++tty_state.col == VGA_WIDTH || c == '\n') 
+    {
         tty_state.col = 0;
 
         // same for rows
-        if (++tty_state.row == VGA_HEIGHT) {
+        if (++tty_state.row == VGA_HEIGHT) 
+        {
             vga_scroll();
             --tty_state.row;
         } 

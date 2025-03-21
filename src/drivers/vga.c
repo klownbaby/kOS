@@ -38,9 +38,9 @@ void
 vga_putc(char c, size_t row, size_t col) 
 {
     uint16_t* vga_buffer = (uint16_t*) VGA_BASE;
-    
-    const size_t index = row * VGA_WIDTH + col;
-    vga_buffer[index] = vga_entry(c, g_vga_color);
+    const size_t vga_index = row * VGA_WIDTH + col;
+
+    vga_buffer[vga_index] = vga_entry(c, g_vga_color);
 }
 
 /* Shift VGA buffer one column down */
@@ -50,8 +50,10 @@ vga_scroll()
     uint16_t* vga_buffer = (uint16_t*) VGA_BASE;
 
     // loop through every row and col (80 * 25)
-    for (int row = 1; row < VGA_HEIGHT; row++) {
-        for (int col = 0; col < VGA_WIDTH; col++) {
+    for (int row = 1; row < VGA_HEIGHT; row++) 
+    {
+        for (int col = 0; col < VGA_WIDTH; col++) 
+        {
             // get current index of vga entry
             size_t index = row * VGA_WIDTH + col;
             // move index up one row and retain column
@@ -75,8 +77,10 @@ vga_setbar(vga_color_t fg, vga_color_t bg, const char* str, size_t offset)
 
     size_t len = kstrlen(str);
 
-    for (size_t i = 0; i < VGA_WIDTH; ++i) {
-        if (i >= offset && i < (offset + len)) {
+    for (size_t i = 0; i < VGA_WIDTH; ++i) 
+    {
+        if (i >= offset && i < (offset + len)) 
+        {
             vga_buffer[24 * VGA_WIDTH + i] = vga_entry(str[i - offset], color);
         } else {
             vga_buffer[24 * VGA_WIDTH + i] = vga_entry(' ', color);
@@ -88,13 +92,19 @@ vga_setbar(vga_color_t fg, vga_color_t bg, const char* str, size_t offset)
 void 
 vga_clear() 
 {
-    uint16_t* vga_buffer = (uint16_t*) VGA_BASE;
+    uint16_t* vga_buffer = (uint16_t*)VGA_BASE;
+    uint16_t vga_index = 0;
 
-    for (size_t i = 0; i < VGA_HEIGHT; ++i) {
-        for (size_t j = 0; j < VGA_WIDTH; ++j) {
-            const uint16_t index = i * VGA_WIDTH + j;
+    // wipe out our vga buffer
+    for (size_t i = 0; i < VGA_HEIGHT; ++i) 
+    {
+        for (size_t j = 0; j < VGA_WIDTH; ++j) 
+        {
+            // get our next index to reset
+            vga_index = i * VGA_WIDTH + j;
 
-            vga_buffer[index] = vga_entry(' ', g_vga_color);
+            // reset it
+            vga_buffer[vga_index] = vga_entry(' ', g_vga_color);
         }
     }
 }
@@ -105,19 +115,19 @@ vga_cursor_disable()
 {
     // disable cursor by writing to 0x3d4 and 0x3d5
     outb(0x3D4, 0x0A);
-	outb(0x3D5, 0x20);
+    outb(0x3D5, 0x20);
 }
 
 /* Enables cursor */
 void vga_cursor_enable(uint8_t start, uint8_t end) 
 {
     // set starting scanline of cursor
-	outb(0x3D4, 0x0A);
-	outb(0x3D5, (inb(0x3D5) & 0xC0) | start);
- 
+    outb(0x3D4, 0x0A);
+    outb(0x3D5, (inb(0x3D5) & 0xC0) | start);
+
     // set ending scanline of cursor (for cursor shapes)
-	outb(0x3D4, 0x0B);
-	outb(0x3D5, (inb(0x3D5) & 0xE0) | end);
+    outb(0x3D4, 0x0B);
+    outb(0x3D5, (inb(0x3D5) & 0xE0) | end);
 }
 
 /* Update cursor to new x, y pos (row, col for tty) */
@@ -126,10 +136,10 @@ vga_update_cursor(int x, int y)
 {
 	uint16_t pos = y * VGA_WIDTH + x;
  
-	outb(0x3D4, 0x0F);
-	outb(0x3D5, (uint8_t) (pos & 0xFF));
-	outb(0x3D4, 0x0E);
-	outb(0x3D5, (uint8_t) ((pos >> 8) & 0xFF));
+    outb(0x3D4, 0x0F);
+    outb(0x3D5, (uint8_t) (pos & 0xFF));
+    outb(0x3D4, 0x0E);
+    outb(0x3D5, (uint8_t) ((pos >> 8) & 0xFF));
 }
 
 /* Gets cursor position and returns struct of cursor_pos_t (x, y) */
