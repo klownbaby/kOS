@@ -70,6 +70,8 @@ read_sectors(
     void* outdata
 )
 {
+    uint16_t* tmp = NULL;
+
     // this is messy, but leaving for now
     // select our drive, lba, and sector count
     outb(DRIVE_SEL, drive | (uint8_t) ((lba >> 24) & 0xF));
@@ -80,7 +82,8 @@ read_sectors(
     outb(CYL_HIGH, (uint8_t) lba >> 16);
     outb(COMMAND, READ_SECTORS);
 
-    uint16_t* tmp = (uint16_t*)outdata;
+    // dereference our out pointer as word pointer
+    tmp = (uint16_t*)outdata;
 
     // pretty sure 256 byte sectors
     for(int i = 0; i < (sector_count * 256); i += 256)
@@ -90,6 +93,7 @@ read_sectors(
 
         for(int j = 0; j < 256; ++j) 
         {
+            // copy one word at a time
             tmp[j + i] = inw(ATA_BASE);
         }
 
