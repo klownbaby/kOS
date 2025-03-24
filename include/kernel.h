@@ -5,7 +5,6 @@
 #include "gdt.h"
 #include "interrupt.h"
 #include "io.h"
-#include "file.h"
 #include "kmalloc.h"
 #include "kutils.h"
 #include "multiboot.h"

@@ -92,10 +92,6 @@ __write(i_register_t* registers)
     size_t n = registers->edx;
 
     // check for standard file descriptors
-    KASSERT_PANIC(fd == STDIN_FD, "stdin not yet supported.");
-
-    if (fd == STDOUT_FD) tty_write(buffer);            // redirect stdout to tty for now
-    else if (fd == STDERR_FD) printk("stderr: Error %s\n");
 }
 
 /* open(), writes to a file descriptor (fd) */

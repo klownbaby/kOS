@@ -17,7 +17,7 @@
 #include "kernel.h"
 #include "drivers/keyboard.h"
 #include "drivers/tty.h"
-#include "kutils.h"
+#include "drivers/fat.h"
 
 /* Our keyboard input buffer */
 static char* inputbuf;
@@ -48,6 +48,11 @@ process_cmd()
     {
         // dump kernel page table/directory mappings
         pmm_dumpt();
+    }
+    else if (kstrcmp(inputbuf, "dumpfs"))
+    {
+        // dump fat bios parameter block
+        fat_dump_bpb();
     }
     else if (kstrcmp(inputbuf, "neofetch"))
     {

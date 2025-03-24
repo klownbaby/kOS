@@ -19,7 +19,6 @@
 #include "drivers/keyboard.h"
 #include "drivers/rtc.h"
 #include "drivers/pit.h"
-#include "kmalloc.h"
 
 /* Kernel entry point (init hardware and drivers) */
 void 
@@ -49,8 +48,9 @@ kernel_main(__attribute__((used)) uint32_t magic, volatile multiboot_info_t* mbd
     // init syscalls after interrupts init
     syscall_init();
 
-    // print ascii art welcome message
+    // print a dope ass message
     tty_neofetch();
+
     ksh_init();
 
     // hang
