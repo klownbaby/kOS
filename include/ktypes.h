@@ -30,6 +30,17 @@ typedef enum keypress {
     KEY_UP_ARROW = 96,
 } keypress_t;
 
+/* Epoch date type */
+typedef union epoch_date {
+    uint16_t raw;
+
+    struct {
+        uint8_t day : 4;
+        uint8_t month : 4;
+        uint8_t year;
+    } fields;
+} epoch_date_t;
+
 /* Physical memory bitmap entry */
 typedef struct pmm_bitmap_entry {
     /* Set single bitfield for efficiency */

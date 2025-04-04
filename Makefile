@@ -63,7 +63,7 @@ grub:
 	grub-mkrescue -o $(OBJECTDIR)/$(KERNELTARGET).iso multiboot
 
 run: $(ISO)
-	sudo $(EMU) $(ISO) -hdb fs.img
+	sudo $(EMU) $(ISO) -hdb ./fs/fs.img
 
 debug: clean kernel image $(ISO)
 	sudo $(EMU) $(ISO) -s -S -hdb fs.img

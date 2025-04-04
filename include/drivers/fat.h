@@ -18,8 +18,13 @@
 
 #include <stdint.h>
 
+
+/* Define FAT attribute types */
+#define VOLUME    0x8
+#define DIRECTORY 0x10
+
 /* Define FAT16 BIOS parameter block */
-typedef struct fat16_bpb {
+typedef struct fat16_bs {
     uint8_t  bootjmp[3];
 	uint8_t  oem_name[8];
 	uint16_t bytes_per_sector;
@@ -40,7 +45,22 @@ typedef struct fat16_bpb {
 	uint32_t volume_id;
 	uint8_t	 volume_label[11];
 	uint8_t	 fat_type_label[8];
-} __attribute__((packed)) fat16_bpb_t;
+} __attribute__((packed)) fat16_bs_t;
+
+typedef struct dir_entry {
+    uint8_t  name[8];
+    uint8_t  ext[3];
+    uint8_t  attr;
+    uint8_t  reserved[10];
+    uint16_t time;
+    uint16_t date;
+    uint16_t start_cluster;
+    uint32_t size;
+} dir_entry_t;
+
 
 void
-fat_dump_bpb();
+fat_dump_bs();
+
+void
+fat_dump_root();

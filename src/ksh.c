@@ -52,7 +52,7 @@ process_cmd()
     else if (kstrcmp(inputbuf, "dumpfs"))
     {
         // dump fat bios parameter block
-        fat_dump_bpb();
+        fat_dump_bs();
     }
     else if (kstrcmp(inputbuf, "neofetch"))
     {
