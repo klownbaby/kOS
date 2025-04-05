@@ -43,8 +43,8 @@ static const uint32_t uppercase[128] = {
 };
 
 /* Shift and caps lock state */
-static bool caps;
-static bool caps_lock;
+bool caps = false;
+bool caps_lock = false;
 
 static keyboard_notify_cb notify_cb;
 
@@ -54,11 +54,23 @@ keyboard_cb(__attribute__((unused)) i_register_t registers)
     unsigned char scan = inb(0x60) & 0x7F;
     unsigned char pressed = inb(0x60) & 0x80;
 
+    // this code sucks. i dont know if i should put it here...
+    // 
+    if (scan == 42 || scan == 54){ // LSHIFT, RSHIFT
+            caps_lock = !caps_lock;
+    }
+    if (scan == 58){ // CAPS
+        if (pressed) {
+            caps_lock = !caps_lock;
+        }
+    }
+    if (!(scan == 58 || scan == 42 || scan == 54)){
     // if no notify callback attached, we're done
     KASSERT_GOTO_SUCCESS(notify_cb == NULL);
 
     // call our notification callback
     notify_cb(scan, pressed);
+    }
 
 success:
     return;
@@ -78,6 +90,9 @@ keyboard_init()
 char
 keyboard_scan_to_char(uint8_t scan)
 {
+    if (scan == 58 || scan == 42 || scan == 54){
+        return "";
+    }
     return (caps || caps_lock) ? uppercase[scan] : lowercase[scan];
 }
 
