@@ -72,3 +72,5 @@ clean:
 	rm -rf $(OBJECTDIR)/*.*
 	rm -rf $(KERNELTARGET).iso
 	rm -rf $(BOOTDIR)/$(KERNELTARGET).bin
+	rm -rf $(RUSTBIN)
+	mkdir -p $(OBJECTDIR)
