@@ -37,6 +37,7 @@ kernel: clean
 
 ifeq ($(RUST),1)
 	CARGO_TARGET_DIR=$(RUSTBIN) cargo build --target ./lib/$(RUSTTARGET).json
+	mv $(RUSTBIN)/$(RUSTTARGET)/debug/libkr.a $(RUSTENTRY)
 	$(DOCKER) $(CC)-gcc -T linker.ld -o $(BOOTDIR)/$(KERNELTARGET).bin -ffreestanding -O2 -nostdlib $(OBJECTS) $(RUSTENTRY) -lgcc
 else
 	$(DOCKER) $(CC)-gcc -T linker.ld -o $(BOOTDIR)/$(KERNELTARGET).bin -ffreestanding -O2 -nostdlib $(OBJECTS) -lgcc
@@ -72,3 +73,5 @@ clean:
 	rm -rf $(OBJECTDIR)/*.*
 	rm -rf $(KERNELTARGET).iso
 	rm -rf $(BOOTDIR)/$(KERNELTARGET).bin
+	rm -rf $(RUSTBIN)
+	mkdir -p $(OBJECTDIR)
