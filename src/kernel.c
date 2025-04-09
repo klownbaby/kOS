@@ -19,7 +19,7 @@
 #include "drivers/keyboard.h"
 #include "drivers/rtc.h"
 #include "drivers/pit.h"
-
+#include "drivers/rs/rust_driver.h"
 /* Kernel entry point (init hardware and drivers) */
 void 
 kernel_main(__attribute__((used)) uint32_t magic, volatile multiboot_info_t* mbd) 
@@ -48,6 +48,8 @@ kernel_main(__attribute__((used)) uint32_t magic, volatile multiboot_info_t* mbd
     // init syscalls after interrupts init
     syscall_init();
 
+    // fuck rust but we need some TESTING!
+    __init();
     // print a dope ass message
     tty_neofetch();
 

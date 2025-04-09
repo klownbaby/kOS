@@ -14,12 +14,13 @@
 
 #[path = "../src/rs/cdef.rs"] mod cdef;
 #[path = "../src/drivers/rs/driver.rs"] mod driver;
-
+#[path = "std/io.rs"] mod io;
 use core::panic::PanicInfo;
-
+use crate::io::io::BOOT_LOG;
 // Check rust has been linked properly
 #[no_mangle]
 pub extern "C" fn __init() -> u32 {
+    BOOT_LOG("Rust initialized.\0"); // we better know it initialized
     return 1
 }
 

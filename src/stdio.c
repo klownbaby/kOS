@@ -221,6 +221,19 @@ kmemset(void* dest, register int data, register size_t length)
     }
 }
 
+int 
+kmemcmp(const void* aptr, const void* bptr, size_t size) {
+	const unsigned char* a = (const unsigned char*) aptr;
+	const unsigned char* b = (const unsigned char*) bptr;
+	for (size_t i = 0; i < size; i++) {
+		if (a[i] < b[i])
+			return -1;
+		else if (b[i] < a[i])
+			return 1;
+	}
+	return 0;
+}
+
 void
 kmemcpy(void* dest, void* src, register size_t size)
 {

@@ -53,6 +53,40 @@
 #define ALTGR 0xFFFFFFFF - 31
 #define NUMLCK 0xFFFFFFFF - 32
 
+// define shit that should NOT be rendered as text
+#define _CAPS 58
+#define _RSHIFT 42
+#define _LSHIFT 54
+#define _CTRL 29
+#define _ALT 56
+#define _ALTGR 100
+#define _NUMLOCK 69
+#define _SCRLOCK 70
+#define _F1 59
+#define _F2 60
+#define _F3 61
+#define _F4 62
+#define _F5 63
+#define _F6 64
+#define _F7 65
+#define _F8 66
+#define _F9 67
+#define _F10 68
+#define _F11 87
+#define _F12 88
+#define _ESC 1
+#define _TAB 15
+#define _UP 72
+#define _DOWN 80
+#define _LEFT 75
+#define _RIGHT 77
+#define _PGUP 73
+#define _PGDOWN 81
+#define _HOME 71
+#define _END 79
+#define _INSERT 82
+#define _DELETE 83
+
 /* Keyboard function defs */
 void 
 keyboard_init();

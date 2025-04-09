@@ -57,17 +57,58 @@ keyboard_cb(__attribute__((unused)) i_register_t registers)
     // we can have the parent handle some of these (us)
     switch (scan)
     {
-        case 42:
-        case 54:
+        case _LSHIFT: //LSHIFT
+        case _RSHIFT: //RSHIFT
             caps_lock = !caps_lock;
             break;
-        case 58:
+        case _CAPS: //CAPS
             caps_lock = pressed ? !caps_lock : caps_lock;
             break;
     }
 
-    // we don't want to have the callback handle everything
-    KASSERT_GOTO_SUCCESS(scan == 58 || scan == 42 || scan == 54);
+    // make sure the stuff that SHOULDNT be written to the screen, doesnt.
+    // this isnt fully covered yet, but its prob fine for now.
+    switch (scan)
+    {
+        case _CTRL: //CTRL
+        case _ALT: //ALT
+        case _ALTGR: //ALTGR
+        case _NUMLOCK: //NUMLOCK
+        case _SCRLOCK: //SCRLOCK
+        case _F1: //F1
+        case _F2: //F2
+        case _F3: //F3
+        case _F4: //F4
+        case _F5: //F5
+        case _F6: //F6
+        case _F7: //F7
+        case _F8: //F8
+        case _F9: //F9
+        case _F10: //F10
+        case _F11: //F11
+        case _F12: //F12
+        case _ESC: //ESC
+        case _TAB: //TAB
+        case _UP: //UP
+        case _DOWN: //DOWN
+        case _LEFT: //LEFT
+        case _RIGHT: //RIGHT
+        case _PGUP: //PGUP
+        case _PGDOWN: //PGDOWN
+        case _HOME: //HOME
+        case _END: //END
+        case _RSHIFT:
+        case _LSHIFT:
+        case _INSERT: //INSERT
+        case _DELETE: //DELETE
+        case _CAPS: //CAPS
+            KASSERT_GOTO_SUCCESS(true);
+            break;
+        default:
+            KASSERT_GOTO_SUCCESS(false);
+            break;
+    }
+   
 
     // if no notify callback attached, we're done
     KASSERT_GOTO_SUCCESS(notify_cb == NULL);

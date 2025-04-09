@@ -20,7 +20,10 @@ OBJECTS := $(OBJECTDIR)/*.o
 CTARGETS := $(SRCDIR)/*.c $(DRIVERSDIR)/*.c
 ASMTARGETS := $(ASMDIR)/*.S
 ISO := $(OBJECTDIR)/$(KERNELTARGET).iso
-
+CFLAGS := -O2
+ifeq ($(RUST),1)
+CFLAGS += -DRUST_ENABLED
+endif
 
 .PHONY: all kernel env image verify grub fs vfs run debug clean
 
@@ -31,16 +34,16 @@ kernel: clean
 	$(ASC) $(ASMDIR)/gdt.S -o $(OBJECTDIR)/_gdt.o
 	$(ASC) $(ASMDIR)/idt.S -o $(OBJECTDIR)/_idt.o
 	$(ASC) $(ASMDIR)/tss.S -o $(OBJECTDIR)/_tss.o
-	$(DOCKER) $(CC)-gcc -g -I $(INCLUDEDIR) -c $(CTARGETS) -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Wno-incompatible-pointer-types
+	$(DOCKER) $(CC)-gcc -g -I $(INCLUDEDIR) -c $(CTARGETS) -std=gnu99 -ffreestanding $(CFLAGS) -Wall -Wextra -Wno-incompatible-pointer-types
 
 	mv ./*.o $(OBJECTDIR)
 
 ifeq ($(RUST),1)
 	CARGO_TARGET_DIR=$(RUSTBIN) cargo build --target ./lib/$(RUSTTARGET).json
 	mv $(RUSTBIN)/$(RUSTTARGET)/debug/libkr.a $(RUSTENTRY)
-	$(DOCKER) $(CC)-gcc -T linker.ld -o $(BOOTDIR)/$(KERNELTARGET).bin -ffreestanding -O2 -nostdlib $(OBJECTS) $(RUSTENTRY) -lgcc
+	$(DOCKER) $(CC)-gcc -T linker.ld -o $(BOOTDIR)/$(KERNELTARGET).bin -ffreestanding $(CFLAGS) -nostdlib $(OBJECTS) $(RUSTENTRY) -lgcc
 else
-	$(DOCKER) $(CC)-gcc -T linker.ld -o $(BOOTDIR)/$(KERNELTARGET).bin -ffreestanding -O2 -nostdlib $(OBJECTS) -lgcc
+	$(DOCKER) $(CC)-gcc -T linker.ld -o $(BOOTDIR)/$(KERNELTARGET).bin -ffreestanding $(CFLAGS) -nostdlib $(OBJECTS) -lgcc
 endif
 
 env:
