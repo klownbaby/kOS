@@ -14,29 +14,22 @@
  * Have fun creating kOS (pronounced "Chaos")
  */
 
-#pragma once
+#include "hash.h"
 
-/* For now, max input buffer size */
-#define KSH_INPUTBUF_SIZE 0xFF
+/* Hash a string using our constant */
+uint32_t
+hashstr(char *str)
+{
+    // use our awful constant lol
+    uint32_t hash = HASH_CONSTANT;
+    uint32_t c = 0;
 
-/* We need our hashmap and command list sizes at compile time */
-#define HASHMAP_SIZE \
-    (sizeof(cmd_hashmap) / sizeof(cmd_handler_t))
-#define CMD_LIST_SIZE \
-    (sizeof(cmd_handlers) / sizeof(cmd_handler_t))
+    // hash the fucking string
+    while ((c = (uint32_t)*str++))
+    {
+        // wow! what a sophisticated algorithm!
+        hash = ((hash << 5) + hash) + c;
+    }
 
-/* Command processor (callback) */
-typedef void (*cmd_proc_t)(char *inputbuf);
-
-/* Defining a private struct for command handlers */
-typedef struct cmd_handler {
-    char *cmdstr;
-    cmd_proc_t proc;
-} cmd_handler_t;
-
-/* Shell function defs */
-void
-ksh_init();
-
-void
-ksh_fini();
+    return hash;
+}

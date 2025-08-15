@@ -15,64 +15,75 @@
  */
 
 #include "kernel.h"
-#include "drivers/keyboard.h"
+#include "ksh_proc.h"
 #include "drivers/tty.h"
-#include "drivers/fat.h"
+#include "drivers/keyboard.h"
 
 /* Our keyboard input buffer */
 static char* inputbuf;
 /* Initialize head pointer for input buffer */
 static uint32_t inputbuf_head = 0;
+/* Initialize our command hashmap, making this large (for now) */
+static cmd_handler_t cmd_hashmap[0x1000] = { 0 };
+
+/* Our command strings and their associated processors (callbacks) */
+static const cmd_handler_t cmd_handlers[5] = {
+    { .cmdstr = "clear", .proc = handle_clear },
+    { .cmdstr = "reboot", .proc = handle_reboot },
+    { .cmdstr = "dumpt", .proc = handle_dumpt },
+    { .cmdstr = "dumpfs", .proc = handle_dumpfs },
+    { .cmdstr = "neofetch", .proc = handle_neofetch },
+};
+
+/* Build out our initial hashmap for command processors (callbacks) */
+static void
+build_hashmap()
+{
+    uint32_t hash = 0;
+
+    for (uint32_t i = 0; i < CMD_LIST_SIZE; ++i)
+    {
+        // get hash for command string
+        hash = hashstr(cmd_handlers[i].cmdstr) % HASHMAP_SIZE;
+
+        // add to hashmap
+        cmd_hashmap[hash] = cmd_handlers[i];
+    }
+}
 
 /* Process data in input buffer as command */
 static void
 process_cmd()
 {
-    // a temporary shitty way to process commands
-    // this should really be a hashmap
-    KASSERT_GOTO_SUCCESS(kstrlen(inputbuf) == 0);
+    uint32_t hash = 0;
 
-    if (kstrcmp(inputbuf, "clear"))
-    {
-        tty_clear();
-    } 
-    else if (kstrcmp(inputbuf, "reboot"))
-    {
-        // explicitly zero out our input buffer
-        kmemset(inputbuf, 0, KSH_INPUT_BUF_SIZE);
+    // ignore any zero-length input buffers, but don't fail
+    KASSERT_GOTO_FAIL(kstrlen(inputbuf) == 0);
 
-        // then reboot
-        warm_reboot();
-    }
-    else if (kstrcmp(inputbuf, "dumpt"))
+    // hash our input string
+    hash = hashstr(inputbuf) % HASHMAP_SIZE;
+
+    // check that we have a valid command
+    if (hash >= HASHMAP_SIZE || cmd_hashmap[hash].cmdstr == NULL)
     {
-        // dump kernel page table/directory mappings
-        pmm_dumpt();
-    }
-    else if (kstrcmp(inputbuf, "dumpfs"))
-    {
-        // dump fat bios parameter block
-        fat_dump_bs();
-    }
-    else if (kstrcmp(inputbuf, "neofetch"))
-    {
-        // display the dopest shit
-        tty_neofetch();
-    } else {
-        printk("Command not found: %s\n", inputbuf);
+        printk("Command not found! \"%s\"\n", inputbuf);
+        GOTO_FAIL;
     }
 
-success:
+    // call our handler
+    cmd_hashmap[hash].proc(inputbuf);
+
+fail:
     // reset input buffer head
     inputbuf_head = 0;
 
     // reset our input buffer
-    kmemset(inputbuf, 0, KSH_INPUT_BUF_SIZE);
+    kmemset(inputbuf, 0, KSH_INPUTBUF_SIZE);
 }
 
 /* Key press notification callback */
 static void
-notify_cb(uint8_t scan, uint8_t pressed)
+kbd_notify_cb(uint8_t scan, uint8_t pressed)
 {
     char c;
 
@@ -115,7 +126,7 @@ notify_cb(uint8_t scan, uint8_t pressed)
         // otherwise, write ascii
         default:
             // restrict char count
-            if (inputbuf_head == (KSH_INPUT_BUF_SIZE - 1))
+            if (inputbuf_head == (KSH_INPUTBUF_SIZE - 1))
             {
                 break;
             }
@@ -139,18 +150,21 @@ fail:
 void
 ksh_init()
 {
+    // build our command processor hashmap
+    build_hashmap();
+
     // allocate 256 byte input buffer
-    inputbuf = (char*)kmalloc(KSH_INPUT_BUF_SIZE);
+    inputbuf = (char*)kmalloc(KSH_INPUTBUF_SIZE);
 
     // set our keypress callback
-    keyboard_set_notify_cb(notify_cb);
+    keyboard_set_notify_cb(kbd_notify_cb);
 
     // write initial prompt
     tty_writecolor("> ", VGA_COLOR_LIGHT_BLUE, VGA_COLOR_BLACK);
 }
 
 void
-ksh_deinit()
+ksh_fini()
 {
     kfree(inputbuf);
 }

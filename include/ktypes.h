@@ -9,6 +9,12 @@
 /* Define function pointer types */
 typedef void (*keyboard_notify_cb)(uint8_t scan, uint8_t pressed);
 
+/* Define a temporary file type */
+typedef struct file {
+    void* buf;
+    uint32_t size;
+} file_t;
+
 /* Define a standard status check return value */
 typedef enum kstatus {
     STATUS_SUCCESS,
@@ -35,9 +41,9 @@ typedef union epoch_date {
     uint16_t raw;
 
     struct {
-        uint8_t day : 4;
+        uint8_t year : 7;
         uint8_t month : 4;
-        uint8_t year;
+        uint8_t day : 5;
     } fields;
 } epoch_date_t;
 
@@ -53,6 +59,8 @@ typedef struct free_chunk {
     uint32_t size;
     /* Next free buffer node */
     struct free_chunk* next;
+    /* Previous free buffer node */
+    struct free_chunk* prev;
 } free_chunk_t;
 
 typedef struct write_callback {
@@ -68,15 +76,3 @@ typedef struct pipe {
     /* Pointer to data buffer */
     void* buf;
 } pipe_t;
-
-typedef struct file {
-    /* Filename on disk */
-    char* name;
-    /* Size in clusters */
-    uint32_t size;
-
-    /* Standard file ops */
-    void (*read)(void* outbuf);
-    void (*write)(void* inbuf);
-    void (*delete)(void);
-} file_t;

@@ -16,27 +16,18 @@
 
 #pragma once
 
-/* For now, max input buffer size */
-#define KSH_INPUTBUF_SIZE 0xFF
-
-/* We need our hashmap and command list sizes at compile time */
-#define HASHMAP_SIZE \
-    (sizeof(cmd_hashmap) / sizeof(cmd_handler_t))
-#define CMD_LIST_SIZE \
-    (sizeof(cmd_handlers) / sizeof(cmd_handler_t))
-
-/* Command processor (callback) */
-typedef void (*cmd_proc_t)(char *inputbuf);
-
-/* Defining a private struct for command handlers */
-typedef struct cmd_handler {
-    char *cmdstr;
-    cmd_proc_t proc;
-} cmd_handler_t;
-
-/* Shell function defs */
 void
-ksh_init();
+handle_clear(char *inputbuf);
 
 void
-ksh_fini();
+handle_reboot(char *inputbuf);
+
+void
+handle_dumpt(char *inputbuf);
+
+void
+handle_dumpfs(char *inputbuf);
+
+void
+handle_neofetch(char *inputbuf);
+

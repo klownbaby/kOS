@@ -17,11 +17,21 @@
 #pragma once
 
 #include <stdint.h>
-
+#include "ktypes.h"
 
 /* Define FAT attribute types */
 #define VOLUME    0x8
 #define DIRECTORY 0x10
+
+typedef struct fat_context {
+    /* Common LBAs */
+    uint32_t fat_lba;
+    uint32_t root_lba;
+    uint32_t data_lba;
+
+    uint8_t* fat_sector;
+    uint8_t* root_sector;
+} fat_context_t;
 
 /* Define FAT16 BIOS parameter block */
 typedef struct fat16_bs {
@@ -51,16 +61,21 @@ typedef struct dir_entry {
     uint8_t  name[8];
     uint8_t  ext[3];
     uint8_t  attr;
-    uint8_t  reserved[10];
-    uint16_t time;
-    uint16_t date;
-    uint16_t start_cluster;
+    uint8_t  reserved;
+    uint8_t  time[3];
+    uint16_t crt_date;
+    uint16_t acc_date;
+    uint16_t high_cluster;
+    uint8_t  written_date[4];
+    uint16_t low_cluster;
     uint32_t size;
 } dir_entry_t;
-
 
 void
 fat_dump_bs();
 
+file_t
+fat_open(char* path);
+
 void
-fat_dump_root();
+fat_init();

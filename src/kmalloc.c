@@ -25,6 +25,7 @@ static void
 split_chunk(free_chunk_t* chunk, size_t size)
 {
     free_chunk_t* new_chunk = NULL;
+    free_chunk_t* prev_chunk = NULL;
 
     // manually increment new chunk pointer by calc'd offset
     new_chunk = (free_chunk_t*)((uint32_t)chunk + (size + sizeof(free_chunk_t)));
@@ -33,9 +34,13 @@ split_chunk(free_chunk_t* chunk, size_t size)
     new_chunk->next = chunk->next;
     new_chunk->size = chunk->size - size;
 
+    // store previous chunk temporarily
+    prev_chunk = kfree_list;
+
     // chunk is now our smaller fragment
     chunk->size = size;
     chunk->next = new_chunk;
+    chunk->prev = prev_chunk;
 
     // finally, add new chunk to head of free list
     kfree_list = new_chunk;
@@ -83,6 +88,7 @@ kmalloc_init()
     // explicitly set size, and next to NULL
     kfree_list->size = KERNEL_HEAP_DEFAULT_SIZE;
     kfree_list->next = NULL;
+    kfree_list->prev = NULL;
 
     // we're done
     BOOT_LOG("Kernel heap initialized.");
@@ -93,6 +99,7 @@ void*
 kmalloc(size_t size)
 {
     void* alloc = NULL;
+    free_chunk_t* allocated_chunk = NULL;
     free_chunk_t* free_chunk = kfree_list;
 
     while (free_chunk != NULL)

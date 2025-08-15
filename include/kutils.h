@@ -16,6 +16,9 @@
 
 #pragma once
 
+/* A somewhat unecessary wrapper for goto fail */
+#define GOTO_FAIL goto fail
+
 /* For fast error handling */
 #define KASSERT_GOTO_FAIL(__cond) if (__cond) { goto fail; }
 

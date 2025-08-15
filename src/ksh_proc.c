@@ -14,29 +14,42 @@
  * Have fun creating kOS (pronounced "Chaos")
  */
 
-#pragma once
+#include "kernel.h"
+#include "drivers/tty.h"
+#include "drivers/fat.h"
 
-/* For now, max input buffer size */
-#define KSH_INPUTBUF_SIZE 0xFF
-
-/* We need our hashmap and command list sizes at compile time */
-#define HASHMAP_SIZE \
-    (sizeof(cmd_hashmap) / sizeof(cmd_handler_t))
-#define CMD_LIST_SIZE \
-    (sizeof(cmd_handlers) / sizeof(cmd_handler_t))
-
-/* Command processor (callback) */
-typedef void (*cmd_proc_t)(char *inputbuf);
-
-/* Defining a private struct for command handlers */
-typedef struct cmd_handler {
-    char *cmdstr;
-    cmd_proc_t proc;
-} cmd_handler_t;
-
-/* Shell function defs */
+/* Handle clear ksh command (clear screen) */
 void
-ksh_init();
+handle_clear(char *inputbuf)
+{
+    tty_clear();    
+}
 
+/* Handle reboot ksh command (warm reboot) */
 void
-ksh_fini();
+handle_reboot(char *inputbuf)
+{
+    kmemset(inputbuf, 0, KSH_INPUTBUF_SIZE);
+    warm_reboot();
+}
+
+/* Handle dumpt ksh command (dump page tables) */
+void
+handle_dumpt(char *inputbuf)
+{
+    pmm_dumpt();
+}
+
+/* Handle dumpfs ksh command (dump FAT BIOS parameter block) */
+void
+handle_dumpfs(char *inputbuf)
+{
+    fat_dump_bs();    
+}
+
+/* Handle neofetch ksh command (dumb lol) */
+void
+handle_neofetch(char *inputbuf)
+{
+    tty_neofetch();
+}
