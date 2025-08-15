@@ -22,7 +22,7 @@
 void
 handle_clear(char *inputbuf)
 {
-    tty_clear();    
+    tty_clear();
 }
 
 /* Handle reboot ksh command (warm reboot) */
@@ -44,7 +44,7 @@ handle_dumpt(char *inputbuf)
 void
 handle_dumpfs(char *inputbuf)
 {
-    fat_dump_bs();    
+    fat_dump_bs();
 }
 
 /* Handle neofetch ksh command (dumb lol) */

@@ -13,7 +13,7 @@ RUSTENTRY := $(RUSTBIN)/$(RUSTTARGET)/debug/libkOS.a
 CC := i686-elf
 DOCKER := docker run -it --rm -v .:/root/env kos
 ASC := nasm -f elf32
-EMU := qemu-system-i386 -hda
+EMU := qemu-system-x86_64 -hda
 
 KERNELTARGET := kos
 OBJECTS := $(OBJECTDIR)/*.o
@@ -43,6 +43,9 @@ else
 	$(DOCKER) $(CC)-gcc -T linker.ld -o $(BOOTDIR)/$(KERNELTARGET).bin -ffreestanding -O2 -nostdlib $(OBJECTS) -lgcc
 endif
 
+obj:
+	objcopy -j .text -j .sdata -j .data -j .rodata -j .rdata -j .bss -j .reloc --target=pei-x86-64 your_elf_file.so your_efi_app.efi
+
 env:
 	docker build env -t kos
 
@@ -64,10 +67,13 @@ grub:
 	grub-mkrescue -o $(OBJECTDIR)/$(KERNELTARGET).iso multiboot
 
 run: $(ISO)
-	sudo $(EMU) $(ISO) -hdb ./fs/fs.img
+	$(EMU) $(ISO) -hdb ./fs/fs.img
+
+efi:
+	$(EMU) $(ISO) -hdb ./fs/fs.img -drive if=pflash,format=raw,readonly=on,file=./OVMF.fd
 
 debug: clean kernel image $(ISO)
-	sudo $(EMU) $(ISO) -s -S -hdb fs.img
+	$(EMU) $(ISO) -s -S -hdb fs.img
 
 clean:
 	rm -rf $(OBJECTDIR)/*.*
