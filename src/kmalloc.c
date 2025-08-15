@@ -18,32 +18,83 @@
 #include "drivers/tty.h"
 #include "pmm.h"
 
-static free_chunk_t* kfree_list;
+static free_chunk_t *kfree_list;
+
+/* Little debug helper for dumping the current free list */
+static void
+dump_freelist()
+{
+    free_chunk_t *current = kfree_list;
+
+    printk("----- CHUNK DUMP -----\n");
+
+    do {
+        // print our chunk
+        printk("Chunk %x, size %x\n", current, current->size);
+
+        // iterate
+        current = current->next;
+    } while (current != kfree_list);
+}
+
+/* Remove the chunk we are allocating from the free list */
+static bool
+remove_from_freelist(free_chunk_t *chunk)
+{
+    bool removed = FALSE;
+    free_chunk_t *current = kfree_list;
+
+    do {
+        // is this our chunk?
+        if (current == chunk)
+        {
+            // if we're the head of the free list, reset it
+            if (current == kfree_list)
+            {
+                kfree_list = current->next;
+            }
+
+            // remove from linked list
+            current->next->prev = current->prev;
+            current->prev->next = current->next;
+
+            // we're done
+            removed = TRUE;
+            break;
+        }
+
+        // iterate
+        current = current->next;
+    } while (current != kfree_list);
+
+fail:
+    return removed;
+}
 
 /* Split a larger chunk into a smaller one and adjust */
 static void
-split_chunk(free_chunk_t* chunk, size_t size)
+split_chunk(free_chunk_t *to_alloc_chunk, size_t size)
 {
-    free_chunk_t* new_chunk = NULL;
-    free_chunk_t* prev_chunk = NULL;
+    free_chunk_t *truncated_chunk = NULL;
 
     // manually increment new chunk pointer by calc'd offset
-    new_chunk = (free_chunk_t*)((uint32_t)chunk + (size + sizeof(free_chunk_t)));
+    truncated_chunk =
+        (free_chunk_t *)((uint32_t)to_alloc_chunk + (size + sizeof(free_chunk_t)));
 
     // decrease existing size accordingly
-    new_chunk->next = chunk->next;
-    new_chunk->size = chunk->size - size;
-
-    // store previous chunk temporarily
-    prev_chunk = kfree_list;
+    truncated_chunk->next = to_alloc_chunk->next;
+    truncated_chunk->size = to_alloc_chunk->size - size;
+    truncated_chunk->prev = to_alloc_chunk;
 
     // chunk is now our smaller fragment
-    chunk->size = size;
-    chunk->next = new_chunk;
-    chunk->prev = prev_chunk;
+    to_alloc_chunk->size = size;
+    to_alloc_chunk->next = truncated_chunk;
 
-    // finally, add new chunk to head of free list
-    kfree_list = new_chunk;
+    // if we're the only one in the list, create circular link
+    if (to_alloc_chunk->prev == to_alloc_chunk)
+    {
+        to_alloc_chunk->prev = truncated_chunk;
+    }
 }
 
 /* Increment kernel heap aligned on page, map new pages */
@@ -83,12 +134,12 @@ kmalloc_init()
     ksbrk(KERNEL_HEAP_DEFAULT_SIZE);
 
     // set up our genesis chunk
-    kfree_list = (free_chunk_t*)g_heap_start;
+    kfree_list = (free_chunk_t *)g_heap_start;
 
     // explicitly set size, and next to NULL
-    kfree_list->size = KERNEL_HEAP_DEFAULT_SIZE;
-    kfree_list->next = NULL;
-    kfree_list->prev = NULL;
+    kfree_list->size = KERNEL_HEAP_DEFAULT_SIZE - sizeof(free_chunk_t);
+    kfree_list->next = kfree_list;
+    kfree_list->prev = kfree_list;
 
     // we're done
     BOOT_LOG("Kernel heap initialized.");
@@ -98,26 +149,32 @@ kmalloc_init()
 void* 
 kmalloc(size_t size)
 {
-    void* alloc = NULL;
-    free_chunk_t* allocated_chunk = NULL;
-    free_chunk_t* free_chunk = kfree_list;
+    void *alloc = NULL;
+    bool found_chunk = FALSE;
+    free_chunk_t *free_chunk = kfree_list;
 
-    while (free_chunk != NULL)
-    {
+    do {
+        // is this the perfect chunk??
+        if (free_chunk->size == size)
+        {
+            found_chunk = TRUE;
+            break;
+        }
+
         // check that our allocation fits
-        if (free_chunk->size >= size) break;
+        if (free_chunk->size >= size)
+        {
+            found_chunk = TRUE;   
+        }
 
         // if not, move on
         free_chunk = free_chunk->next;
-    }
+    } while (free_chunk != kfree_list);
 
     // check that a suitable chunk was found
     KASSERT_GOTO_FAIL_MSG(
-        free_chunk == NULL, 
+        !found_chunk,
         "Chunk of given size not available!\n");
-
-    // start of our alloc is just after chunk metadata
-    alloc = (void*)((uint32_t)free_chunk + sizeof(free_chunk_t));
 
     // if our chunk size matches exactly, we are done
     KASSERT_GOTO_SUCCESS(free_chunk->size == size);
@@ -125,20 +182,32 @@ kmalloc(size_t size)
     // since our chunk is bigger than the alloc, split
     split_chunk(free_chunk, size);
 
-fail:
 success:
+    // remove chunk from freelist
+    KASSERT_GOTO_FAIL_MSG(
+      !remove_from_freelist(free_chunk),
+      "Failed to remove chunk from freelist\n");
+
+    // start of our alloc is just after chunk metadata
+    alloc = (void *)((uint32_t)free_chunk + sizeof(free_chunk_t));
+
+fail:
     return alloc;
 }
 
 void
 kfree(void* addr)
 {
-    free_chunk_t* header = NULL;
+    free_chunk_t *chunk = NULL;
 
     // get our current chunk's header
-    header = (free_chunk_t*)(addr - sizeof(free_chunk_t));
+    chunk = (free_chunk_t *)((uint32_t)addr - sizeof(free_chunk_t));
 
     // insert at head of free list
-    header->next = kfree_list;
-    kfree_list = header;
+    chunk->next = kfree_list;
+    chunk->prev = kfree_list->prev;
+
+    kfree_list->prev->next = chunk;
+    kfree_list->prev = chunk;
+    kfree_list = chunk;
 }
