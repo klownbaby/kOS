@@ -14,6 +14,7 @@
  * Have fun creating kOS (pronounced "Chaos")
  */
 
+#include "ksh.h"
 #include "kernel.h"
 #include "ksh_proc.h"
 #include "drivers/tty.h"
@@ -56,12 +57,17 @@ static void
 process_cmd()
 {
     uint32_t hash = 0;
+    uint32_t argc = 0;
+    char **argv = NULL;
 
     // ignore any zero-length input buffers, but don't fail
     KASSERT_GOTO_FAIL(kstrlen(inputbuf) == 0);
 
+    // split input command into argument buffer
+    argv = kstrsplit(inputbuf, ' ', &argc);
+
     // hash our input string
-    hash = hashstr(inputbuf) % HASHMAP_SIZE;
+    hash = hashstr(argv[0]) % HASHMAP_SIZE;
 
     // check that we have a valid command
     if (hash >= HASHMAP_SIZE || cmd_hashmap[hash].cmdstr == NULL)
@@ -71,7 +77,7 @@ process_cmd()
     }
 
     // call our handler
-    cmd_hashmap[hash].proc(inputbuf);
+    cmd_hashmap[hash].proc(argc, argv);
 
 fail:
     // reset input buffer head
@@ -155,6 +161,7 @@ ksh_init()
 
     // allocate 256 byte input buffer
     inputbuf = (char*)kmalloc(KSH_INPUTBUF_SIZE);
+    kmemset(inputbuf, 0, KSH_INPUTBUF_SIZE);
 
     // set our keypress callback
     keyboard_set_notify_cb(kbd_notify_cb);

@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <stdint.h>
+
 /* For now, max input buffer size */
 #define KSH_INPUTBUF_SIZE 0xFF
 
@@ -26,7 +28,7 @@
     (sizeof(cmd_handlers) / sizeof(cmd_handler_t))
 
 /* Command processor (callback) */
-typedef void (*cmd_proc_t)(char *inputbuf);
+typedef void (*cmd_proc_t)(uint32_t argc, char **argv);
 
 /* Defining a private struct for command handlers */
 typedef struct cmd_handler {

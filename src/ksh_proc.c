@@ -20,36 +20,35 @@
 
 /* Handle clear ksh command (clear screen) */
 void
-handle_clear(char *inputbuf)
+handle_clear(uint32_t argc, char **argv)
 {
     tty_clear();
 }
 
 /* Handle reboot ksh command (warm reboot) */
 void
-handle_reboot(char *inputbuf)
+handle_reboot(uint32_t argc, char **argv)
 {
-    kmemset(inputbuf, 0, KSH_INPUTBUF_SIZE);
     warm_reboot();
 }
 
 /* Handle dumpt ksh command (dump page tables) */
 void
-handle_dumpt(char *inputbuf)
+handle_dumpt(uint32_t argc, char **argv)
 {
     pmm_dumpt();
 }
 
 /* Handle dumpfs ksh command (dump FAT BIOS parameter block) */
 void
-handle_dumpfs(char *inputbuf)
+handle_dumpfs(uint32_t argc, char **argv)
 {
     fat_dump_bs();
 }
 
 /* Handle neofetch ksh command (dumb lol) */
 void
-handle_neofetch(char *inputbuf)
+handle_neofetch(uint32_t argc, char **argv)
 {
     tty_neofetch();
 }

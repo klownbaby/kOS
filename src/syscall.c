@@ -17,65 +17,12 @@
 #include "kernel.h"
 #include "drivers/tty.h"
 
-/* Init syscall table */
-static syscall_t syscall_entries[10] = {
-    __write,
-    __open
-};
-
-/* Unused for now */
- static void 
-__attribute__((naked, used)) syscall_push_regs() 
-{
-    __asm__ __volatile__(
-                         "pushl %eax\n"
-                         "pushl %gs\n"
-                         "pushl %fs\n"
-                         "pushl %es\n"
-                         "pushl %ds\n"
-
-                         "pushl %ebp\n"
-                         "pushl %edi\n"
-                         "pushl %esi\n"
-                         "pushl %edx\n"
-                         "pushl %ecx\n"
-                         "pushl %ebx\n"
-                         "pushl %esp\n"
-                        );
-}
-
-/* Unused for now */
-static void 
-__attribute__((naked, used)) syscall_pop_regs() 
-{
-    __asm__ __volatile__(
-                         "addl $4, %esp\n"
-
-                         "popl %ebx\n"
-                         "popl %ecx\n"
-                         "popl %edx\n"
-
-                         "popl %esi\n"
-                         "popl %edi\n"
-                         "popl %esp\n"
-
-                         "popl %ds\n"
-                         "popl %es\n"
-                         "popl %fs\n"
-                         "popl %gs\n"
-
-                         "addl $4, %esp\n"
-                        );
-}
 
 /* Callback for handling all syscalls */
 static void 
 syscall_cb(i_register_t registers) 
 {
     KASSERT_PANIC(registers.eax > (SYSCALL_MAX - 1), "Invalid syscall!");
-
-    // lookup syscall from table and call
-    syscall_entries[registers.eax](&registers);
 }
 
 /* 

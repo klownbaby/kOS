@@ -16,18 +16,20 @@
 
 #pragma once
 
-void
-handle_clear(char *inputbuf);
+#include <stdint.h>
 
 void
-handle_reboot(char *inputbuf);
+handle_clear(uint32_t argc, char **argv);
 
 void
-handle_dumpt(char *inputbuf);
+handle_reboot(uint32_t argc, char **argv);
 
 void
-handle_dumpfs(char *inputbuf);
+handle_dumpt(uint32_t argc, char **argv);
 
 void
-handle_neofetch(char *inputbuf);
+handle_dumpfs(uint32_t argc, char **argv);
+
+void
+handle_neofetch(uint32_t argc, char **argv);
 

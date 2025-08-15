@@ -18,6 +18,7 @@
 
 #include <stddef.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 size_t 
 kstrlen(const char* str);
@@ -33,3 +34,6 @@ kstrcat(char* src, const char* append);
 
 bool 
 kstrcmp(const char* a, const char* b);
+
+char **
+kstrsplit(char *str, const char delim, uint32_t *elem_count);

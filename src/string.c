@@ -80,3 +80,64 @@ kstrcmp(const char* a, const char* b)
 
     return true;
 }
+
+/* This is kinda awful (and dangerous!)... but it works for now, TODO: Fix plz */
+char **
+kstrsplit(char *str, const char delim, uint32_t *elem_count)
+{
+    char **tokens = NULL;
+    char *tmp = NULL;
+    size_t size = 0;
+    size_t elem_size = 0;
+    uint32_t elem_start = 0;
+    uint32_t current_offset = 0;
+    uint32_t count = 1;
+    uint32_t i = 0;
+
+    // get length of raw string
+    size = kstrlen(str);
+    tmp = str;
+
+    // first iteration, count delimeters
+    while (*tmp++ != '\0')
+    {
+        if (*tmp == delim) ++count;
+    }
+
+    // allocate buffer for string list
+    tokens = (char **)kmalloc(sizeof(char *) * count);
+    kmemset(tokens, 0, sizeof(char *) * count);
+
+    // reset count
+    count = 0;
+
+    for (uint32_t i = 0; i <= size; ++i)
+    {
+        if (str[i] == delim || str[i] == '\0')
+        {
+            // get current offset within string and size
+            current_offset = (uint32_t)(&str[i]);
+            elem_size = current_offset - (uint32_t)&str[elem_start];
+
+            // allocate buffer for string element (plus NULL)
+            // REMEMBER, the CALLER OWNS THIS BUFFER!
+            tmp = kmalloc(elem_size + 1);
+
+            // zero out buffer
+            kmemset(tmp, 0, elem_size + 1);
+            kmemcpy(tmp, (void *)(&str[i] - elem_size), elem_size);
+
+            // set element in list, increment list counter
+            tokens[count++] = tmp;
+
+            // reset start pointer to just after delimeter
+            elem_start = i + 1;
+        }
+    }
+
+    // write count to out pointer
+    *elem_count = count;
+
+    // the CALLER now OWNS THIS BUFFER TOO!
+    return tokens;
+}

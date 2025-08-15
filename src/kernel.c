@@ -52,8 +52,10 @@ kernel_main(__attribute__((used)) uint32_t magic, volatile multiboot_info_t* mbd
     // print a dope ass message
     tty_neofetch();
 
+    // lazy file system implementation lol
     fat_init();
 
+    // init our awful shell
     ksh_init();
 
     // hang

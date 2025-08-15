@@ -57,13 +57,13 @@ static inline void outb(uint16_t port, uint8_t byte)
 }
 
 /* Clear interrupts */
-__attribute__((naked, used)) static void cli() 
+__attribute__((used)) static void cli() 
 {
     __asm__ __volatile__( "cli" );
 }
 
 /* Set (re-enable) interrupts */
-__attribute__((naked, used)) static void sti() 
+__attribute__((used)) static void sti() 
 {
     __asm__ __volatile__( "sti" );
 }
