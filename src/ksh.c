@@ -71,12 +71,9 @@ process_cmd()
     argc = kstrntok(inputbuf, ' ');
     argv = kmalloc(sizeof(char *) * argc);
 
-    printk("argc is %x\n", argc);
-
     for (uint32_t i = 0; i < argc; ++i)
     {
         elem_size = kstrtokoff(tmp, ' ');
-        printk("elem_size is %x\n", elem_size);
 
         if (elem_size == 0) break;
 
@@ -90,8 +87,6 @@ process_cmd()
         argv[i] = elem;
         tmp += elem_size;
     }
-
-    printk("argv[0] %s\n", argv[0]);
 
     // hash our input string
     hash = hashstr(argv[0]) % HASHMAP_SIZE;

@@ -126,35 +126,6 @@ kmalloc_init()
     kfree_list->next = kfree_list;
     kfree_list->prev = kfree_list;
 
-    // void *test10 = kmalloc(0x10);
-    // void *test100 = kmalloc(0x100);
-    // void *test6 = kmalloc(0x6);
-
-    // printk("\nafter allocations\n");
-    // dump_freelist();
-
-    // kfree(test10);
-    // printk("\nfreed 0x10\n");
-    // dump_freelist();
-
-    // kfree(test6);
-    // printk("\nfreed 0x6\n");
-    // dump_freelist();
-
-    // test10 = kmalloc(0x10);
-    // printk("\nalloc'd 0x10\n");
-    // dump_freelist();
-
-    // kfree(test100);
-    // printk("\nfreed 0x100");
-    // dump_freelist();
-
-    // test100 = kmalloc(0x250);
-    // printk("alloc'd 0x250");
-    // dump_freelist();
-
-    // while(1);
-
     // we're done
     BOOT_LOG("Kernel heap initialized.");
 }
@@ -168,11 +139,20 @@ kmalloc(size_t size)
     free_chunk_t *free_chunk = kfree_list;
 
     do {
-        // is this the perfect chunk??
+        // does this chunk fit?
         if (free_chunk->size >= size)
         {
-            found_chunk = free_chunk;
-            break;
+            // if we haven't found a chunk yet, take this one
+            if (!found_chunk)
+            {
+                found_chunk = free_chunk;
+            }
+            // is this one smaller than the previously found?
+            else if (found_chunk && free_chunk->size < found_chunk->size)
+            {
+                // if so, update to a better fit
+                found_chunk = free_chunk;
+            }
         }
 
         // if not, move on
