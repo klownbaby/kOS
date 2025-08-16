@@ -31,5 +31,8 @@ void
 handle_dumpfs(uint32_t argc, char **argv);
 
 void
+handle_dumpfl(uint32_t argc, char **argv);
+
+void
 handle_neofetch(uint32_t argc, char **argv);
 

@@ -46,9 +46,17 @@ handle_dumpfs(uint32_t argc, char **argv)
     fat_dump_bs();
 }
 
+/* Handle dumpfl ksh command (dump free list) */
+void
+handle_dumpfl(uint32_t argc, char **argv)
+{
+    dump_freelist();
+}
+
 /* Handle neofetch ksh command (dumb lol) */
 void
 handle_neofetch(uint32_t argc, char **argv)
 {
     tty_neofetch();
 }
+

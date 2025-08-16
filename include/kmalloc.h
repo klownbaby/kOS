@@ -23,6 +23,9 @@
 
 /* Kernel heap function defs */
 void
+dump_freelist();
+
+void
 ksbrk(size_t size);
 
 void 

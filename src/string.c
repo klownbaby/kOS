@@ -16,6 +16,7 @@
 
 #include <stddef.h>
 #include "kernel.h"
+#include "kutils.h"
 
 size_t 
 kstrlen(const char* str) 
@@ -135,6 +136,7 @@ kstrsplit(char *str, const char delim, uint32_t *elem_count)
         }
     }
 
+success:
     // write count to out pointer
     *elem_count = count;
 

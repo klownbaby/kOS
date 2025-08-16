@@ -91,7 +91,7 @@ pmm_dumpt()
     {
         if (!IS_PRESENT(kpd[i])) continue;
         
-        printk("    PDE virt[%x] phys[%x]\n", (i << 22), kpd[i]);
+        printk("    PDE virt[%x] phys[%x]\n", (i << 22), (kpd[i] & ~(0xFF)));
     }
 }
 

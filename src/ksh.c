@@ -28,11 +28,12 @@ static uint32_t inputbuf_head = 0;
 static cmd_handler_t cmd_hashmap[0x1000] = { 0 };
 
 /* Our command strings and their associated processors (callbacks) */
-static const cmd_handler_t cmd_handlers[5] = {
+static const cmd_handler_t cmd_handlers[6] = {
     { .cmdstr = "clear", .proc = handle_clear },
     { .cmdstr = "reboot", .proc = handle_reboot },
     { .cmdstr = "dumpt", .proc = handle_dumpt },
     { .cmdstr = "dumpfs", .proc = handle_dumpfs },
+    { .cmdstr = "dumpfl", .proc = handle_dumpfl },
     { .cmdstr = "neofetch", .proc = handle_neofetch },
 };
 
@@ -78,6 +79,15 @@ process_cmd()
 
     // call our handler
     cmd_hashmap[hash].proc(argc, argv);
+
+    // free each argument
+    for (uint32_t i = 0; i < argc; ++i)
+    {
+        kfree(argv[i]);
+    }
+
+    // free argument buffer itself
+    kfree(argv);
 
 fail:
     // reset input buffer head
