@@ -82,6 +82,41 @@ kstrcmp(const char* a, const char* b)
     return true;
 }
 
+/* Get number of tokens in string */
+uint32_t
+kstrntok(char *str, const char delim)
+{
+    char *tmp = str;
+    uint32_t count = 1;
+
+    while (*tmp++ != '\0')
+    {
+        if (*tmp == delim) ++count;
+    }
+
+    return count;
+}
+
+/* Get offset of next token in string */
+uint32_t
+kstrtokoff(char *str, const char delim)
+{
+    char *tmp = str;
+    uint32_t offset = 0;
+
+    while (*tmp++ != '\0')
+    {
+        ++offset;
+
+        if (*tmp == delim)
+        {
+            break;            
+        }
+    }
+
+    return offset;
+}
+
 /* This is kinda awful (and dangerous!)... but it works for now, TODO: Fix plz */
 char **
 kstrsplit(char *str, const char delim, uint32_t *elem_count)
@@ -125,7 +160,7 @@ kstrsplit(char *str, const char delim, uint32_t *elem_count)
             tmp = kmalloc(elem_size + 1);
 
             // zero out buffer
-            kmemset(tmp, 0, elem_size + 1);
+            kmemset(tmp, 0, elem_size);
             kmemcpy(tmp, (void *)(&str[i] - elem_size), elem_size);
 
             // set element in list, increment list counter

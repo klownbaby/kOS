@@ -14,7 +14,6 @@
  * Have fun creating kOS (pronounced "Chaos")
  */
 
-#include "ksh.h"
 #include "kernel.h"
 #include "ksh_proc.h"
 #include "drivers/tty.h"
@@ -28,11 +27,11 @@ static uint32_t inputbuf_head = 0;
 static cmd_handler_t cmd_hashmap[0x1000] = { 0 };
 
 /* Our command strings and their associated processors (callbacks) */
-static const cmd_handler_t cmd_handlers[6] = {
+static const cmd_handler_t cmd_handlers[5] = {
     { .cmdstr = "clear", .proc = handle_clear },
     { .cmdstr = "reboot", .proc = handle_reboot },
     { .cmdstr = "dumpt", .proc = handle_dumpt },
-    { .cmdstr = "dumpfs", .proc = handle_dumpfs },
+    // { .cmdstr = "dumpfs", .proc = handle_dumpfs },
     { .cmdstr = "dumpfl", .proc = handle_dumpfl },
     { .cmdstr = "neofetch", .proc = handle_neofetch },
 };
@@ -59,13 +58,40 @@ process_cmd()
 {
     uint32_t hash = 0;
     uint32_t argc = 0;
+    uint32_t elem_size = 0;
     char **argv = NULL;
+    char *elem = NULL;
+    char *tmp = NULL;
 
     // ignore any zero-length input buffers, but don't fail
-    KASSERT_GOTO_FAIL(kstrlen(inputbuf) == 0);
+    KASSERT_GOTO_SUCCESS(kstrlen(inputbuf) == 0);
 
-    // split input command into argument buffer
-    argv = kstrsplit(inputbuf, ' ', &argc);
+    tmp = inputbuf;
+
+    argc = kstrntok(inputbuf, ' ');
+    argv = kmalloc(sizeof(char *) * argc);
+
+    printk("argc is %x\n", argc);
+
+    for (uint32_t i = 0; i < argc; ++i)
+    {
+        elem_size = kstrtokoff(tmp, ' ');
+        printk("elem_size is %x\n", elem_size);
+
+        if (elem_size == 0) break;
+
+        // allocate size + NULL character
+        elem = kmalloc(elem_size + 1);
+        // zero out buffer
+        kmemset(elem, 0, elem_size + 1);
+
+        kmemcpy(elem, tmp, elem_size);
+
+        argv[i] = elem;
+        tmp += elem_size;
+    }
+
+    printk("argv[0] %s\n", argv[0]);
 
     // hash our input string
     hash = hashstr(argv[0]) % HASHMAP_SIZE;
@@ -80,16 +106,19 @@ process_cmd()
     // call our handler
     cmd_hashmap[hash].proc(argc, argv);
 
-    // free each argument
+fail:
     for (uint32_t i = 0; i < argc; ++i)
     {
-        kfree(argv[i]);
+        if (argv && argv[i])
+        {
+            kfree(argv[i]);
+        }
     }
 
     // free argument buffer itself
     kfree(argv);
 
-fail:
+success:
     // reset input buffer head
     inputbuf_head = 0;
 
@@ -127,7 +156,13 @@ kbd_notify_cb(uint8_t scan, uint8_t pressed)
             break;
         // tilde key reboots
         case KEY_TILDE:
-            warm_reboot();
+            tty_write("\n");
+
+            // dump freelist
+            dump_freelist();
+
+            tty_write("\n");
+            tty_writecolor("> ", VGA_COLOR_LIGHT_BLUE, VGA_COLOR_BLACK);
             break;
         // process keybuf on return
         case KEY_ENTER:

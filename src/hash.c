@@ -23,9 +23,10 @@ hashstr(char *str)
     // use our awful constant lol
     uint32_t hash = HASH_CONSTANT;
     uint32_t c = 0;
+    char *tmp = str;
 
     // hash the fucking string
-    while ((c = (uint32_t)*str++))
+    while ((c = (uint32_t)*tmp++))
     {
         // wow! what a sophisticated algorithm!
         hash = ((hash << 5) + hash) + c;

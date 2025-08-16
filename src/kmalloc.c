@@ -40,34 +40,28 @@ dump_freelist()
 }
 
 /* Remove the chunk we are allocating from the free list */
-static bool
+static void
 remove_from_freelist(free_chunk_t *chunk)
 {
-    bool removed = FALSE;
-    free_chunk_t *current = kfree_list;
+    if (chunk == kfree_list)
+    {
+        kfree_list = kfree_list->next;
+    }
 
-    do {
-        // is this our chunk?
-        if (current == chunk)
-        {
-            if (current == kfree_list)
-            {
-                kfree_list = kfree_list->next;
-            }
+    chunk->next->prev = chunk->prev;
+    chunk->prev->next = chunk->next;
+}
 
-            current->next->prev = current->prev;
-            current->prev->next = current->next;
+static void
+add_to_freelist(free_chunk_t *chunk)
+{
+    chunk->prev = kfree_list->prev;
 
-            removed = TRUE;
-            break;
-        }
+    kfree_list->prev->next = chunk;
+    kfree_list->prev = chunk;
 
-        // iterate
-        current = current->next;
-    } while (current != kfree_list);
-
-fail:
-    return removed;
+    chunk->next = kfree_list;
+    kfree_list = chunk;
 }
 
 /* Split a larger chunk into a smaller one and adjust */
@@ -80,17 +74,12 @@ split_chunk(free_chunk_t *to_split, size_t size)
     new_chunk =
         (free_chunk_t *)((uint32_t)to_split + (size + sizeof(free_chunk_t)));
 
-    new_chunk->next = to_split->next;
-    new_chunk->prev = to_split;
     new_chunk->size = to_split->size - (size + sizeof(free_chunk_t));
 
-    if (to_split == kfree_list)
-    {
-        to_split->prev = new_chunk;
-    }
-
+    // reset size
     to_split->size = size;
-    to_split->next = new_chunk;
+
+    add_to_freelist(new_chunk);
 }
 
 /* Increment kernel heap aligned on page, map new pages */
@@ -137,38 +126,34 @@ kmalloc_init()
     kfree_list->next = kfree_list;
     kfree_list->prev = kfree_list;
 
-    void *test1 = kmalloc(0x6);
-    void *test2 = kmalloc(0x10);
-    void *test3 = kmalloc(0x100);
-    void *test4 = kmalloc(0x4);
+    // void *test10 = kmalloc(0x10);
+    // void *test100 = kmalloc(0x100);
+    // void *test6 = kmalloc(0x6);
 
-    printk("!!!!!! allocated all buffers !!!!!!\n");
-    dump_freelist();
+    // printk("\nafter allocations\n");
+    // dump_freelist();
 
-    kfree(test1);
-    kfree(test2);
+    // kfree(test10);
+    // printk("\nfreed 0x10\n");
+    // dump_freelist();
 
-    printk("!!!!!! freed 0x6, then 0x10 !!!!!!\n");
-    dump_freelist();
+    // kfree(test6);
+    // printk("\nfreed 0x6\n");
+    // dump_freelist();
 
-    test2 = kmalloc(0x10);
+    // test10 = kmalloc(0x10);
+    // printk("\nalloc'd 0x10\n");
+    // dump_freelist();
 
-    printk("!!!!!! realloc'd 0x10 !!!!!!\n");
-    dump_freelist();
+    // kfree(test100);
+    // printk("\nfreed 0x100");
+    // dump_freelist();
 
-    test1 = kmalloc(0x3);
-    printk("!!!!!! allocated 0x3 !!!!!!\n");
-    dump_freelist();
+    // test100 = kmalloc(0x250);
+    // printk("alloc'd 0x250");
+    // dump_freelist();
 
-    printk("!!! freeing 0x10 !!!\n");
-    kfree(test2);
-    dump_freelist();
-
-    printk("!!! freeing 0x3 !!!\n");
-    kfree(test1);
-    dump_freelist();
-
-    while (1);
+    // while(1);
 
     // we're done
     BOOT_LOG("Kernel heap initialized.");
@@ -186,7 +171,7 @@ kmalloc(size_t size)
         // is this the perfect chunk??
         if (free_chunk->size >= size)
         {
-            found_chunk = free_chunk;;
+            found_chunk = free_chunk;
             break;
         }
 
@@ -202,7 +187,7 @@ kmalloc(size_t size)
     // perfect fit?
     KASSERT_GOTO_SUCCESS(found_chunk->size == size);
 
-    if (found_chunk->size >= 0x10)
+    if (found_chunk->size >= 0x30)
     {
         // since our chunk is bigger than the alloc, split
         split_chunk(found_chunk, size);
@@ -210,12 +195,10 @@ kmalloc(size_t size)
 
 success:
     // remove chunk from freelist
-    KASSERT_GOTO_FAIL_MSG(
-      !remove_from_freelist(free_chunk),
-      "Failed to remove chunk from freelist\n");
+    remove_from_freelist(found_chunk);
 
     // start of our alloc is just after chunk metadata
-    alloc = (void *)((uint32_t)free_chunk + sizeof(free_chunk_t));
+    alloc = (void *)((uint32_t)found_chunk + sizeof(free_chunk_t));
 
 fail:
     return alloc;
@@ -233,13 +216,5 @@ kfree(void* addr)
       (uint32_t)chunk < g_heap_start || (uint32_t)chunk >= g_heap_end,
       "Chunk is corrupted!");
 
-    // insert at head of free list
-    chunk->next = kfree_list;
-    chunk->prev = kfree_list->prev;
-
-    // PROBLEM HERE
-    kfree_list->prev->next = chunk;
-    kfree_list->prev = chunk;
-
-    kfree_list = chunk;
+    add_to_freelist(chunk);
 }

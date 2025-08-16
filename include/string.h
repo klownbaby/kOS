@@ -35,5 +35,11 @@ kstrcat(char* src, const char* append);
 bool 
 kstrcmp(const char* a, const char* b);
 
+uint32_t
+kstrntok(char *str, const char delim);
+
+uint32_t
+kstrtokoff(char *str, const char delim);
+
 char **
 kstrsplit(char *str, const char delim, uint32_t *elem_count);
