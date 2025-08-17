@@ -20,32 +20,32 @@
 #include "kutils.h"
 #include "pmm.h"
 
-static free_chunk_t *kfree_list;
+static free_chunk_t *kfreelist;
 
 /* Little debug helper for dumping the current free list */
 void
 dump_freelist()
 {
-    free_chunk_t *current = kfree_list;
+    free_chunk_t *current = kfreelist;
 
     printk("----- CHUNK DUMP -----\n");
 
     do {
         // print our chunk
-        printk("Chunk %x, size %x\n", current, current->size);
+        printk("Chunk 0x%x, size 0x%x\n", current, current->size);
 
         // iterate
         current = current->next;
-    } while (current != kfree_list);
+    } while (current != kfreelist);
 }
 
 /* Remove the chunk we are allocating from the free list */
 static void
 remove_from_freelist(free_chunk_t *chunk)
 {
-    if (chunk == kfree_list)
+    if (chunk == kfreelist)
     {
-        kfree_list = kfree_list->next;
+        kfreelist = kfreelist->next;
     }
 
     chunk->next->prev = chunk->prev;
@@ -55,13 +55,13 @@ remove_from_freelist(free_chunk_t *chunk)
 static void
 add_to_freelist(free_chunk_t *chunk)
 {
-    chunk->prev = kfree_list->prev;
+    chunk->prev = kfreelist->prev;
 
-    kfree_list->prev->next = chunk;
-    kfree_list->prev = chunk;
+    kfreelist->prev->next = chunk;
+    kfreelist->prev = chunk;
 
-    chunk->next = kfree_list;
-    kfree_list = chunk;
+    chunk->next = kfreelist;
+    kfreelist = chunk;
 }
 
 /* Split a larger chunk into a smaller one and adjust */
@@ -119,12 +119,12 @@ kmalloc_init()
     ksbrk(KERNEL_HEAP_DEFAULT_SIZE);
 
     // set up our genesis chunk
-    kfree_list = (free_chunk_t *)g_heap_start;
+    kfreelist = (free_chunk_t *)g_heap_start;
 
     // explicitly set size, and next to NULL
-    kfree_list->size = KERNEL_HEAP_DEFAULT_SIZE - sizeof(free_chunk_t);
-    kfree_list->next = kfree_list;
-    kfree_list->prev = kfree_list;
+    kfreelist->size = KERNEL_HEAP_DEFAULT_SIZE - sizeof(free_chunk_t);
+    kfreelist->next = kfreelist;
+    kfreelist->prev = kfreelist;
 
     // we're done
     BOOT_LOG("Kernel heap initialized.");
@@ -136,7 +136,7 @@ kmalloc(size_t size)
 {
     void *alloc = NULL;
     free_chunk_t *found_chunk = NULL;
-    free_chunk_t *free_chunk = kfree_list;
+    free_chunk_t *free_chunk = kfreelist;
 
     do {
         // perfect fit?
@@ -164,7 +164,7 @@ kmalloc(size_t size)
 
         // if not, move on
         free_chunk = free_chunk->next;
-    } while (free_chunk != kfree_list);
+    } while (free_chunk != kfreelist);
 
     // check that a suitable chunk was found
     KASSERT_GOTO_FAIL_MSG(

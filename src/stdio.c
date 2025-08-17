@@ -134,8 +134,7 @@ printk(const char *fmt, ...)
                 // handle hex conversion
                 kitoa(va_arg(ap, int), buffer, HEX);
                 
-                // write prefix "0x" with filled buffer
-                tty_write("0x");
+                // write filled buffer
                 tty_write(buffer);
                 break;
             case 'c':

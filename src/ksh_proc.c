@@ -84,12 +84,12 @@ handle_poke(uint32_t argc, char **argv)
     kmemcpy(buf, (void *)addr, size);
 
     // finally, dump
-    printk("Dumping at address (%x)\n", addr);
+    printk("Dumping at address (0x%x)\n", addr);
     printk("    { ");
 
     for (uint32_t i = 0; i < size; ++i)
     {
-        printk("%x ", buf[i]);
+        printk("0x%x, ", buf[i]);
     }
 
     printk("}\n");
