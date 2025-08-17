@@ -60,3 +60,50 @@ handle_neofetch(uint32_t argc, char **argv)
     tty_neofetch();
 }
 
+/* Poke (read) from a given memory address */
+void
+handle_poke(uint32_t argc, char **argv)
+{
+    uint32_t addr = 0;
+    uint32_t size = 0;
+    uint8_t *buf = NULL;
+
+    KASSERT_GOTO_FAIL_MSG(argc < 3, "Usage: poke [address] [size]\n");
+
+    // get address and size from args
+    addr = katoi(argv[1]);
+    size = katoi(argv[2]);
+
+    // for now, restrict size to 32 bytes
+    KASSERT_GOTO_FAIL_MSG(size > 0x10, "Inavlid size, must be less than 32!\n");
+
+    // allocate a scratch buffer
+    buf = kmalloc(size);
+
+    // copy desired size
+    kmemcpy(buf, (void *)addr, size);
+
+    // finally, dump
+    printk("Dumping at address (%x)\n", addr);
+    printk("    { ");
+
+    for (uint32_t i = 0; i < size; ++i)
+    {
+        printk("%x ", buf[i]);
+    }
+
+    printk("}\n");
+
+fail:
+    // ensure we free our scratch buffer
+    if (buf) kfree(buf);
+
+    return;
+}
+
+/* Prod (write) to a given memory address */
+void
+handle_prod(uint32_t argc, char **argv)
+{
+    
+}

@@ -106,12 +106,13 @@ kstrtokoff(char *str, const char delim)
 
     while (*tmp++ != '\0')
     {
-        ++offset;
-
         if (*tmp == delim)
         {
+            ++offset;
             break;            
         }
+
+        ++offset;
     }
 
     return offset;
@@ -150,7 +151,7 @@ kstrsplit(char *str, const char delim, uint32_t *elem_count)
         tokens[i] = elem;
 
         // reset string to after last delimeter
-        tmp += elem_size;
+        tmp += elem_size + 1;
     }
 
 fail:

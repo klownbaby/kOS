@@ -27,13 +27,14 @@ static uint32_t inputbuf_head = 0;
 static cmd_handler_t cmd_hashmap[0x1000] = { 0 };
 
 /* Our command strings and their associated processors (callbacks) */
-static const cmd_handler_t cmd_handlers[6] = {
+static const cmd_handler_t cmd_handlers[7] = {
     { .cmdstr = "clear", .proc = handle_clear },
     { .cmdstr = "reboot", .proc = handle_reboot },
     { .cmdstr = "dumpt", .proc = handle_dumpt },
     { .cmdstr = "dumpfs", .proc = handle_dumpfs },
     { .cmdstr = "dumpfl", .proc = handle_dumpfl },
-    { .cmdstr = "neofetch", .proc = handle_neofetch }
+    { .cmdstr = "neofetch", .proc = handle_neofetch },
+    { .cmdstr = "poke", .proc = handle_poke }
 };
 
 /* Build out our initial hashmap for command processors (callbacks) */

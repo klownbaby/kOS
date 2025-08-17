@@ -20,12 +20,12 @@
 #include "drivers/vga.h"
 
 /* Converts int to ascii representation (used for printing) */
-char* 
-kitoa(int value, char* str, int base) 
+char * 
+kitoa(int value, char *str, int base) 
 {
-    char* rc;
-    char* ptr;
-    char* low;
+    char *rc;
+    char *ptr;
+    char *low;
 
     unsigned int ucast;
     
@@ -74,16 +74,31 @@ kitoa(int value, char* str, int base)
     return rc;
 }
 
+/* Convert ASCII string to integer */
+uint32_t
+katoi(const char *str)
+{
+    uint32_t k = 0;
+
+    while (*str)
+    {
+        k = (k << 3) + (k << 1) + (*str) - '0';
+        str++;
+    }
+
+    return k;
+}
+
 /* Put string */
 void 
-kputs(const char* str)
+kputs(const char *str)
 {
     tty_write(str);
 }
 
 /* Kernel printf targeting tty output */
 void 
-printk(const char* fmt, ...) 
+printk(const char *fmt, ...) 
 {
     // init args and string buffer
     va_list ap;

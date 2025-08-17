@@ -36,3 +36,8 @@ handle_dumpfl(uint32_t argc, char **argv);
 void
 handle_neofetch(uint32_t argc, char **argv);
 
+void
+handle_poke(uint32_t argc, char **argv);
+
+void
+handle_prod(uint32_t argc, char **argv);

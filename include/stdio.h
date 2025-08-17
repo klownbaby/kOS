@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
 
@@ -26,6 +27,9 @@
 
 char* 
 kitoa(int value, char* str, int base);
+
+uint32_t
+katoi(const char *str);
 
 void
 kmemset(void* dest, register int data, register size_t length);
