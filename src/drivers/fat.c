@@ -153,6 +153,4 @@ fat_init()
 
     // set context buffers
     fat_ctx.root_sector = root_sector;
-
-    // fat_open("dummy");
 }

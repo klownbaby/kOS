@@ -143,7 +143,7 @@ kstrsplit(char *str, const char delim, uint32_t *elem_count)
         elem = kmalloc(elem_size + 1);
 
         // zero out buffer
-        kmemset(elem, 0, elem_size);
+        kmemset(elem, 0, elem_size + 1);
         // copy element into buffer
         kmemcpy(elem, tmp, elem_size);
 
