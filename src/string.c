@@ -123,58 +123,38 @@ kstrsplit(char *str, const char delim, uint32_t *elem_count)
 {
     char **tokens = NULL;
     char *tmp = NULL;
-    size_t size = 0;
+    char *elem = NULL;
+    size_t count = 0;
     size_t elem_size = 0;
-    uint32_t elem_start = 0;
-    uint32_t current_offset = 0;
-    uint32_t count = 1;
-    uint32_t i = 0;
 
-    // get length of raw string
-    size = kstrlen(str);
     tmp = str;
 
-    // first iteration, count delimeters
-    while (*tmp++ != '\0')
+    count = kstrntok(tmp, delim);
+    tokens = kmalloc(sizeof(char *) * count);
+
+    for (uint32_t i = 0; i < count; ++i)
     {
-        if (*tmp == delim) ++count;
+        // get size of next word
+        elem_size = kstrtokoff(tmp, delim);
+
+        if (elem_size == 0) break;
+
+        // allocate size + NULL character
+        elem = kmalloc(elem_size + 1);
+
+        // zero out buffer
+        kmemset(elem, 0, elem_size);
+        // copy element into buffer
+        kmemcpy(elem, tmp, elem_size);
+
+        tokens[i] = elem;
+
+        // reset string to after last delimeter
+        tmp += elem_size;
     }
 
-    // allocate buffer for string list
-    tokens = (char **)kmalloc(sizeof(char *) * count);
-    kmemset(tokens, 0, sizeof(char *) * count);
-
-    // reset count
-    count = 0;
-
-    for (uint32_t i = 0; i <= size; ++i)
-    {
-        if (str[i] == delim || str[i] == '\0')
-        {
-            // get current offset within string and size
-            current_offset = (uint32_t)(&str[i]);
-            elem_size = current_offset - (uint32_t)&str[elem_start];
-
-            // allocate buffer for string element (plus NULL)
-            // REMEMBER, the CALLER OWNS THIS BUFFER!
-            tmp = kmalloc(elem_size + 1);
-
-            // zero out buffer
-            kmemset(tmp, 0, elem_size);
-            kmemcpy(tmp, (void *)(&str[i] - elem_size), elem_size);
-
-            // set element in list, increment list counter
-            tokens[count++] = tmp;
-
-            // reset start pointer to just after delimeter
-            elem_start = i + 1;
-        }
-    }
-
-success:
-    // write count to out pointer
+fail:
     *elem_count = count;
 
-    // the CALLER now OWNS THIS BUFFER TOO!
     return tokens;
 }

@@ -139,6 +139,13 @@ kmalloc(size_t size)
     free_chunk_t *free_chunk = kfree_list;
 
     do {
+        // perfect fit?
+        if (free_chunk->size == size)
+        {
+            found_chunk = free_chunk;
+            goto success;
+        }
+
         // does this chunk fit?
         if (free_chunk->size >= size)
         {
@@ -163,9 +170,6 @@ kmalloc(size_t size)
     KASSERT_GOTO_FAIL_MSG(
         found_chunk == NULL,
         "Chunk of given size not available!\n");
-
-    // perfect fit?
-    KASSERT_GOTO_SUCCESS(found_chunk->size == size);
 
     if (found_chunk->size >= 0x30)
     {
@@ -196,5 +200,6 @@ kfree(void* addr)
       (uint32_t)chunk < g_heap_start || (uint32_t)chunk >= g_heap_end,
       "Chunk is corrupted!");
 
+    // add new chunk to free list
     add_to_freelist(chunk);
 }

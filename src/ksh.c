@@ -68,25 +68,11 @@ process_cmd()
 
     tmp = inputbuf;
 
-    argc = kstrntok(inputbuf, ' ');
-    argv = kmalloc(sizeof(char *) * argc);
+    // split and count arguments
+    argv = kstrsplit(tmp, ' ', &argc);
 
-    for (uint32_t i = 0; i < argc; ++i)
-    {
-        elem_size = kstrtokoff(tmp, ' ');
-
-        if (elem_size == 0) break;
-
-        // allocate size + NULL character
-        elem = kmalloc(elem_size + 1);
-        // zero out buffer
-        kmemset(elem, 0, elem_size + 1);
-
-        kmemcpy(elem, tmp, elem_size);
-
-        argv[i] = elem;
-        tmp += elem_size;
-    }
+    // check that our arguments were allocated properly
+    KASSERT_GOTO_FAIL_MSG(argv == NULL, "Input buffer corrupted!");
 
     // hash our input string
     hash = hashstr(argv[0]) % HASHMAP_SIZE;
@@ -102,16 +88,17 @@ process_cmd()
     cmd_hashmap[hash].proc(argc, argv);
 
 fail:
-    for (uint32_t i = 0; i < argc; ++i)
+    if (argv)
     {
-        if (argv && argv[i])
+        // free each sub string
+        for (uint32_t i = 0; i < argc; ++i)
         {
-            kfree(argv[i]);
+            if (argv[i]) kfree(argv[i]);
         }
-    }
 
-    // free argument buffer itself
-    kfree(argv);
+        // free argument buffer itself
+        kfree(argv);
+    }
 
 success:
     // reset input buffer head
