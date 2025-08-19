@@ -103,7 +103,7 @@ compare_name(char *name, dir_entry_t *dentry)
 
     kstrncpy(strname, (const char *)dentry->name, 8);
 
-    if (kstrncmp(name, strname, 5) == 0)
+    if (kstrncmp(name, strname, kstrlen(name)) == 0)
     {
         match = TRUE;
     }
@@ -111,9 +111,28 @@ compare_name(char *name, dir_entry_t *dentry)
     return match;
 }
 
+static void
+init_bs()
+{
+    void* first_sector = NULL;
+
+    // allocate buffer of sector size
+    first_sector = kmalloc(512);
+    kmemset(first_sector, 0, 512);
+
+    // read first sector into our buffer
+    read_sectors(SLAVE_DRIVE, 1, 0, first_sector);
+
+    kmemcpy(&bs, first_sector, sizeof(fat16_bs_t));
+
+    // finally, free our buffer
+    kfree(first_sector);
+}
+
+
 /* Read file into memory (only from root dir for the moment) */
 void *
-fat_open(char *path)
+fat_open(char *path, uint32_t *outsize)
 {
     void *data = NULL;
     uint32_t next_dentry_offset = 0;
@@ -137,6 +156,8 @@ fat_open(char *path)
             break;
         }
     }
+
+    *outsize = dentry.size;
 
     return data;
 }
@@ -164,7 +185,6 @@ fat_dump_root()
     }
 }
 
-
 /* Dump our BIOS parameter block to tty */
 void
 fat_dump_bs()
@@ -176,24 +196,6 @@ fat_dump_bs()
     printk("    Root entry count    -> %d\n", bs.root_entry_count);
     printk("    Table size          -> %d\n", bs.table_size_16);
     printk("    Table count         -> %d\n", bs.table_count);
-}
-
-static void
-init_bs()
-{
-    void* first_sector = NULL;
-
-    // allocate buffer of sector size
-    first_sector = kmalloc(512);
-    kmemset(first_sector, 0, 512);
-
-    // read first sector into our buffer
-    read_sectors(SLAVE_DRIVE, 1, 0, first_sector);
-
-    kmemcpy(&bs, first_sector, sizeof(fat16_bs_t));
-
-    // finally, free our buffer
-    kfree(first_sector);
 }
 
 void
@@ -229,8 +231,4 @@ fat_init()
     read_sectors(SLAVE_DRIVE, 1, fat_ctx.root_lba, fat_ctx.root_sector);
     read_sectors(SLAVE_DRIVE, 1, fat_ctx.data_lba, fat_ctx.data_sector);
     read_sectors(SLAVE_DRIVE, 1, fat_ctx.fat_lba, fat_ctx.fat_sector);
-
-    uint8_t *data = fat_open("LARGE");
-
-    printk("data[0] 0x%x\n", data[0]);
 }

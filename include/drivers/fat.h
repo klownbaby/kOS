@@ -83,7 +83,7 @@ void
 fat_dump_bs();
 
 void *
-fat_open(char *path);
+fat_open(char *path, uint32_t *outsize);
 
 void
 fat_init();

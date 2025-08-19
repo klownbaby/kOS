@@ -41,3 +41,6 @@ handle_poke(uint32_t argc, char **argv);
 
 void
 handle_prod(uint32_t argc, char **argv);
+
+void
+handle_cat(uint32_t argc, char **argv);

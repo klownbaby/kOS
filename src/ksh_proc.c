@@ -17,6 +17,7 @@
 #include "kernel.h"
 #include "drivers/tty.h"
 #include "drivers/fat.h"
+#include "kutils.h"
 
 /* Handle clear ksh command (clear screen) */
 void
@@ -106,4 +107,30 @@ void
 handle_prod(uint32_t argc, char **argv)
 {
     
+}
+
+void
+handle_cat(uint32_t argc, char **argv)
+{
+    char *data = NULL;
+    uint32_t size = 0;
+
+    KASSERT_GOTO_FAIL_MSG(argc < 2, "Usage: cat [file name]\n");
+
+    data = fat_open(argv[1], &size);
+
+    KASSERT_GOTO_FAIL_MSG(data == NULL, "File not found!\n");
+
+    for (uint32_t i = 0; i < size; ++i)
+    {
+        printk("%c", data[i]);
+    }
+
+fail:
+    if (data)
+    {
+        kfree(data);
+    }
+
+    return;
 }
