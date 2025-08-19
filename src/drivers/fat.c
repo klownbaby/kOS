@@ -17,34 +17,68 @@
 #include "kernel.h"
 #include "drivers/fat.h"
 #include "drivers/ata.h"
+#include "drivers/tty.h"
 
 /* Define our global bs */
 static fat16_bs_t bs;
 static fat_context_t fat_ctx;
 
+static void
+read_all_clusters(uint32_t cluster, uint32_t size)
+{
+    uint8_t *data = NULL;
+    uint32_t data_offset = 0;
+    uint32_t cluster_lba = 0;
+    uint32_t nclusters = 0;
+
+    nclusters = ((size / bs.sectors_per_cluster) / 512) + 1;
+
+    data = kmalloc(nclusters * 512);
+    cluster_lba = CLUSTER_TO_LBA(cluster);
+
+    for (uint32_t i = 0; i < nclusters; ++i)
+    {
+        data_offset = (i * bs.sectors_per_cluster) * 512;
+        read_sectors(
+             SLAVE_DRIVE, bs.sectors_per_cluster, cluster_lba, data + data_offset);
+    }
+
+    for (uint32_t i = 0; i < size; ++i)
+    {
+        printk("%c", data[i]);
+    }
+
+    kfree(data);
+}
+
 /* Dump a directory entry, temporary */
 static void
 dump_dentry(dir_entry_t* dentry)
 {
-    char strname[9] = { 0 };
+    // align dynamic length strings to column
+    char strname[9] = { ' ' };
     epoch_date_t date = (epoch_date_t)dentry->crt_date;
 
     // copy name to null terminated scratch buffer
     kstrncpy(strname, (const char*)dentry->name, 8);
 
-    printk("%d    ", dentry->size);
+    // dump that JAWN
     printk("%d/%d/%d ", date.fields.day, date.fields.month, date.fields.year);
-    printk("%s\n", strname);
-}
 
-/* Get next directory name from path */
-static void
-next_dir_name(char* path, char* outname)
-{
-    // copy until delimeter
-    while (*path != '/' || *path != 0)
+    // oooo fancy color shit!
+    if (dentry->attr == DIRECTORY)
     {
-        *outname++ = *path++;
+        tty_writecolor(strname, VGA_COLOR_LIGHT_BLUE, VGA_COLOR_BLACK);
+    } else {
+        printk("%s", strname);
+    }
+
+    printk("%d\n", dentry->size);
+
+    if (dentry->attr == FILE)
+    {
+        printk("\n");
+        read_all_clusters(dentry->low_cluster, dentry->size);
     }
 }
 
@@ -57,25 +91,18 @@ fat_open(char* path)
     dir_entry_t dentry = { 0 };
     char strname[9] = { 0 };
 
-    for (uint16_t i = 0; i < bs.root_entry_count; ++i)
+    for (uint16_t i = 0; i < 10; ++i)
     {   
         // get next offset
         next_dentry_offset = i * sizeof(dir_entry_t);
 
+        // copy that bitch over
         kmemcpy(&dentry, fat_ctx.root_sector + next_dentry_offset, sizeof(dir_entry_t));
 
-        if (dentry.attr == 0x0) continue;
+        // only caring about directories and files for now
+        if (dentry.attr != DIRECTORY && dentry.attr != FILE) continue;
 
         dump_dentry(&dentry);
-
-        // copy name to null terminated scratch buffer
-        kstrncpy(strname, (const char*)dentry.name, 8);
-
-        if (kstrcmp(strname, path))
-        {
-            printk("Found file %s!\n", path);
-            break;
-        }
     }
 
     return file;
@@ -115,42 +142,38 @@ init_bs()
 void
 fat_init()
 {
-    uint8_t* root_sector = NULL;
-    uint8_t* data_sector = NULL;
-    uint32_t root_dir_lba = 0;
-    uint32_t data_lba = 0;
     uint32_t next_dentry_offset = 0;
     uint32_t n_root_sectors = 0;
     dir_entry_t dentry = { 0 };
-    char name_str[9] = { 0 };
 
     // ensure our boot sector is initialized
     init_bs();
 
     // allocate and zero our root sector
-    root_sector = kmalloc(512);
-    kmemset(root_sector, 0, 512);
+    fat_ctx.root_sector = kmalloc(512);
+    kmemset(fat_ctx.root_sector, 0, 512);
 
     // calculate number of root sectors
-    n_root_sectors = ((bs.root_entry_count * 32) + (bs.bytes_per_sector - 1)) / bs.bytes_per_sector;
+    n_root_sectors =
+        ((bs.root_entry_count * 32) + (bs.bytes_per_sector - 1)) / bs.bytes_per_sector;
 
     // get root directory lba and offset of data sectors
-    root_dir_lba = bs.reserved_sector_count + (bs.table_count * bs.table_size_16);
-    data_lba = bs.reserved_sector_count + (bs.table_count * bs.table_size_16) + n_root_sectors;
-
-    // alright dawg, now set our context
-    fat_ctx.root_lba = root_dir_lba;
-    fat_ctx.data_lba = data_lba;
+    fat_ctx.root_lba =
+        bs.reserved_sector_count + (bs.table_count * bs.table_size_16);
+    fat_ctx.data_lba =
+        fat_ctx.root_lba + n_root_sectors;
+    fat_ctx.fat_lba = bs.reserved_sector_count;
 
     // allocate and zero our data sector
-    data_sector = kmalloc(1024);
-    kmemset(data_sector, 0, 1024);
+    fat_ctx.data_sector = kmalloc(1024);
+    kmemset(fat_ctx.data_sector, 0, 1024);
+
+    printk("root_lba 0x%x, data_lba 0x%x, fat_lba 0x%x\n", fat_ctx.root_lba, fat_ctx.data_lba, fat_ctx.fat_lba);
 
     // read one sector at our root dir logical block address
-    read_sectors(SLAVE_DRIVE, 1, root_dir_lba, root_sector);
-    read_sectors(SLAVE_DRIVE, 1, data_lba, data_sector);
-    read_sectors(SLAVE_DRIVE, 1, data_lba + 1, data_sector + 0x200);
+    read_sectors(SLAVE_DRIVE, 1, fat_ctx.root_lba, fat_ctx.root_sector);
+    read_sectors(SLAVE_DRIVE, 1, fat_ctx.data_lba, fat_ctx.data_sector);
+    read_sectors(SLAVE_DRIVE, 1, fat_ctx.fat_lba, fat_ctx.fat_sector);
 
-    // set context buffers
-    fat_ctx.root_sector = root_sector;
+    fat_open("test");
 }

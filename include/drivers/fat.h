@@ -22,6 +22,13 @@
 /* Define FAT attribute types */
 #define VOLUME    0x8
 #define DIRECTORY 0x10
+#define FILE      0x20
+
+#define ATTR_TYPE_TO_STR(__type) \
+    __type == 0x10 ? "dir" : "file"
+
+#define CLUSTER_TO_LBA(__cluster) \
+    (fat_ctx.data_lba + ((__cluster - 2) * bs.sectors_per_cluster))
 
 typedef struct fat_context {
     /* Common LBAs */
@@ -29,13 +36,14 @@ typedef struct fat_context {
     uint32_t root_lba;
     uint32_t data_lba;
 
-    uint8_t* fat_sector;
+    uint16_t* fat_sector;
     uint8_t* root_sector;
+    uint8_t* data_sector;
 } fat_context_t;
 
 /* Define FAT16 BIOS parameter block */
 typedef struct fat16_bs {
-    uint8_t  bootjmp[3];
+  uint8_t  bootjmp[3];
 	uint8_t  oem_name[8];
 	uint16_t bytes_per_sector;
 	uint8_t	 sectors_per_cluster;
@@ -49,7 +57,7 @@ typedef struct fat16_bs {
 	uint16_t head_side_count;
 	uint32_t hidden_sector_count;
 	uint32_t total_sectors_32;
-    uint8_t	 bios_drive_num;
+  uint8_t	 bios_drive_num;
 	uint8_t	 reserved1;
 	uint8_t	 boot_signature;
 	uint32_t volume_id;
