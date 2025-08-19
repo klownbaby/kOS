@@ -32,8 +32,8 @@ kstrncpy(char* dest, const char* src, size_t n);
 char* 
 kstrcat(char* src, const char* append);
 
-bool 
-kstrcmp(const char* a, const char* b);
+uint32_t
+kstrncmp(const char *s1, const char *s2, size_t n);
 
 uint32_t
 kstrntok(char *str, const char delim);

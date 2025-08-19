@@ -62,24 +62,23 @@ kstrcat(char* dest, const char* append)
 	return save;
 }
 
-bool 
-kstrcmp(const char* a, const char* b) 
+uint32_t
+kstrncmp(const char *s1, const char *s2, size_t n)
 {
-    // Cache length of a and b
-    size_t a_len = kstrlen(a);
-    size_t b_len = kstrlen(b);
+    uint32_t match = 0;
 
-    // If lengths don't match, then strings are not the same
-    if (a_len != b_len) return false;
-
-    // Loop through each character and compare
-    for (size_t i = 0; i < a_len; ++i) {
-        if (a[i] == b[i]) continue;
-        // Fail check if any are different
-        return false;
+    while (n && *s1 && (*s1 == *s2))
+    {
+        ++s1;
+        ++s2;
+        --n;
     }
 
-    return true;
+    KASSERT_GOTO_FAIL(n == 0);
+    match = ( *(unsigned char *)s1 - *(unsigned char *)s2 );
+
+fail:
+    return match;
 }
 
 /* Get number of tokens in string */

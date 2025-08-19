@@ -23,7 +23,8 @@
 static fat16_bs_t bs;
 static fat_context_t fat_ctx;
 
-static void
+/* Allocate buffer for clusters, read all data into buffer */
+static void *
 read_all_clusters(uint32_t cluster, uint32_t size)
 {
     uint8_t *data = NULL;
@@ -31,24 +32,29 @@ read_all_clusters(uint32_t cluster, uint32_t size)
     uint32_t cluster_lba = 0;
     uint32_t nclusters = 0;
 
+    // ahhh this is shitty, works for now (minimum of one cluster)
     nclusters = ((size / bs.sectors_per_cluster) / 512) + 1;
 
+    // allocate minimum-sized buffer (aligned to sector size)
     data = kmalloc(nclusters * 512);
+    // get LBA of cluster
     cluster_lba = CLUSTER_TO_LBA(cluster);
 
     for (uint32_t i = 0; i < nclusters; ++i)
     {
+        // get offset into data buffer
         data_offset = (i * bs.sectors_per_cluster) * 512;
+
+        // sectors into data buffer at offset
         read_sectors(
-             SLAVE_DRIVE, bs.sectors_per_cluster, cluster_lba, data + data_offset);
+             SLAVE_DRIVE,
+             bs.sectors_per_cluster,
+             cluster_lba,
+             data + data_offset);
     }
 
-    for (uint32_t i = 0; i < size; ++i)
-    {
-        printk("%c", data[i]);
-    }
-
-    kfree(data);
+    // CALLER owns this now!
+    return data;
 }
 
 /* Dump a directory entry, temporary */
@@ -75,23 +81,75 @@ dump_dentry(dir_entry_t* dentry)
 
     printk("%d\n", dentry->size);
 
-    if (dentry->attr == FILE)
+    if (dentry->attr == DIRECTORY)
     {
         printk("\n");
-        read_all_clusters(dentry->low_cluster, dentry->size);
+        printk("dentry cluster offset 0x%x\n", CLUSTER_TO_LBA(dentry->low_cluster) * 512);
+
+        dir_entry_t *test = read_all_clusters(dentry->low_cluster, dentry->size);
+        printk("next dentry size 0x%x\n", test[1].size);
+
+        kfree(test);
+
+        printk("\n");
     }
 }
 
-/* Read file into memory from path */
-file_t
-fat_open(char* path)
+static bool
+compare_name(char *name, dir_entry_t *dentry)
 {
-    file_t file = { 0 };
+    bool match = FALSE;
+    char strname[9] = { 0 };
+
+    kstrncpy(strname, (const char *)dentry->name, 8);
+
+    if (kstrncmp(name, strname, 5) == 0)
+    {
+        match = TRUE;
+    }
+
+    return match;
+}
+
+/* Read file into memory (only from root dir for the moment) */
+void *
+fat_open(char *path)
+{
+    void *data = NULL;
     uint32_t next_dentry_offset = 0;
     dir_entry_t dentry = { 0 };
     char strname[9] = { 0 };
 
-    for (uint16_t i = 0; i < 10; ++i)
+    for (uint16_t i = 0; i < bs.root_entry_count; ++i)
+    {   
+        // get next offset
+        next_dentry_offset = i * sizeof(dir_entry_t);
+
+        // copy that bitch over
+        kmemcpy(&dentry, fat_ctx.root_sector + next_dentry_offset, sizeof(dir_entry_t));
+
+        // only caring about directories and files for now
+        if (dentry.attr != DIRECTORY && dentry.attr != FILE) continue;
+
+        if (compare_name(path, &dentry))
+        {
+            data = read_all_clusters(dentry.low_cluster, dentry.size);
+            break;
+        }
+    }
+
+    return data;
+}
+
+/* Dump root directory */
+void
+fat_dump_root()
+{
+    uint32_t next_dentry_offset = 0;
+    dir_entry_t dentry = { 0 };
+    char strname[9] = { 0 };
+
+    for (uint16_t i = 0; i < bs.root_entry_count; ++i)
     {   
         // get next offset
         next_dentry_offset = i * sizeof(dir_entry_t);
@@ -104,9 +162,8 @@ fat_open(char* path)
 
         dump_dentry(&dentry);
     }
-
-    return file;
 }
+
 
 /* Dump our BIOS parameter block to tty */
 void
@@ -168,12 +225,12 @@ fat_init()
     fat_ctx.data_sector = kmalloc(1024);
     kmemset(fat_ctx.data_sector, 0, 1024);
 
-    printk("root_lba 0x%x, data_lba 0x%x, fat_lba 0x%x\n", fat_ctx.root_lba, fat_ctx.data_lba, fat_ctx.fat_lba);
-
     // read one sector at our root dir logical block address
     read_sectors(SLAVE_DRIVE, 1, fat_ctx.root_lba, fat_ctx.root_sector);
     read_sectors(SLAVE_DRIVE, 1, fat_ctx.data_lba, fat_ctx.data_sector);
     read_sectors(SLAVE_DRIVE, 1, fat_ctx.fat_lba, fat_ctx.fat_sector);
 
-    fat_open("test");
+    uint8_t *data = fat_open("LARGE");
+
+    printk("data[0] 0x%x\n", data[0]);
 }
