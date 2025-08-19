@@ -117,16 +117,19 @@ handle_cat(uint32_t argc, char **argv)
 
     KASSERT_GOTO_FAIL_MSG(argc < 2, "Usage: cat [file name]\n");
 
+    // open a handle (buffer) to our file
     data = fat_open(argv[1], &size);
 
     KASSERT_GOTO_FAIL_MSG(data == NULL, "File not found!\n");
 
+    // just dump as if all data is valid ASCII for now
     for (uint32_t i = 0; i < size; ++i)
     {
         printk("%c", data[i]);
     }
 
 fail:
+    // ensure we free our buffer
     if (data)
     {
         kfree(data);
