@@ -57,31 +57,6 @@ read_all_clusters(uint32_t cluster, uint32_t size)
     return data;
 }
 
-/* Dump a directory entry, temporary */
-static void
-dump_dentry(dir_entry_t* dentry)
-{
-    // align dynamic length strings to column
-    char strname[9] = { ' ' };
-    epoch_date_t date = (epoch_date_t)dentry->crt_date;
-
-    // copy name to null terminated scratch buffer
-    kstrncpy(strname, (const char*)dentry->name, 8);
-
-    // dump that JAWN
-    printk("%d/%d/%d ", date.fields.day, date.fields.month, date.fields.year);
-
-    // oooo fancy color shit!
-    if (dentry->attr == DIRECTORY)
-    {
-        tty_writecolor(strname, VGA_COLOR_LIGHT_BLUE, VGA_COLOR_BLACK);
-    } else {
-        printk("%s", strname);
-    }
-
-    printk("%d\n", dentry->size);
-}
-
 static bool
 compare_name(char *name, dir_entry_t *dentry)
 {
@@ -116,7 +91,6 @@ init_bs()
     kfree(first_sector);
 }
 
-
 /* Read file into memory (only from root dir for the moment) */
 void *
 fat_open(char *path, uint32_t *outsize)
@@ -149,6 +123,47 @@ fat_open(char *path, uint32_t *outsize)
     return data;
 }
 
+/* Dump a directory entry, temporary */
+void
+fat_dump_dentry(dir_entry_t *dentry)
+{
+    // align dynamic length strings to column
+    char strname[9] = { ' ' };
+    epoch_date_t date = (epoch_date_t)dentry->crt_date;
+
+    // copy name to null terminated scratch buffer
+    kstrncpy(strname, (const char*)dentry->name, 8);
+
+    // dump that JAWN
+    printk("%d/%d/%d ", date.fields.day, date.fields.month, date.fields.year);
+
+    // oooo fancy color shit!
+    if (dentry->attr == DIRECTORY)
+    {
+        tty_writecolor(strname, VGA_COLOR_LIGHT_BLUE, VGA_COLOR_BLACK);
+    } else {
+        printk("%s", strname);
+    }
+
+    printk("%d\n", dentry->size);
+}
+
+/* Dump all contents of a buffer as if it were a directory */
+void
+fat_dump_directory(void *buffer)
+{
+    uint32_t dentry = (uint32_t)buffer;
+
+    while (((dir_entry_t *)dentry)->attr != 0)
+    {
+        // dump each entry
+        fat_dump_dentry((dir_entry_t *)dentry);
+
+        // iterate
+        dentry += sizeof(dir_entry_t);
+    }
+}
+
 /* Dump root directory */
 void
 fat_dump_root()
@@ -168,7 +183,7 @@ fat_dump_root()
         // only caring about directories and files for now
         if (dentry.attr != DIRECTORY && dentry.attr != FILE) continue;
 
-        dump_dentry(&dentry);
+        fat_dump_dentry(&dentry);
     }
 }
 
@@ -185,6 +200,7 @@ fat_dump_bs()
     printk("    Table count         -> %d\n", bs.table_count);
 }
 
+/* Initialize FAT filesystem, duh */
 void
 fat_init()
 {

@@ -82,6 +82,15 @@ typedef struct dir_entry {
 void
 fat_dump_bs();
 
+void
+fat_dump_dentry(dir_entry_t *dentry);
+
+void
+fat_dump_directory(void *buffer);
+
+void
+fat_dump_root();
+
 void *
 fat_open(char *path, uint32_t *outsize);
 

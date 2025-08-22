@@ -18,6 +18,7 @@
 #include "drivers/tty.h"
 #include "drivers/fat.h"
 #include "kutils.h"
+#include "string.h"
 
 /* Handle clear ksh command (clear screen) */
 void
@@ -110,6 +111,38 @@ handle_prod(uint32_t argc, char **argv)
 }
 
 void
+handle_ls(uint32_t argc, char **argv)
+{
+    void *dir = NULL;
+    uint32_t size = 0;
+
+    KASSERT_GOTO_FAIL_MSG(argc < 2, "Usage: ls [path]\n");
+
+    // should we just dump the root directory?
+    if (argv[1][0] == '/' && argv[1][1] == '\0')
+    {
+        fat_dump_root();        
+        GOTO_SUCCESS;
+    }
+
+    // if not, find the requested directory
+    dir = fat_open(argv[1], &size);
+    KASSERT_GOTO_FAIL_MSG(dir == NULL, "Path not found!\n");
+
+    // finally, dump that JAWN
+    fat_dump_directory(dir);
+
+fail:
+    if (dir)
+    {
+        kfree(dir);
+    }
+
+success:
+    return;
+}
+
+void
 handle_cat(uint32_t argc, char **argv)
 {
     char *data = NULL;
@@ -119,7 +152,6 @@ handle_cat(uint32_t argc, char **argv)
 
     // open a handle (buffer) to our file
     data = fat_open(argv[1], &size);
-
     KASSERT_GOTO_FAIL_MSG(data == NULL, "File not found!\n");
 
     // just dump as if all data is valid ASCII for now

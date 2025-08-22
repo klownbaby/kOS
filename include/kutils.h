@@ -19,6 +19,9 @@
 /* A somewhat unecessary wrapper for goto fail */
 #define GOTO_FAIL goto fail
 
+/* A somewhat unecessary wrapper for goto success */
+#define GOTO_SUCCESS goto success
+
 /* For fast error handling */
 #define KASSERT_GOTO_FAIL(__cond) if (__cond) { goto fail; }
 

@@ -43,4 +43,7 @@ void
 handle_prod(uint32_t argc, char **argv);
 
 void
+handle_ls(uint32_t argc, char **argv);
+
+void
 handle_cat(uint32_t argc, char **argv);
