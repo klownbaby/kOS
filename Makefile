@@ -56,9 +56,9 @@ fs:
 	$(DOCKER) make vfs
 
 vfs:
-	dd if=/dev/zero of=fs.img bs=1M count=10
-	mkfs.fat -F 16 -n 0 fs.img
-	mcopy -i fs/fs.img fs/root/* ::
+	dd if=/dev/zero of=fs/fs.img bs=1M count=10
+	mkfs.fat -F 16 -n 0 fs/fs.img
+	mcopy -svi fs/fs.img fs/root/* ::/
 
 verify:
 	grub-file --is-x86-multiboot $(BOOTDIR)/$(KERNELTARGET).bin

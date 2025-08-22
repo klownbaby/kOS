@@ -36,7 +36,7 @@ read_all_clusters(uint32_t cluster, uint32_t size)
     nclusters = ((size / bs.sectors_per_cluster) / 512) + 1;
 
     // allocate minimum-sized buffer (aligned to sector size)
-    data = kmalloc(nclusters * 512);
+    data = kmalloc((nclusters * bs.sectors_per_cluster) * 512);
     // get LBA of cluster
     cluster_lba = CLUSTER_TO_LBA(cluster);
 
@@ -80,19 +80,6 @@ dump_dentry(dir_entry_t* dentry)
     }
 
     printk("%d\n", dentry->size);
-
-    if (dentry->attr == DIRECTORY)
-    {
-        printk("\n");
-        printk("dentry cluster offset 0x%x\n", CLUSTER_TO_LBA(dentry->low_cluster) * 512);
-
-        dir_entry_t *test = read_all_clusters(dentry->low_cluster, dentry->size);
-        printk("next dentry size 0x%x\n", test[1].size);
-
-        kfree(test);
-
-        printk("\n");
-    }
 }
 
 static bool
@@ -114,7 +101,7 @@ compare_name(char *name, dir_entry_t *dentry)
 static void
 init_bs()
 {
-    void* first_sector = NULL;
+    void *first_sector = NULL;
 
     // allocate buffer of sector size
     first_sector = kmalloc(512);

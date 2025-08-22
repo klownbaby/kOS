@@ -190,7 +190,7 @@ ksh_init()
     build_hashmap();
 
     // allocate 256 byte input buffer
-    inputbuf = (char*)kmalloc(KSH_INPUTBUF_SIZE);
+    inputbuf = (char *)kmalloc(KSH_INPUTBUF_SIZE);
     kmemset(inputbuf, 0, KSH_INPUTBUF_SIZE);
 
     // set our keypress callback
