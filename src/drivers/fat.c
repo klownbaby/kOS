@@ -29,14 +29,20 @@ read_all_clusters(uint32_t cluster, uint32_t size)
 {
     uint8_t *data = NULL;
     uint32_t data_offset = 0;
+    uint32_t data_size = 0;
     uint32_t cluster_lba = 0;
     uint32_t nclusters = 0;
 
     // ahhh this is shitty, works for now (minimum of one cluster)
     nclusters = ((size / bs.sectors_per_cluster) / 512) + 1;
+    data_size = (nclusters * bs.sectors_per_cluster) * 512;
 
     // allocate minimum-sized buffer (aligned to sector size)
-    data = kmalloc((nclusters * bs.sectors_per_cluster) * 512);
+    data = kmalloc(data_size);
+
+    // ensure we zero-out our buffer
+    kmemset(data, 0, data_size);
+
     // get LBA of cluster
     cluster_lba = CLUSTER_TO_LBA(cluster);
 

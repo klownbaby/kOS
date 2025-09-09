@@ -17,8 +17,6 @@
 #include "kernel.h"
 #include "drivers/tty.h"
 #include "drivers/fat.h"
-#include "kutils.h"
-#include "string.h"
 
 /* Handle clear ksh command (clear screen) */
 void
