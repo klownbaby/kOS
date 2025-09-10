@@ -30,7 +30,6 @@ kernel: clean
 	$(ASC) $(ASMDIR)/boot.S -o $(OBJECTDIR)/boot.o
 	$(ASC) $(ASMDIR)/gdt.S -o $(OBJECTDIR)/_gdt.o
 	$(ASC) $(ASMDIR)/idt.S -o $(OBJECTDIR)/_idt.o
-	$(ASC) $(ASMDIR)/tss.S -o $(OBJECTDIR)/_tss.o
 	$(DOCKER) $(CC)-gcc -g -I $(INCLUDEDIR) -c $(CTARGETS) -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Wno-incompatible-pointer-types
 
 	mv ./*.o $(OBJECTDIR)
@@ -44,7 +43,7 @@ else
 endif
 
 obj:
-	objcopy -j .text -j .sdata -j .data -j .rodata -j .rdata -j .bss -j .reloc --target=pei-x86-64 your_elf_file.so your_efi_app.efi
+	objcopy -j .text -j .sdata -j .data -j .rodata -j .rdata -j .bss -j .reloc --target=pei-x86-64 your_elf_file.so boot.efi
 
 env:
 	docker build env -t kos

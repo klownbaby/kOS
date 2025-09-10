@@ -7,6 +7,7 @@
 #define FALSE 0
 
 /* Define function pointer types */
+typedef void (*module_entry_t)(void);
 typedef void (*keyboard_notify_cb)(uint8_t scan, uint8_t pressed);
 
 /* Define a temporary file type */

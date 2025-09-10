@@ -105,7 +105,7 @@ static inline void enable_paging(uint32_t pd)
 
 /* PMM function definitions */
 void
-pmm_dumpt();
+pmm_dumpt(void);
 
 kstatus_t 
 pmm_alloc_frame(uint32_t frame);
@@ -114,7 +114,7 @@ kstatus_t
 pmm_alloc_range(uint32_t start, uint32_t end);
 
 uint32_t
-pmm_alloc_next();
+pmm_alloc_next(void);
 
 void 
 pmm_map_page(uint32_t paddr, uint32_t vaddr);
@@ -123,7 +123,7 @@ int32_t
 pmm_virt_to_phys(uint32_t vaddr);
 
 void 
-pmm_init(volatile multiboot_info_t* mbd);
+pmm_init(void);
 
 void 
 pmm_display_mm(multiboot_info_t* mbd);

@@ -103,3 +103,5 @@ keyboard_set_notify_cb(keyboard_notify_cb cb)
     // set our new notify callback
     notify_cb = cb;
 }
+
+MODULE_ENTRY_ORDERED(keyboard_init, 5);

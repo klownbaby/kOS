@@ -41,7 +41,7 @@ sleep(uint32_t millis)
 }
 
 void 
-pit_init()
+pit_init(void)
 {
     // set divisor for channel 0
     uint32_t divisor = FREQUENCY/RELOAD;
@@ -56,8 +56,11 @@ pit_init()
     BOOT_LOG("PIT initialized.")
 }
 
+/* Awful, TODO: change later */
 void 
-poll()
+poll(void)
 {
     rtc_callback();
 }
+
+MODULE_ENTRY(pit_init);

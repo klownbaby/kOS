@@ -27,5 +27,5 @@
 #define MONTH   0x08
 #define YEAR    0x09
 
-void rtc_init();
-void rtc_callback();
+void rtc_init(void);
+void rtc_callback(void);

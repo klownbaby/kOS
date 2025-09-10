@@ -23,13 +23,13 @@
 
 /* Kernel heap function defs */
 void
-dump_freelist();
+dump_freelist(void);
 
 void
 ksbrk(size_t size);
 
 void 
-kmalloc_init();
+kmalloc_init(void);
 
 void*
 kmalloc(size_t size);

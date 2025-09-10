@@ -55,7 +55,7 @@
 
 /* Keyboard function defs */
 void 
-keyboard_init();
+keyboard_init(void);
 
 char
 keyboard_scan_to_char(uint8_t scan);

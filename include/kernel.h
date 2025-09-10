@@ -31,6 +31,16 @@
 #include "syscall.h"
 #include "ksh.h"
 
+/* Module entry point macro for unordered initialization */
+#define MODULE_ENTRY(__entry) \
+    __attribute__((section(".dynmod"))) module_entry_t *__entry##_dynmod = \
+        (module_entry_t *)__entry
+
+/* Module entry point macro for ordered initialization */
+#define MODULE_ENTRY_ORDERED(__entry, __n) \
+    __attribute__((section(".dynmod.init"#__n))) module_entry_t *__entry##_dynmod = \
+        (module_entry_t *)__entry
+
 /* Kernel start/end mappings from linker */
 extern volatile uint32_t _kernel_start;
 extern volatile uint32_t _kernel_end;
@@ -38,13 +48,19 @@ extern volatile uint32_t _kernel_end;
 /* Kernel data section from linker */
 extern volatile uint32_t _data_start;
 
+extern volatile uint32_t _dynmod_start;
+extern volatile uint32_t _dynmod_end;
+
+/* GRUB multiboot info from handoff to kernel */
+extern multiboot_info_t *g_mbd;
+
 /* Number of enabled cores */
 extern uint32_t g_num_cores;
 
-/* Avoiding having to define at compile-time */
+/* Saving some time for commonly used linker-defined globals */
 extern uint32_t g_kernel_start;
 extern uint32_t g_kernel_end;
 
 /* Kernel heap */
-extern uint8_t* g_heap_start;
-extern uint8_t* g_heap_end;
+extern uint8_t *g_heap_start;
+extern uint8_t *g_heap_end;

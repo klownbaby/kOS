@@ -80,15 +80,7 @@ gdt_init()
     // finally, load the gdt
     load_gdt(&gdt_ptr);
 
-    // flush tss
-    flush_tss();
-
     BOOT_LOG("GDT Loaded.");
 }
 
-void
-test_user_function()
-{
-    __asm__ __volatile__("cli");
-    for(;;);
-}
+MODULE_ENTRY_ORDERED(gdt_init, 1);

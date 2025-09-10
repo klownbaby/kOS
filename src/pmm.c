@@ -234,7 +234,7 @@ pmm_map_page(uint32_t paddr, uint32_t vaddr)
 
 /* Init physical memory manager */
 void 
-pmm_init(volatile multiboot_info_t* mbd)
+pmm_init(void)
 {
     uint32_t size = 0;
     multiboot_memory_map_t* mbentry = NULL;
@@ -249,10 +249,10 @@ pmm_init(volatile multiboot_info_t* mbd)
     kmemset(pmm_bitmap, 0, MAX_PAGE_FRAMES);
 
     // now we need to parse our GRUB memory map
-    for (uint32_t i = 0; i < mbd->mmap_length; i += sizeof(multiboot_memory_map_t)) 
+    for (uint32_t i = 0; i < g_mbd->mmap_length; i += sizeof(multiboot_memory_map_t)) 
     {
         // get current map entry
-        mbentry = (multiboot_memory_map_t*)(mbd->mmap_addr + i);
+        mbentry = (multiboot_memory_map_t*)(g_mbd->mmap_addr + i);
 
         // mark each page frame as used within non-available regions
         if (mbentry->type != MULTIBOOT_MEMORY_AVAILABLE)
@@ -275,3 +275,5 @@ pmm_init(volatile multiboot_info_t* mbd)
     // finally, enable paging
     enable_paging((uint32_t)kpd);
 }
+
+MODULE_ENTRY_ORDERED(pmm_init, 3);

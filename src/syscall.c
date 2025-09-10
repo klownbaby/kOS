@@ -50,7 +50,9 @@ __open(i_register_t* registers)
 
 /* Init syscall callbacks */
 void 
-syscall_init() 
+syscall_init(void)
 {
     register_interrupt_handler(128, syscall_cb); 
 }
+
+MODULE_ENTRY(syscall_init);

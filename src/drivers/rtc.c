@@ -67,3 +67,5 @@ rtc_init()
 
     BOOT_LOG("RTC initialized.");
 }
+
+MODULE_ENTRY(rtc_init);

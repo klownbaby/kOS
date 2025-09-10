@@ -87,8 +87,6 @@ typedef struct tss_entry {
 } __attribute__((packed)) tss_entry_t;
 
 extern void load_gdt(gdtr_t*);
-extern void flush_tss(void);
-extern void enter_ring3(void);
 
 /* Get our current kernel stack pointer for TSS */
 static inline uint32_t __get_kernel_sp()

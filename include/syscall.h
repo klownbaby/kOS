@@ -21,8 +21,9 @@
 #define SYSCALL_INTERRUPT 0x80
 #define SYSCALL_MAX 10
 
-void syscall_init();
-
 typedef void (*syscall_t)(i_register_t* registers);
 
-extern void syscall_handler();
+extern void syscall_handler(void);
+
+void syscall_init(void);
+

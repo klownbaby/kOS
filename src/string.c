@@ -16,50 +16,53 @@
 
 #include <stddef.h>
 #include "kernel.h"
-#include "kutils.h"
 
 size_t 
-kstrlen(const char* str) 
+kstrlen(const char *str) 
 {
     // Assume length at zero
     size_t length = 0;
 
     // Increment length when a character is present
     while(str[length])
+    {
         ++length;
+    }
 
     return length;
 }
 
 void 
-kstrcpy(char* dest, const char* src) 
+kstrcpy(char *dest, const char *src) 
 {
     // Pretty loosey goosey way of doing this but fuck it
-    for (size_t i = 0; i < kstrlen(src); ++i) {
+    for (size_t i = 0; i < kstrlen(src); ++i)
+    {
         dest[i] = src[i];
     }
 }
 
 void 
-kstrncpy(char* dest, const char* src, size_t n) 
+kstrncpy(char *dest, const char *src, size_t n) 
 {
     // Pretty loosey goosey way of doing this but fuck it
-    for (size_t i = 0; i < n; ++i) {
+    for (size_t i = 0; i < n; ++i)
+    {
         if (src[i] != '\0') dest[i] = src[i];
     }
 }
 
 char* 
-kstrcat(char* dest, const char* append)
+kstrcat(char *dest, const char *append)
 {
     // appends one string to another (concatination)
     char* save = dest;
-    size_t i;
+    size_t i = 0;
 
-	for (; *dest; ++dest);
-	while ((*dest++ = *append++)); 
+	  for (; *dest; ++dest) {}
+    while ((*dest++ = *append++)); 
 
-	return save;
+    return save;
 }
 
 uint32_t

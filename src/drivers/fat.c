@@ -80,7 +80,7 @@ compare_name(char *name, dir_entry_t *dentry)
 }
 
 static void
-init_bs()
+init_bs(void)
 {
     void *first_sector = NULL;
 
@@ -172,7 +172,7 @@ fat_dump_directory(void *buffer)
 
 /* Dump root directory */
 void
-fat_dump_root()
+fat_dump_root(void)
 {
     uint32_t next_dentry_offset = 0;
     dir_entry_t dentry = { 0 };
@@ -195,7 +195,7 @@ fat_dump_root()
 
 /* Dump our BIOS parameter block to tty */
 void
-fat_dump_bs()
+fat_dump_bs(void)
 {
     printk("BIOS Parameter Block:\n");
     printk("    OEM name            -> %s\n", bs.oem_name);
@@ -208,7 +208,7 @@ fat_dump_bs()
 
 /* Initialize FAT filesystem, duh */
 void
-fat_init()
+fat_init(void)
 {
     uint32_t next_dentry_offset = 0;
     uint32_t n_root_sectors = 0;
@@ -241,3 +241,5 @@ fat_init()
     read_sectors(SLAVE_DRIVE, 1, fat_ctx.data_lba, fat_ctx.data_sector);
     read_sectors(SLAVE_DRIVE, 1, fat_ctx.fat_lba, fat_ctx.fat_sector);
 }
+
+MODULE_ENTRY(fat_init);

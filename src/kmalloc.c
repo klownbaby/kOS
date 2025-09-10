@@ -24,7 +24,7 @@ static free_chunk_t *kfreelist;
 
 /* Little debug helper for dumping the current free list */
 void
-dump_freelist()
+dump_freelist(void)
 {
     free_chunk_t *current = kfreelist;
 
@@ -110,7 +110,7 @@ ksbrk(size_t size)
 
 /* Initialize kernel heap */
 void 
-kmalloc_init() 
+kmalloc_init(void)
 {
     // set heap size to zero
     g_heap_end = g_heap_start;
@@ -203,3 +203,5 @@ kfree(void* addr)
     // add new chunk to free list
     add_to_freelist(chunk);
 }
+
+MODULE_ENTRY_ORDERED(kmalloc_init, 4);

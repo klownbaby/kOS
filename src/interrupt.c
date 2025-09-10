@@ -218,3 +218,5 @@ idt_set_gate(uint8_t index, uint32_t handler)
     }
 }
 
+MODULE_ENTRY_ORDERED(idt_init, 2);
+

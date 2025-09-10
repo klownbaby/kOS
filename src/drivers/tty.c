@@ -22,15 +22,22 @@ static tty_state_t tty_state;
 
 /* Init tty interface and set default color to white on black */
 void 
-tty_init() 
+tty_init(void)
 {
     // set foreground color to white, background to blue
     // feel free to change this
     tty_setcolor(VGA_COLOR_WHITE, VGA_COLOR_BLACK);
+
     // initialize vga interface
     vga_init();
 
+    // disable cursor until shell inits
     vga_cursor_disable();
+
+    // check GRUB version
+    tty_writecolor("Booted with ", VGA_COLOR_CYAN, VGA_COLOR_BLACK);
+    tty_writecolor((const char*)g_mbd->boot_loader_name, VGA_COLOR_CYAN, VGA_COLOR_BLACK);
+    tty_write("\n\n");
 }
 
 /* Write a string to tty output, with row, col tracking */
@@ -95,7 +102,7 @@ tty_putc_relative(char c, int relx, int rely, bool cursor)
 
 /* Clear screen and reset row, col pointers */
 void 
-tty_clear() 
+tty_clear(void) 
 {
     // clear vga buffer
     vga_clear();
@@ -117,7 +124,7 @@ tty_setcolor(vga_color_t fg, vga_color_t bg)
 
 /* Just a somewhat unecessary boot success message */
 void 
-tty_neofetch() 
+tty_neofetch(void) 
 {
     // temporarily set text color to green
     vga_setcolor(VGA_COLOR_GREEN, tty_state.bgcolor);
@@ -146,3 +153,5 @@ tty_neofetch()
     // update cursor to current row, col
     vga_update_cursor(tty_state.col, tty_state.row);
 }
+
+MODULE_ENTRY_ORDERED(tty_init, 0);
