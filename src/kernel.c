@@ -20,7 +20,7 @@
 #include "drivers/rtc.h"
 #include "drivers/pit.h"
 #include "drivers/fat.h"
-
+#include "drivers/rs/rust_driver.h"
 /* Initialize early essential modules */
 static kstatus_t
 modules_init(void)
@@ -67,7 +67,8 @@ kernel_main(volatile uint32_t magic, volatile multiboot_info_t *mbd)
     KASSERT_GOTO_FAIL_MSG(
         status != STATUS_SUCCESS,
         "Failed to initialize essential modules!");
-
+    // fuck rust but we need some TESTING!
+    __init();
     // print a dope ass message
     tty_neofetch();
 

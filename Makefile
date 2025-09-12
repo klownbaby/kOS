@@ -4,7 +4,7 @@ SRCDIR := ./src
 ASMDIR := $(SRCDIR)/asm
 DRIVERSDIR := $(SRCDIR)/drivers
 INCLUDEDIR := ./include
-
+CFLAGS := -O2
 RUST ?= 0
 RUSTTARGET := x86_64-kos
 RUSTBIN := ./lib/target
@@ -20,7 +20,9 @@ OBJECTS := $(OBJECTDIR)/*.o
 CTARGETS := $(SRCDIR)/*.c $(DRIVERSDIR)/*.c
 ASMTARGETS := $(ASMDIR)/*.S
 ISO := $(OBJECTDIR)/$(KERNELTARGET).iso
-
+ifeq ($(RUST),1)
+CFLAGS += -DRUST_ENABLED
+endif
 
 .PHONY: all kernel env image verify grub fs vfs run debug clean
 
@@ -30,7 +32,7 @@ kernel: clean
 	$(ASC) $(ASMDIR)/boot.S -o $(OBJECTDIR)/boot.o
 	$(ASC) $(ASMDIR)/gdt.S -o $(OBJECTDIR)/_gdt.o
 	$(ASC) $(ASMDIR)/idt.S -o $(OBJECTDIR)/_idt.o
-	$(DOCKER) $(CC)-gcc -g -I $(INCLUDEDIR) -c $(CTARGETS) -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Wno-incompatible-pointer-types
+	$(DOCKER) $(CC)-gcc -g -I $(INCLUDEDIR) -c $(CTARGETS) -std=gnu99 -ffreestanding $(CFLAGS) -Wall -Wextra -Wno-incompatible-pointer-types
 
 	mv ./*.o $(OBJECTDIR)
 

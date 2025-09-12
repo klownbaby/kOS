@@ -48,3 +48,5 @@ printk(const char* fmt, ...);
 
 void 
 sprintk(const char* fmt, char* buffer, ...);
+int 
+kmemcmp(const void* aptr, const void* bptr, size_t size);
