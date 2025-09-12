@@ -10,3 +10,6 @@ fs/
 fs/fs.img
 OVMF.fd
 
+target/
+target/.rustc_info.json
+.vscode
