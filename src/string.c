@@ -14,16 +14,15 @@
  * Have fun creating kOS (pronounced "Chaos")
  */
 
-#include <stddef.h>
 #include "kernel.h"
 
-size_t 
-kstrlen(const char *str) 
+SIZE 
+KStrLen(const CHAR *str) 
 {
     // Assume length at zero
-    size_t length = 0;
+    SIZE length = 0;
 
-    // Increment length when a character is present
+    // Increment length when a CHARacter is present
     while(str[length])
     {
         ++length;
@@ -32,32 +31,32 @@ kstrlen(const char *str)
     return length;
 }
 
-void 
-kstrcpy(char *dest, const char *src) 
+VOID 
+KStrCopy(CHAR *dest, const CHAR *src) 
 {
     // Pretty loosey goosey way of doing this but fuck it
-    for (size_t i = 0; i < kstrlen(src); ++i)
+    for (SIZE i = 0; i < KStrLen(src); ++i)
     {
         dest[i] = src[i];
     }
 }
 
-void 
-kstrncpy(char *dest, const char *src, size_t n) 
+VOID 
+KStrNCopy(CHAR *dest, const CHAR *src, SIZE n) 
 {
     // Pretty loosey goosey way of doing this but fuck it
-    for (size_t i = 0; i < n; ++i)
+    for (SIZE i = 0; i < n; ++i)
     {
         if (src[i] != '\0') dest[i] = src[i];
     }
 }
 
-char* 
-kstrcat(char *dest, const char *append)
+CHAR* 
+KStrCat(CHAR *dest, const CHAR *append)
 {
     // appends one string to another (concatination)
-    char* save = dest;
-    size_t i = 0;
+    CHAR* save = dest;
+    SIZE i = 0;
 
 	  for (; *dest; ++dest) {}
     while ((*dest++ = *append++)); 
@@ -65,10 +64,10 @@ kstrcat(char *dest, const char *append)
     return save;
 }
 
-uint32_t
-kstrncmp(const char *s1, const char *s2, size_t n)
+ULONG
+KStrNCmp(const CHAR *s1, const CHAR *s2, SIZE n)
 {
-    uint32_t match = 0;
+    ULONG match = 0;
 
     while (n && *s1 && (*s1 == *s2))
     {
@@ -78,18 +77,18 @@ kstrncmp(const char *s1, const char *s2, size_t n)
     }
 
     KASSERT_GOTO_FAIL(n == 0);
-    match = ( *(unsigned char *)s1 - *(unsigned char *)s2 );
+    match = (*(UCHAR *)s1 - *(UCHAR *)s2);
 
 fail:
     return match;
 }
 
 /* Get number of tokens in string */
-uint32_t
-kstrntok(char *str, const char delim)
+ULONG
+KStrNTok(CHAR *str, const CHAR delim)
 {
-    char *tmp = str;
-    uint32_t count = 1;
+    CHAR *tmp = str;
+    ULONG count = 1;
 
     while (*tmp++ != '\0')
     {
@@ -100,11 +99,11 @@ kstrntok(char *str, const char delim)
 }
 
 /* Get offset of next token in string */
-uint32_t
-kstrtokoff(char *str, const char delim)
+ULONG
+KStrTokOffset(CHAR *str, const CHAR delim)
 {
-    char *tmp = str;
-    uint32_t offset = 0;
+    CHAR *tmp = str;
+    ULONG offset = 0;
 
     while (*tmp++ != '\0')
     {
@@ -121,43 +120,43 @@ kstrtokoff(char *str, const char delim)
 }
 
 /* This is kinda awful (and dangerous!)... but it works for now, TODO: Fix plz */
-char **
-kstrsplit(char *str, const char delim, uint32_t *elem_count)
+CHAR **
+KStrSplit(CHAR *str, const CHAR delim, ULONG *elemCount)
 {
-    char **tokens = NULL;
-    char *tmp = NULL;
-    char *elem = NULL;
-    size_t count = 0;
-    size_t elem_size = 0;
+    CHAR **tokens = NULL;
+    CHAR *tmp = NULL;
+    CHAR *elem = NULL;
+    SIZE count = 0;
+    SIZE elemSize = 0;
 
     tmp = str;
 
-    count = kstrntok(tmp, delim);
-    tokens = kmalloc(sizeof(char *) * count);
+    count = KStrNTok(tmp, delim);
+    tokens = KMalloc(sizeof(CHAR *) * count);
 
-    for (uint32_t i = 0; i < count; ++i)
+    for (ULONG i = 0; i < count; ++i)
     {
         // get size of next word
-        elem_size = kstrtokoff(tmp, delim);
+        elemSize = KStrTokOffset(tmp, delim);
 
-        if (elem_size == 0) break;
+        if (elemSize == 0) break;
 
-        // allocate size + NULL character
-        elem = kmalloc(elem_size + 1);
+        // allocate size + NULL CHARacter
+        elem = KMalloc(elemSize + 1);
 
         // zero out buffer
-        kmemset(elem, 0, elem_size + 1);
+        KMemSet(elem, 0, elemSize + 1);
         // copy element into buffer
-        kmemcpy(elem, tmp, elem_size);
+        KMemCopy(elem, tmp, elemSize);
 
         tokens[i] = elem;
 
         // reset string to after last delimeter
-        tmp += elem_size + 1;
+        tmp += elemSize + 1;
     }
 
 fail:
-    *elem_count = count;
+    *elemCount = count;
 
     return tokens;
 }

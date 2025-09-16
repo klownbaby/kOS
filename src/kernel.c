@@ -22,25 +22,25 @@
 #include "drivers/fat.h"
 
 /* Initialize early essential modules */
-static kstatus_t
-modules_init(void)
+static KSTATUS
+modulesInit(VOID)
 {
-    kstatus_t status = STATUS_FAILED;
-    module_entry_t *modules = NULL;
-    uint32_t dynmod_size = 0;
-    uint32_t num_modules = 0;
+    KSTATUS status = STATUS_FAILED;
+    MODULE_ENTRY *modules = NULL;
+    ULONG dynmod_size = 0;
+    ULONG num_modules = 0;
 
     // get size of .dynmod section in bytes
-    dynmod_size = (uint32_t)((uint32_t)&_dynmod_end - (uint32_t)&_dynmod_start);
+    dynmod_size = (ULONG)((ULONG)&_dynmod_end - (ULONG)&_dynmod_start);
     KASSERT_GOTO_SUCCESS(dynmod_size == 0);
 
     // calculate number of entry points
-    num_modules = dynmod_size / sizeof(uint32_t);
+    num_modules = dynmod_size / sizeof(ULONG);
 
     // get first module entry point
-    modules = (module_entry_t *)&_dynmod_start;
+    modules = (MODULE_ENTRY *)&_dynmod_start;
 
-    for (uint32_t i = 0; i < num_modules; ++i)
+    for (ULONG i = 0; i < num_modules; ++i)
     {
         // call each entry point
         modules[i]();
@@ -54,25 +54,25 @@ fail:
 }
 
 /* Kernel entry point (init hardware and drivers) */
-void 
-kernel_main(volatile uint32_t magic, volatile multiboot_info_t *mbd) 
+VOID 
+kernel_main(volatile ULONG magic, volatile MULTIBOOT_INFO *mbd) 
 {
-    kstatus_t status = STATUS_FAILED;
+    KSTATUS status = STATUS_FAILED;
 
     // set GRUB multiboot info global at start
-    g_mbd = (multiboot_info_t *)mbd;
+    g_Mbd = (MULTIBOOT_INFO *)mbd;
 
     // do early essential inits
-    status = modules_init();
+    status = modulesInit();
     KASSERT_GOTO_FAIL_MSG(
         status != STATUS_SUCCESS,
         "Failed to initialize essential modules!");
 
     // print a dope ass message
-    tty_neofetch();
+    TTYNeofetch();
 
     // start our awful shell
-    ksh_init();
+    KShellInit();
 
 fail:
     // hang

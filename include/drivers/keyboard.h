@@ -54,11 +54,11 @@
 #define NUMLCK 0xFFFFFFFF - 32
 
 /* Keyboard function defs */
-void 
-keyboard_init(void);
+VOID 
+KeyboardInit(VOID);
 
-char
-keyboard_scan_to_char(uint8_t scan);
+CHAR
+KeyboardScanToChar(UINT8 scan);
 
-void
-keyboard_set_notify_cb(keyboard_notify_cb cb);
+VOID
+KeyboardSetNotifyCallback(KEYBOARD_NOTIFY cb);

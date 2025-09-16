@@ -26,7 +26,7 @@
 #define PIT_CHANNEL1 0x41
 #define PIT_CHANNEL2 0x42
 
-void pit_callback(i_register_t registers);
-void pit_init(void);
-void sleep(uint32_t millis);
-void poll(void);
+VOID PitCallback(INTERRUPT_REGISTER_CONTEXT registers);
+VOID PitInit(VOID);
+VOID PitSleep(ULONG millis);
+VOID PitPoll(VOID);

@@ -14,12 +14,16 @@
  * Have fun creating kOS (pronounced "Chaos")
  */
 
-#pragma once
+#include "kernel.h"
 
-#include <ktypes.h>
+/* WIP */
+KSTATUS
+ExecBin(VOID)
+{
+    KSTATUS status = STATUS_FAILED;  
 
-/* Arbitrary hashing constant for simple string hashing, NOT SECURE */
-#define HASH_CONSTANT 53812897
+    status = STATUS_SUCCESS;
 
-ULONG
-HashStr(CHAR *str);
+fail:
+    return status;
+}

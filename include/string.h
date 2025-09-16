@@ -16,30 +16,29 @@
 
 #pragma once
 
+#include <ktypes.h>
 #include <stddef.h>
-#include <stdbool.h>
-#include <stdint.h>
 
-size_t 
-kstrlen(const char* str);
+SIZE 
+KStrLen(const CHAR *str);
 
-void 
-kstrcpy(char* dest, const char* src);
+VOID 
+KStrCopy(CHAR *dest, const CHAR *src);
 
-void 
-kstrncpy(char* dest, const char* src, size_t n);
+VOID 
+KStrNCopy(CHAR *dest, const CHAR *src, SIZE n);
 
-char* 
-kstrcat(char* src, const char* append);
+CHAR* 
+KStrCat(CHAR *src, const CHAR *append);
 
-uint32_t
-kstrncmp(const char *s1, const char *s2, size_t n);
+ULONG
+KStrNCmp(const CHAR *s1, const CHAR *s2, SIZE n);
 
-uint32_t
-kstrntok(char *str, const char delim);
+ULONG
+KStrNTok(CHAR *str, const CHAR delim);
 
-uint32_t
-kstrtokoff(char *str, const char delim);
+ULONG
+KStrTokOffset(CHAR *str, const CHAR delim);
 
-char **
-kstrsplit(char *str, const char delim, uint32_t *elem_count);
+CHAR **
+KStrSplit(CHAR *str, const CHAR delim, ULONG *elemCount);

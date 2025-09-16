@@ -19,150 +19,157 @@
 #include "drivers/fat.h"
 
 /* Handle clear ksh command (clear screen) */
-void
-handle_clear(uint32_t argc, char **argv)
+VOID
+HandleClear(ULONG argc, CHAR **argv)
 {
-    tty_clear();
+    TTYClear();
 }
 
 /* Handle reboot ksh command (warm reboot) */
-void
-handle_reboot(uint32_t argc, char **argv)
+VOID
+HandleReboot(ULONG argc, CHAR **argv)
 {
-    warm_reboot();
+    __warmReboot();
 }
 
 /* Handle dumpt ksh command (dump page tables) */
-void
-handle_dumpt(uint32_t argc, char **argv)
+VOID
+HandleDumpt(ULONG argc, CHAR **argv)
 {
-    pmm_dumpt();
+    PmmDumpPageDir();
 }
 
 /* Handle dumpfs ksh command (dump FAT BIOS parameter block) */
-void
-handle_dumpfs(uint32_t argc, char **argv)
+VOID
+HandleDumpfs(ULONG argc, CHAR **argv)
 {
-    fat_dump_bs();
+    FatDumpBs();
 }
 
 /* Handle dumpfl ksh command (dump free list) */
-void
-handle_dumpfl(uint32_t argc, char **argv)
+VOID
+HandleDumpfl(ULONG argc, CHAR **argv)
 {
-    dump_freelist();
+    DumpFreeList();
 }
 
 /* Handle neofetch ksh command (dumb lol) */
-void
-handle_neofetch(uint32_t argc, char **argv)
+VOID
+HandleNeofetch(ULONG argc, CHAR **argv)
 {
-    tty_neofetch();
+    TTYNeofetch();
 }
 
 /* Poke (read) from a given memory address */
-void
-handle_poke(uint32_t argc, char **argv)
+VOID
+HandlePoke(ULONG argc, CHAR **argv)
 {
-    uint32_t addr = 0;
-    uint32_t size = 0;
-    uint8_t *buf = NULL;
+    ULONG addr = 0;
+    ULONG size = 0;
+    UINT8 *buffer = NULL;
 
     KASSERT_GOTO_FAIL_MSG(argc < 3, "Usage: poke [address] [size]\n");
 
     // get address and size from args
-    addr = katoi(argv[1]);
-    size = katoi(argv[2]);
+    addr = KAToI(argv[1]);
+    size = KAToI(argv[2]);
 
     // for now, restrict size to 32 bytes
     KASSERT_GOTO_FAIL_MSG(size > 0x10, "Inavlid size, must be less than 32!\n");
 
     // allocate a scratch buffer
-    buf = kmalloc(size);
+    buffer = KMalloc(size);
 
     // copy desired size
-    kmemcpy(buf, (void *)addr, size);
+    KMemCopy(buffer, (VOID *)addr, size);
 
     // finally, dump
-    printk("Dumping at address (0x%x)\n", addr);
-    printk("    { ");
+    KPrint("Dumping at address (0x%x)\n", addr);
+    KPrint("    { ");
 
-    for (uint32_t i = 0; i < size; ++i)
+    for (ULONG i = 0; i < size; ++i)
     {
-        printk("0x%x, ", buf[i]);
+        KPrint("0x%x, ", buffer[i]);
     }
 
-    printk("}\n");
+    KPrint("}\n");
 
 fail:
     // ensure we free our scratch buffer
-    if (buf) kfree(buf);
+    if (buffer) KFree(buffer);
 
     return;
 }
 
 /* Prod (write) to a given memory address */
-void
-handle_prod(uint32_t argc, char **argv)
+VOID
+HandleProd(ULONG argc, CHAR **argv)
 {
-    
+    PROC_HANDLE handle = { 0 };
+    VOID *buffer = NULL;    
+
+    buffer = KMalloc(32);
+
+    (VOID)ProcessLoad(buffer, 32);
+
+    KFree(buffer);
 }
 
-void
-handle_ls(uint32_t argc, char **argv)
+VOID
+HandleLs(ULONG argc, CHAR **argv)
 {
-    void *dir = NULL;
-    uint32_t size = 0;
+    VOID *dir = NULL;
+    ULONG size = 0;
 
     KASSERT_GOTO_FAIL_MSG(argc < 2, "Usage: ls [path]\n");
 
     // should we just dump the root directory?
     if (argv[1][0] == '/' && argv[1][1] == '\0')
     {
-        fat_dump_root();        
+        FatDumpRoot();        
         GOTO_SUCCESS;
     }
 
     // if not, find the requested directory
-    dir = fat_open(argv[1], &size);
+    dir = FatOpen(argv[1], &size);
     KASSERT_GOTO_FAIL_MSG(dir == NULL, "Path not found!\n");
 
     // finally, dump that JAWN
-    fat_dump_directory(dir);
+    FatDumpDirectory(dir);
 
 fail:
     if (dir)
     {
-        kfree(dir);
+        KFree(dir);
     }
 
 success:
     return;
 }
 
-void
-handle_cat(uint32_t argc, char **argv)
+VOID
+HandleCat(ULONG argc, CHAR **argv)
 {
-    char *data = NULL;
-    uint32_t size = 0;
+    CHAR *data = NULL;
+    ULONG size = 0;
 
     KASSERT_GOTO_FAIL_MSG(argc < 2, "Usage: cat [file name]\n");
 
     // open a handle (buffer) to our file
-    data = fat_open(argv[1], &size);
+    data = FatOpen(argv[1], &size);
     KASSERT_GOTO_FAIL_MSG(data == NULL, "File not found!\n");
 
     // just dump as if all data is valid ASCII for now
-    for (uint32_t i = 0; i < size; ++i)
+    for (ULONG i = 0; i < size; ++i)
     {
-        printk("%c", data[i]);
+        KPrint("%c", data[i]);
     }
 
 fail:
     // ensure we free our buffer
     if (data)
     {
-        kfree(data);
+        KFree(data);
     }
 
     return;

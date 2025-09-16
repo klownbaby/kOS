@@ -20,107 +20,107 @@
 #include "drivers/keyboard.h"
 
 /* Our keyboard input buffer */
-static char* inputbuf;
+static CHAR* inputBuffer;
 /* Initialize head pointer for input buffer */
-static uint32_t inputbuf_head = 0;
+static ULONG inputBufferHead = 0;
 /* Initialize our command hashmap, making this large (for now) */
-static cmd_handler_t cmd_hashmap[0x1000] = { 0 };
+static CMD_HANDLER cmdHashmap[0x1000] = { 0 };
 
 /* Our command strings and their associated processors (callbacks) */
-static const cmd_handler_t cmd_handlers[10] = {
-    { .cmdstr = "clear", .proc = handle_clear },
-    { .cmdstr = "reboot", .proc = handle_reboot },
-    { .cmdstr = "dumpt", .proc = handle_dumpt },
-    { .cmdstr = "dumpfs", .proc = handle_dumpfs },
-    { .cmdstr = "dumpfl", .proc = handle_dumpfl },
-    { .cmdstr = "neofetch", .proc = handle_neofetch },
-    { .cmdstr = "poke", .proc = handle_poke },
-    { .cmdstr = "prod", .proc = handle_prod },
-    { .cmdstr = "ls", .proc = handle_ls },
-    { .cmdstr = "cat", .proc = handle_cat }
+static const CMD_HANDLER cmdHandlers[10] = {
+    { .cmdstr = "clear", .proc = HandleClear },
+    { .cmdstr = "reboot", .proc = HandleReboot },
+    { .cmdstr = "dumpt", .proc = HandleDumpt },
+    { .cmdstr = "dumpfs", .proc = HandleDumpfs },
+    { .cmdstr = "dumpfl", .proc = HandleDumpfl },
+    { .cmdstr = "neofetch", .proc = HandleNeofetch },
+    { .cmdstr = "poke", .proc = HandlePoke },
+    { .cmdstr = "prod", .proc = HandleProd },
+    { .cmdstr = "ls", .proc = HandleLs },
+    { .cmdstr = "cat", .proc = HandleCat }
 };
 
 /* Build out our initial hashmap for command processors (callbacks) */
-static void
-build_hashmap()
+static VOID
+buildHashMap(VOID)
 {
-    uint32_t hash = 0;
+    ULONG hash = 0;
 
-    for (uint32_t i = 0; i < CMD_LIST_SIZE; ++i)
+    for (ULONG i = 0; i < CMD_LIST_SIZE; ++i)
     {
         // get hash for command string
-        hash = hashstr(cmd_handlers[i].cmdstr) % HASHMAP_SIZE;
+        hash = HashStr(cmdHandlers[i].cmdstr) % HASHMAP_SIZE;
 
         // add to hashmap
-        cmd_hashmap[hash] = cmd_handlers[i];
+        cmdHashmap[hash] = cmdHandlers[i];
     }
 }
 
 /* Process data in input buffer as command */
-static void
-process_cmd()
+static VOID
+processCommand(VOID)
 {
-    uint32_t hash = 0;
-    uint32_t argc = 0;
-    uint32_t elem_size = 0;
-    char **argv = NULL;
-    char *elem = NULL;
-    char *tmp = NULL;
+    ULONG hash = 0;
+    ULONG argc = 0;
+    ULONG elemSize = 0;
+    CHAR **argv = NULL;
+    CHAR *elem = NULL;
+    CHAR *tmp = NULL;
 
     // ignore any zero-length input buffers, but don't fail
-    KASSERT_GOTO_SUCCESS(kstrlen(inputbuf) == 0);
+    KASSERT_GOTO_SUCCESS(KStrLen(inputBuffer) == 0);
 
-    tmp = inputbuf;
+    tmp = inputBuffer;
 
     // split and count arguments
-    argv = kstrsplit(tmp, ' ', &argc);
+    argv = KStrSplit(tmp, ' ', &argc);
 
     // check that our arguments were allocated properly
     KASSERT_GOTO_FAIL_MSG(argv == NULL, "Input buffer corrupted!");
 
     // hash our input string
-    hash = hashstr(argv[0]) % HASHMAP_SIZE;
+    hash = HashStr(argv[0]) % HASHMAP_SIZE;
 
     // check that we have a valid command
-    if (hash >= HASHMAP_SIZE || cmd_hashmap[hash].cmdstr == NULL)
+    if (hash >= HASHMAP_SIZE || cmdHashmap[hash].cmdstr == NULL)
     {
-        printk("Command not found! \"%s\"\n", inputbuf);
+        KPrint("Command not found! \"%s\"\n", inputBuffer);
         GOTO_FAIL;
     }
 
     // call our handler
-    cmd_hashmap[hash].proc(argc, argv);
+    cmdHashmap[hash].proc(argc, argv);
 
 fail:
     if (argv)
     {
         // free each sub string
-        for (uint32_t i = 0; i < argc; ++i)
+        for (ULONG i = 0; i < argc; ++i)
         {
-            if (argv[i]) kfree(argv[i]);
+            if (argv[i]) KFree(argv[i]);
         }
 
         // free argument buffer itself
-        kfree(argv);
+        KFree(argv);
     }
 
 success:
     // reset input buffer head
-    inputbuf_head = 0;
+    inputBufferHead = 0;
 
     // reset our input buffer
-    kmemset(inputbuf, 0, KSH_INPUTBUF_SIZE);
+    KMemSet(inputBuffer, 0, KSH_INPUTBUF_SIZE);
 }
 
 /* Key press notification callback */
-static void
-kbd_notify_cb(uint8_t scan, uint8_t pressed)
+static VOID
+keyboardNotifyCallback(UINT8 scan, UINT8 pressed)
 {
-    char c;
+    CHAR c;
 
     // ensure our input buffer is allocated
     KASSERT_GOTO_FAIL_MSG(
-        inputbuf == NULL, "inputbuf is not initialized!\n");
+        inputBuffer == NULL, "inputBuffer is not initialized!\n");
 
     // ignore key up
     KASSERT_GOTO_FAIL(pressed != 0);
@@ -129,53 +129,53 @@ kbd_notify_cb(uint8_t scan, uint8_t pressed)
     {
         case KEY_BACKSPACE:
             // check that we're not at the start of input buffer
-            if (inputbuf_head == 0)
+            if (inputBufferHead == 0)
             {
                 break;
             }
 
-            // remove last char from input buffer
-            inputbuf[--inputbuf_head] = 0;
+            // remove last CHAR from input buffer
+            inputBuffer[--inputBufferHead] = 0;
 
-            // remove char from screen
-            tty_putc_relative('\0', -1, 0, TRUE);
+            // remove CHAR from screen
+            TTYPutCRelative('\0', -1, 0, TRUE);
             break;
         // tilde key reboots
         case KEY_TILDE:
-            tty_write("\n");
+            TTYWrite("\n");
 
             // dump freelist
-            dump_freelist();
+            DumpFreeList();
 
-            tty_write("\n");
-            tty_writecolor("> ", VGA_COLOR_LIGHT_BLUE, VGA_COLOR_BLACK);
+            TTYWrite("\n");
+            TTYWriteColor("> ", VGA_COLOR_LIGHT_BLUE, VGA_COLOR_BLACK);
             break;
         // process keybuf on return
         case KEY_ENTER:
-            tty_write("\n");
+            TTYWrite("\n");
 
             // process current command
-            process_cmd();
+            processCommand();
 
             // write our prompt
-            tty_writecolor("> ", VGA_COLOR_LIGHT_BLUE, VGA_COLOR_BLACK);
+            TTYWriteColor("> ", VGA_COLOR_LIGHT_BLUE, VGA_COLOR_BLACK);
             break;
         // otherwise, write ascii
         default:
-            // restrict char count
-            if (inputbuf_head == (KSH_INPUTBUF_SIZE - 1))
+            // restrict CHAR count
+            if (inputBufferHead == (KSH_INPUTBUF_SIZE - 1))
             {
                 break;
             }
 
             // get ascii
-            c = keyboard_scan_to_char(scan);
+            c = KeyboardScanToChar(scan);
 
-            // set next char in buffer
-            inputbuf[inputbuf_head++] = c;
+            // set next CHAR in buffer
+            inputBuffer[inputBufferHead++] = c;
 
-            // finally, display the char
-            tty_putc(c);
+            // finally, display the CHAR
+            TTYPutC(c);
             break;
     }
 
@@ -184,25 +184,26 @@ fail:
 }
 
 /* Start kernel shell */
-void
-ksh_init()
+VOID
+KShellInit()
 {
     // build our command processor hashmap
-    build_hashmap();
+    buildHashMap();
 
     // allocate 256 byte input buffer
-    inputbuf = (char *)kmalloc(KSH_INPUTBUF_SIZE);
-    kmemset(inputbuf, 0, KSH_INPUTBUF_SIZE);
+    inputBuffer = (CHAR *)KMalloc(KSH_INPUTBUF_SIZE);
+    KMemSet(inputBuffer, 0, KSH_INPUTBUF_SIZE);
 
     // set our keypress callback
-    keyboard_set_notify_cb(kbd_notify_cb);
+    KeyboardSetNotifyCallback(keyboardNotifyCallback);
 
     // write initial prompt
-    tty_writecolor("> ", VGA_COLOR_LIGHT_BLUE, VGA_COLOR_BLACK);
+    TTYWriteColor("> ", VGA_COLOR_LIGHT_BLUE, VGA_COLOR_BLACK);
 }
 
-void
-ksh_fini()
+/* Tear down kernel shell */
+VOID
+KShellFini()
 {
-    kfree(inputbuf);
+    KFree(inputBuffer);
 }

@@ -21,34 +21,33 @@
 #include "vga.h"
 
 #define BOOT_LOG(msg) \
-    tty_write("[ "); \
-    tty_writecolor("OK", VGA_COLOR_GREEN, VGA_COLOR_BLACK); \
-    tty_write(" ] "); \
-    tty_write(msg); \
-    tty_write("\n");
-
-typedef struct {
-    size_t      row;
-    size_t      col;
-
-    vga_color_t fgcolor;
-    vga_color_t bgcolor;
-} tty_state_t;
+    TTYWrite("[ "); \
+    TTYWriteColor("OK", VGA_COLOR_GREEN, VGA_COLOR_BLACK); \
+    TTYWrite(" ] "); \
+    TTYWrite(msg); \
+    TTYWrite("\n");
 
 /* TTY function defs */
-void 
-tty_init();
-void 
-tty_write(const char* str);
-void 
-tty_writecolor(const char* str, vga_color_t fg, vga_color_t bg);
-void 
-tty_putc(char c);
-void 
-tty_putc_relative(char c, int relx, int rely, bool cursor);
-void 
-tty_clear();
-void 
-tty_setcolor(vga_color_t fg, vga_color_t bg);
-void 
-tty_neofetch();
+VOID 
+TTYInit();
+
+VOID 
+TTYWrite(const CHAR* str);
+
+VOID 
+TTYWriteColor(const CHAR* str, VGA_COLOR fg, VGA_COLOR bg);
+
+VOID 
+TTYPutC(CHAR c);
+
+VOID 
+TTYPutCRelative(CHAR c, int relx, int rely, bool cursor);
+
+VOID 
+TTYClear();
+
+VOID 
+TTYSetColor(VGA_COLOR fg, VGA_COLOR bg);
+
+VOID 
+TTYNeofetch();

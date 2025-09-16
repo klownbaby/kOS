@@ -28,71 +28,72 @@
     __type == 0x10 ? "dir" : "file"
 
 #define CLUSTER_TO_LBA(__cluster) \
-    (fat_ctx.data_lba + ((__cluster - 2) * bs.sectors_per_cluster))
+    (fatCtx.data_lba + ((__cluster - 2) * bs.sectors_per_cluster))
 
-typedef struct fat_context {
+typedef struct _FAT_CONTEXT {
     /* Common LBAs */
-    uint32_t fat_lba;
-    uint32_t root_lba;
-    uint32_t data_lba;
+    ULONG  fat_lba;
+    ULONG  root_lba;
+    ULONG  data_lba;
 
-    uint16_t* fat_sector;
-    uint8_t* root_sector;
-    uint8_t* data_sector;
-} fat_context_t;
+    UINT16 *fat_sector;
+    UINT8  *root_sector;
+    UINT8  *data_sector;
+} FAT_CONTEXT;
 
 /* Define FAT16 BIOS parameter block */
-typedef struct fat16_bs {
-  uint8_t  bootjmp[3];
-	uint8_t  oem_name[8];
-	uint16_t bytes_per_sector;
-	uint8_t	 sectors_per_cluster;
-	uint16_t reserved_sector_count;
-	uint8_t  table_count;
-	uint16_t root_entry_count;
-	uint16_t total_sectors_16;
-	uint8_t	 media_type;
-	uint16_t table_size_16;
-	uint16_t sectors_per_track;
-	uint16_t head_side_count;
-	uint32_t hidden_sector_count;
-	uint32_t total_sectors_32;
-  uint8_t	 bios_drive_num;
-	uint8_t	 reserved1;
-	uint8_t	 boot_signature;
-	uint32_t volume_id;
-	uint8_t	 volume_label[11];
-	uint8_t	 fat_type_label[8];
-} __attribute__((packed)) fat16_bs_t;
+typedef struct _FAT16_BS {
+  UINT8  bootjmp[3];
+	UINT8  oem_name[8];
+	UINT16 bytes_per_sector;
+	UINT8	 sectors_per_cluster;
+	UINT16 reserved_sector_count;
+	UINT8  table_count;
+	UINT16 root_entry_count;
+	UINT16 total_sectors_16;
+	UINT8	 media_type;
+	UINT16 table_size_16;
+	UINT16 sectors_per_track;
+	UINT16 head_side_count;
+	ULONG  hidden_sector_count;
+	ULONG  total_sectors_32;
+  UINT8	 bios_drive_num;
+	UINT8	 reserved1;
+	UINT8	 boot_signature;
+	ULONG  volume_id;
+	UINT8	 volume_label[11];
+	UINT8	 fat_type_label[8];
+} __attribute__((packed)) FAT16_BS;
 
-typedef struct dir_entry {
-    uint8_t  name[8];
-    uint8_t  ext[3];
-    uint8_t  attr;
-    uint8_t  reserved;
-    uint8_t  time[3];
-    uint16_t crt_date;
-    uint16_t acc_date;
-    uint16_t high_cluster;
-    uint8_t  written_date[4];
-    uint16_t low_cluster;
-    uint32_t size;
-} dir_entry_t;
+typedef struct _DIR_ENTRY {
+    UINT8  name[8];
+    UINT8  ext[3];
+    UINT8  attr;
+    UINT8  reserved;
+    UINT8  time[3];
+    UINT16 crt_date;
+    UINT16 acc_date;
+    UINT16 high_cluster;
+    UINT8  written_date[4];
+    UINT16 low_cluster;
+    ULONG  size;
+} DIR_ENTRY;
 
-void
-fat_dump_bs(void);
+/* FAT function definitions */
+VOID
+FatInit(VOID);
 
-void
-fat_dump_dentry(dir_entry_t *dentry);
+VOID
+FatDumpBs(VOID);
 
-void
-fat_dump_directory(void *buffer);
+VOID
+FatDumpDentry(DIR_ENTRY *dentry);
 
-void
-fat_dump_root(void);
+VOID
+FatDumpDirectory(VOID *buffer);
 
-void *
-fat_open(char *path, uint32_t *outsize);
+VOID
+FatDumpRoot(VOID);
 
-void
-fat_init(void);
+VOID *
+FatOpen(CHAR *path, ULONG *outsize);

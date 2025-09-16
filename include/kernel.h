@@ -18,49 +18,57 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+
 #include "hash.h"
 #include "gdt.h"
 #include "interrupt.h"
 #include "io.h"
 #include "kmalloc.h"
 #include "kutils.h"
-#include "multiboot.h"
 #include "pmm.h"
 #include "stdio.h"
 #include "string.h"
-#include "syscall.h"
 #include "ksh.h"
+#include "proc.h"
+#include "exec.h"
 
 /* Module entry point macro for unordered initialization */
 #define MODULE_ENTRY(__entry) \
-    __attribute__((section(".dynmod"))) module_entry_t *__entry##_dynmod = \
-        (module_entry_t *)__entry
+    __attribute__((section(".dynmod"))) MODULE_ENTRY *__entry##_dynmod = \
+        (MODULE_ENTRY *)__entry
 
 /* Module entry point macro for ordered initialization */
 #define MODULE_ENTRY_ORDERED(__entry, __n) \
-    __attribute__((section(".dynmod.init"#__n))) module_entry_t *__entry##_dynmod = \
-        (module_entry_t *)__entry
+    __attribute__((section(".dynmod.init"#__n))) MODULE_ENTRY *__entry##_dynmod = \
+        (MODULE_ENTRY *)__entry
 
 /* Kernel start/end mappings from linker */
-extern volatile uint32_t _kernel_start;
-extern volatile uint32_t _kernel_end;
+extern volatile ULONG _kernel_start;
+extern volatile ULONG _kernel_end;
 
 /* Kernel data section from linker */
-extern volatile uint32_t _data_start;
+extern volatile ULONG _data_start;
 
-extern volatile uint32_t _dynmod_start;
-extern volatile uint32_t _dynmod_end;
+/* Module entry point region */
+extern volatile ULONG _dynmod_start;
+extern volatile ULONG _dynmod_end;
+
+/* Kernel page directory */
+extern volatile ULONG g_KernelPageDir[PD_NENTRIES];
 
 /* GRUB multiboot info from handoff to kernel */
-extern multiboot_info_t *g_mbd;
+extern MULTIBOOT_INFO *g_Mbd;
+
+/* Global console TTY state */
+extern TTY_STATE g_TTYState;
 
 /* Number of enabled cores */
-extern uint32_t g_num_cores;
+extern ULONG g_NumCores;
 
 /* Saving some time for commonly used linker-defined globals */
-extern uint32_t g_kernel_start;
-extern uint32_t g_kernel_end;
+extern ULONG g_KernelStart;
+extern ULONG g_KernelEnd;
 
 /* Kernel heap */
-extern uint8_t *g_heap_start;
-extern uint8_t *g_heap_end;
+extern UINT8 *g_HeapStart;
+extern UINT8 *g_HeapEnd;

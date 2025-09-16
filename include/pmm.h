@@ -41,16 +41,16 @@
 #define FOURKB          4 * KB
 #define ONEMB           1 * MB
 
-/* Virtual address for base of recursive page direcotry mapping */
+/* Virtual address for base of recursive page directory mapping */
 #define PT_VADDR_BASE   0xFFC00000
 
 /* Align address down to default page size */
 #define PAGE_ALIGN_DOWN(__addr) \
-  ((uint32_t)(__addr) & ~(0xFFF))
+  ((ULONG)(__addr) & ~(0xFFF))
 
 /* Align address up to default page size */
 #define PAGE_ALIGN_UP(__addr) \
-  ((uint32_t)__addr + (PAGE_SIZE - (__addr & 0xFFF)))
+  ((ULONG)__addr + (PAGE_SIZE - (__addr & 0xFFF)))
 
 /* Checks that a page aligned on page boundary */
 #define IS_PAGE_ALIGNED(__addr) \
@@ -58,18 +58,18 @@
 
 /* Checks that a page is marked present */
 #define IS_PRESENT(__addr) \
-    ((uint32_t)__addr & PAGE_PRESENT)
+    ((ULONG)__addr & PAGE_PRESENT)
 
 /* Flush page from TLB */
-static inline void __invlpg(uint32_t vaddr)
+inline VOID __invlpg(ULONG vaddr)
 {
    asm volatile("invlpg (%0)" ::"r" (vaddr) : "memory"); 
 }
 
 /* Get current kernel cr3 register */
-static inline uint32_t __get_cr3()
+inline ULONG __getCr3(VOID)
 {
-    uint32_t cr3 = 0;
+    ULONG cr3 = 0;
 
     __asm__ __volatile__ ("mov %%cr3, %0" : "=r"(cr3));
 
@@ -77,7 +77,7 @@ static inline uint32_t __get_cr3()
 }
 
 /* Set new cr3 value */
-static inline void __set_cr3(uint32_t cr3)
+inline VOID __setCr3(ULONG cr3)
 {
      __asm__ __volatile__ (
         "mov %0,    %%eax\n"
@@ -88,10 +88,11 @@ static inline void __set_cr3(uint32_t cr3)
     );
 }
 
-static inline void enable_paging(uint32_t pd)
+/* Enable paging */
+inline VOID __enablePaging(ULONG pd)
 {
     // set cr3 to our initial kernel page directory
-    __set_cr3((uint32_t)pd);
+    __setCr3((ULONG)pd);
 
     // we can now enable paging by setting cr0
     __asm__ __volatile__ (
@@ -104,26 +105,26 @@ static inline void enable_paging(uint32_t pd)
 }
 
 /* PMM function definitions */
-void
-pmm_dumpt(void);
+VOID 
+PmmInit(VOID);
 
-kstatus_t 
-pmm_alloc_frame(uint32_t frame);
+VOID
+PmmDumpPageDir(VOID);
 
-kstatus_t
-pmm_alloc_range(uint32_t start, uint32_t end);
+KSTATUS 
+PmmAllocFrame(ULONG frame);
 
-uint32_t
-pmm_alloc_next(void);
+KSTATUS
+PmmAllocRange(ULONG start, ULONG end);
 
-void 
-pmm_map_page(uint32_t paddr, uint32_t vaddr);
+ULONG
+PmmAllocNext(VOID);
 
-int32_t
-pmm_virt_to_phys(uint32_t vaddr);
+VOID 
+PmmMapPage(ULONG *pd, ULONG paddr, ULONG vaddr);
 
-void 
-pmm_init(void);
+ULONG
+PmmVirtToPhys(ULONG *pd, ULONG vaddr);
 
-void 
-pmm_display_mm(multiboot_info_t* mbd);
+VOID 
+pmm_display_mm(MULTIBOOT_INFO *mbd);

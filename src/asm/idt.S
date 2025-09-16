@@ -1,6 +1,6 @@
-global load_idt
+global LoadIdt
 
-[extern isr_handler]
+[extern IsrHandler]
 [extern irq_handler]
 
 %macro ISR_NO_ERR 1
@@ -32,7 +32,7 @@ global load_idt
         jmp irq_common_stub
 %endmacro
 
-load_idt:
+LoadIdt:
     mov eax, [esp + 4]
     lidt [eax]
     sti
@@ -50,7 +50,7 @@ isr_common_stub:
 	mov gs, ax
 	
     ; 2. Call C handler
-	call isr_handler
+	call IsrHandler
 	
     ; 3. Restore state
 	pop eax 

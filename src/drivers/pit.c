@@ -20,47 +20,47 @@
 #include "drivers/rtc.h"
 
 /* Initialize count down for sleep function */
-static volatile uint32_t count_down;
+static volatile ULONG count_down;
+
+/* Awful, TODO: change later */
+VOID 
+PitPoll(VOID)
+{
+    RtcCallback();
+}
 
 /* Decrement counter on clock edge */
-void 
-pit_callback(__attribute__((unused)) i_register_t registers)
+VOID 
+PitCallback(__attribute__((unused)) INTERRUPT_REGISTER_CONTEXT registers)
 {
     --count_down;
 
-    poll();
+    PitPoll();
 }
 
 /* Global kernel sleep function, sleep for x milliseconds */
-void 
-sleep(uint32_t millis)
+VOID 
+PitSleep(ULONG millis)
 {
     count_down = millis;
 
     while (count_down > 0);
 }
 
-void 
-pit_init(void)
+VOID 
+PitInit(VOID)
 {
     // set divisor for channel 0
-    uint32_t divisor = FREQUENCY/RELOAD;
+    ULONG divisor = FREQUENCY/RELOAD;
 
-    register_interrupt_handler(IRQ0, pit_callback);
+    RegisterInterruptHandler(IRQ0, PitCallback);
 
     // select square wave generator
-    outb(PIT_COMMAND, 0x36);
-    outb(PIT_CHANNEL0, (uint8_t) (divisor & 0xFF));
-    outb(PIT_CHANNEL0, (uint8_t) ((divisor >> 8) & 0xFF));
+    __outb(PIT_COMMAND, 0x36);
+    __outb(PIT_CHANNEL0, (UINT8) (divisor & 0xFF));
+    __outb(PIT_CHANNEL0, (UINT8) ((divisor >> 8) & 0xFF));
 
     BOOT_LOG("PIT initialized.")
 }
 
-/* Awful, TODO: change later */
-void 
-poll(void)
-{
-    rtc_callback();
-}
-
-MODULE_ENTRY(pit_init);
+MODULE_ENTRY(PitInit);

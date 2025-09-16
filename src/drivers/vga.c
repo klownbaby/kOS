@@ -17,37 +17,42 @@
 #include "kernel.h"
 #include "drivers/vga.h"
 
-static uint16_t g_vga_color;
-
-/* Sets color entry for VGA buffer */
-void 
-vga_setcolor(vga_color_t fg, vga_color_t bg) 
-{
-    g_vga_color = vga_entry_color(fg, bg);
-}
+/* Initialize default VGA color */
+static VGA_COLOR vgaColor;
 
 /* For now, just clear the screen on init (also sets default color) */
-void 
-vga_init() 
+VOID 
+VgaInit(VOID) 
 {
-    vga_clear();
+    // just clear the screen for now
+    VgaClear();
 }
 
-/* Puts a character into the VGA buffer at row, col */
-void 
-vga_putc(char c, size_t row, size_t col) 
+/* Sets color entry for VGA buffer */
+VOID 
+VgaSetColor(VGA_COLOR fg, VGA_COLOR bg) 
 {
-    uint16_t* vga_buffer = (uint16_t*) VGA_BASE;
-    const size_t vga_index = row * VGA_WIDTH + col;
+    vgaColor = VGA_ENTRY_COLOR(fg, bg);
+}
 
-    vga_buffer[vga_index] = vga_entry(c, g_vga_color);
+/* Puts a CHARacter into the VGA buffer at row, col */
+VOID 
+VgaPutC(CHAR c, SIZE row, SIZE col) 
+{
+    UINT16* vgaBuffer = (UINT16 *)VGA_BASE;
+    const SIZE vga_index = row * VGA_WIDTH + col;
+
+    vgaBuffer[vga_index] = VGA_ENTRY(c, vgaColor);
 }
 
 /* Shift VGA buffer one column down */
-void 
-vga_scroll()
+VOID 
+VgaScroll(VOID)
 {
-    uint16_t* vga_buffer = (uint16_t*) VGA_BASE;
+    UINT16 *vgaBuffer = (UINT16 *)VGA_BASE;
+    SIZE index = 0;
+    SIZE scrollIndex = 0;
+    UINT16 entry = 0;
 
     // loop through every row and col (80 * 25)
     for (int row = 1; row < VGA_HEIGHT; row++) 
@@ -55,105 +60,106 @@ vga_scroll()
         for (int col = 0; col < VGA_WIDTH; col++) 
         {
             // get current index of vga entry
-            size_t index = row * VGA_WIDTH + col;
+            index = row * VGA_WIDTH + col;
             // move index up one row and retain column
-            size_t scroll_index = (row - 1) * VGA_WIDTH + col;
+            scrollIndex = (row - 1) * VGA_WIDTH + col;
 
             // set newe buffer entry
-            uint16_t entry = vga_buffer[index];
+            entry = vgaBuffer[index];
 
             // clear previous index and set new
-            vga_buffer[index] = vga_entry(' ', g_vga_color);
-            vga_buffer[scroll_index] = entry;
+            vgaBuffer[index] = VGA_ENTRY(' ', vgaColor);
+            vgaBuffer[scrollIndex] = entry;
         }
     }
 }
 
-void 
-vga_setbar(vga_color_t fg, vga_color_t bg, const char* str, size_t offset)
+VOID 
+VgaSetBar(VGA_COLOR fg, VGA_COLOR bg, const CHAR* str, SIZE offset)
 {
-    uint16_t* vga_buffer = (uint16_t*) VGA_BASE;
-    uint16_t color = vga_entry_color(fg, bg);
+    UINT16* vgaBuffer = (UINT16 *)VGA_BASE;
+    UINT16 color = VGA_ENTRY_COLOR(fg, bg);
 
-    size_t len = kstrlen(str);
+    SIZE len = KStrLen(str);
 
-    for (size_t i = 0; i < VGA_WIDTH; ++i) 
+    for (SIZE i = 0; i < VGA_WIDTH; ++i) 
     {
         if (i >= offset && i < (offset + len)) 
         {
-            vga_buffer[24 * VGA_WIDTH + i] = vga_entry(str[i - offset], color);
+            vgaBuffer[24 * VGA_WIDTH + i] = VGA_ENTRY(str[i - offset], color);
         } else {
-            vga_buffer[24 * VGA_WIDTH + i] = vga_entry(' ', color);
+            vgaBuffer[24 * VGA_WIDTH + i] = VGA_ENTRY(' ', color);
         }
     }
 }
 
 /* Clear VGA buffer */
-void 
-vga_clear() 
+VOID 
+VgaClear(VOID) 
 {
-    uint16_t* vga_buffer = (uint16_t*)VGA_BASE;
-    uint16_t vga_index = 0;
+    UINT16* vgaBuffer = (UINT16 *)VGA_BASE;
+    UINT16 vga_index = 0;
 
     // wipe out our vga buffer
-    for (size_t i = 0; i < VGA_HEIGHT; ++i) 
+    for (SIZE i = 0; i < VGA_HEIGHT; ++i) 
     {
-        for (size_t j = 0; j < VGA_WIDTH; ++j) 
+        for (SIZE j = 0; j < VGA_WIDTH; ++j) 
         {
             // get our next index to reset
             vga_index = i * VGA_WIDTH + j;
 
             // reset it
-            vga_buffer[vga_index] = vga_entry(' ', g_vga_color);
+            vgaBuffer[vga_index] = VGA_ENTRY(' ', vgaColor);
         }
     }
 }
 
 /* Disalbes cursor */
-void 
-vga_cursor_disable() 
+VOID 
+VgaCursorDisable(VOID) 
 {
     // disable cursor by writing to 0x3d4 and 0x3d5
-    outb(0x3D4, 0x0A);
-    outb(0x3D5, 0x20);
+    __outb(0x3D4, 0x0A);
+    __outb(0x3D5, 0x20);
 }
 
 /* Enables cursor */
-void vga_cursor_enable(uint8_t start, uint8_t end) 
+VOID 
+VgaCursorEnable(UINT8 start, UINT8 end) 
 {
     // set starting scanline of cursor
-    outb(0x3D4, 0x0A);
-    outb(0x3D5, (inb(0x3D5) & 0xC0) | start);
+    __outb(0x3D4, 0x0A);
+    __outb(0x3D5, (__inb(0x3D5) & 0xC0) | start);
 
     // set ending scanline of cursor (for cursor shapes)
-    outb(0x3D4, 0x0B);
-    outb(0x3D5, (inb(0x3D5) & 0xE0) | end);
+    __outb(0x3D4, 0x0B);
+    __outb(0x3D5, (__inb(0x3D5) & 0xE0) | end);
 }
 
 /* Update cursor to new x, y pos (row, col for tty) */
-void 
-vga_update_cursor(int x, int y)
+VOID 
+VgaUpdateCursor(int x, int y)
 {
-	uint16_t pos = y * VGA_WIDTH + x;
+	UINT16 pos = y * VGA_WIDTH + x;
  
-    outb(0x3D4, 0x0F);
-    outb(0x3D5, (uint8_t) (pos & 0xFF));
-    outb(0x3D4, 0x0E);
-    outb(0x3D5, (uint8_t) ((pos >> 8) & 0xFF));
+    __outb(0x3D4, 0x0F);
+    __outb(0x3D5, (UINT8) (pos & 0xFF));
+    __outb(0x3D4, 0x0E);
+    __outb(0x3D5, (UINT8) ((pos >> 8) & 0xFF));
 }
 
-/* Gets cursor position and returns struct of cursor_pos_t (x, y) */
-cursor_pos_t 
-vga_get_cursor_position() 
+/* Gets cursor position and returns struct of CURSOR_POS (x, y) */
+CURSOR_POS 
+VgaGetCursorPosition(VOID) 
 {
-    uint16_t pos = 0;
-    cursor_pos_t cursor_pos;
+    UINT16 pos = 0;
+    CURSOR_POS cursor_pos;
 
-    outb(0x3D4, 0x0F);
-    pos |= inb(0x3D5);
+    __outb(0x3D4, 0x0F);
+    pos |= __inb(0x3D5);
 
-    outb(0x3D4, 0x0E);
-    pos |= ((uint16_t)inb(0x3D5)) << 8;
+    __outb(0x3D4, 0x0E);
+    pos |= ((UINT16)__inb(0x3D5)) << 8;
 
     cursor_pos.x = pos / VGA_WIDTH; 
     cursor_pos.y = pos % VGA_WIDTH; 

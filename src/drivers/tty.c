@@ -18,140 +18,138 @@
 #include "drivers/tty.h"
 #include "drivers/vga.h"
 
-static tty_state_t tty_state;
-
 /* Init tty interface and set default color to white on black */
-void 
-tty_init(void)
+VOID 
+TTYInit(VOID)
 {
     // set foreground color to white, background to blue
     // feel free to change this
-    tty_setcolor(VGA_COLOR_WHITE, VGA_COLOR_BLACK);
+    TTYSetColor(VGA_COLOR_WHITE, VGA_COLOR_BLACK);
 
     // initialize vga interface
-    vga_init();
+    VgaInit();
 
     // disable cursor until shell inits
-    vga_cursor_disable();
+    VgaCursorDisable();
 
     // check GRUB version
-    tty_writecolor("Booted with ", VGA_COLOR_CYAN, VGA_COLOR_BLACK);
-    tty_writecolor((const char*)g_mbd->boot_loader_name, VGA_COLOR_CYAN, VGA_COLOR_BLACK);
-    tty_write("\n\n");
+    TTYWriteColor("Booted with ", VGA_COLOR_CYAN, VGA_COLOR_BLACK);
+    TTYWriteColor((const CHAR *)g_Mbd->boot_loader_name, VGA_COLOR_CYAN, VGA_COLOR_BLACK);
+    TTYWrite("\n\n");
 }
 
 /* Write a string to tty output, with row, col tracking */
-void 
-tty_write(const char* str) 
+VOID 
+TTYWrite(const CHAR* str) 
 {
-    // loop through each character and putc to screen
-    for (size_t i = 0; i < kstrlen(str); ++i) 
+    // loop through each CHARacter and putc to screen
+    for (SIZE i = 0; i < KStrLen(str); ++i) 
     {
-        // detect when a newline character is present
-        tty_putc(str[i]);
+        // detect when a newline CHARacter is present
+        TTYPutC(str[i]);
     }
 }
 
-void 
-tty_writecolor(const char* str, vga_color_t fg, vga_color_t bg) 
+VOID 
+TTYWriteColor(const CHAR* str, VGA_COLOR fg, VGA_COLOR bg) 
 {
     // set color to desired
-    vga_setcolor(fg, bg);
+    VgaSetColor(fg, bg);
 
-    // loop through each character and putc to screen
-    tty_write(str);
+    // loop through each CHARacter and putc to screen
+    TTYWrite(str);
 
     // set color back to default tty state
-    vga_setcolor(tty_state.fgcolor, tty_state.bgcolor);
+    VgaSetColor(g_TTYState.fgColor, g_TTYState.bgColor);
 }
 
-void 
-tty_putc(char c)
+VOID 
+TTYPutC(CHAR c)
 {
-    if (c != '\n') vga_putc(c, tty_state.row, tty_state.col);
+    if (c != '\n') VgaPutC(c, g_TTYState.row, g_TTYState.col);
 
     // if we are at the end of the line (80 columns), break line
-    if (++tty_state.col == VGA_WIDTH || c == '\n') 
+    if (++g_TTYState.col == VGA_WIDTH || c == '\n') 
     {
-        tty_state.col = 0;
+        g_TTYState.col = 0;
 
         // same for rows
-        if (++tty_state.row == VGA_HEIGHT) 
+        if (++g_TTYState.row == VGA_HEIGHT) 
         {
-            vga_scroll();
-            --tty_state.row;
+            VgaScroll();
+            --g_TTYState.row;
         } 
     }
 
     // update cursor after string is written to tty
-    vga_update_cursor(tty_state.col, tty_state.row);
+    VgaUpdateCursor(g_TTYState.col, g_TTYState.row);
 }
 
-/* Write a character to the screen relative to current tty_state */
-void 
-tty_putc_relative(char c, int relx, int rely, bool cursor)
+/* Write a CHARacter to the screen relative to current g_TTYState */
+VOID 
+TTYPutCRelative(CHAR c, int relx, int rely, bool cursor)
 {
-    tty_state.col += relx;
-    tty_state.row += rely;
+    g_TTYState.col += relx;
+    g_TTYState.row += rely;
 
-    if (c != '\n') vga_putc(c, tty_state.row, tty_state.col);
+    if (c != '\n') VgaPutC(c, g_TTYState.row, g_TTYState.col);
 
     // update cursor after string is written to tty
-    if (cursor) vga_update_cursor(tty_state.col, tty_state.row);
+    if (cursor) VgaUpdateCursor(g_TTYState.col, g_TTYState.row);
 }
 
 /* Clear screen and reset row, col pointers */
-void 
-tty_clear(void) 
+VOID 
+TTYClear(VOID) 
 {
     // clear vga buffer
-    vga_clear();
+    VgaClear();
 
     // reset column and row pointers
-    tty_state.col = 0;
-    tty_state.row = 0;
+    g_TTYState.col = 0;
+    g_TTYState.row = 0;
 }
 
 /* Set new color and store fg/bg colors in state */
-void 
-tty_setcolor(vga_color_t fg, vga_color_t bg) 
+VOID 
+TTYSetColor(VGA_COLOR fg, VGA_COLOR bg) 
 {
-    vga_setcolor(fg, bg);
+    VgaSetColor(fg, bg);
 
-    tty_state.fgcolor = fg;
-    tty_state.bgcolor = bg;
+    g_TTYState.fgColor = fg;
+    g_TTYState.bgColor = bg;
 }
 
 /* Just a somewhat unecessary boot success message */
-void 
-tty_neofetch(void) 
+VOID 
+TTYNeofetch(VOID) 
 {
     // temporarily set text color to green
-    vga_setcolor(VGA_COLOR_GREEN, tty_state.bgcolor);
-    tty_write("\nYou're not that guy, pal..\n");
+    VgaSetColor(VGA_COLOR_GREEN, g_TTYState.bgColor);
+    TTYWrite("\nYou're not that guy, pal..\n");
 
     // set text color back to default
-    vga_setcolor(tty_state.fgcolor, tty_state.bgcolor);
+    VgaSetColor(g_TTYState.fgColor, g_TTYState.bgColor);
 
     // some dope ascii art that I definitely didn't generate...
-    tty_write("\n\n");
-    tty_write(" /$$        /$$$$$$   /$$$$$$\n");
-    tty_write("| $$       /$$__  $$ /$$__  $$\n");
-    tty_write("| $$   /$$| $$  \\ $$| $$  \\__/\n");
-    tty_write("| $$  /$$/| $$  | $$|  $$$$$$ \n");
-    tty_write("| $$$$$$/ | $$  | $$ \\____  $$\n");
-    tty_write("| $$_  $$ | $$  | $$ /$$  \\ $$\n");
-    tty_write("| $$ \\  $$|  $$$$$$/|  $$$$$$/\n");
-    tty_write("|__/  \\__/ \\______/  \\______/ \n");
-    tty_write("\nv0.0.2\n");
+    TTYWrite("\n\n");
+    TTYWrite(" /$$        /$$$$$$   /$$$$$$\n");
+    TTYWrite("| $$       /$$__  $$ /$$__  $$\n");
+    TTYWrite("| $$   /$$| $$  \\ $$| $$  \\__/\n");
+    TTYWrite("| $$  /$$/| $$  | $$|  $$$$$$ \n");
+    TTYWrite("| $$$$$$/ | $$  | $$ \\____  $$\n");
+    TTYWrite("| $$_  $$ | $$  | $$ /$$  \\ $$\n");
+    TTYWrite("| $$ \\  $$|  $$$$$$/|  $$$$$$/\n");
+    TTYWrite("|__/  \\__/ \\______/  \\______/ \n");
+    TTYWrite("\nv0.0.2\n");
 
-    tty_write("\n\nWelcome to kOS!\n");
+    TTYWrite("\n\nWelcome to kOS!\n");
 
     // enable vertical cursor (max scanline 15)
-    vga_cursor_enable(1, 15);
+    VgaCursorEnable(1, 15);
     
     // update cursor to current row, col
-    vga_update_cursor(tty_state.col, tty_state.row);
+    VgaUpdateCursor(g_TTYState.col, g_TTYState.row);
 }
 
-MODULE_ENTRY_ORDERED(tty_init, 0);
+MODULE_ENTRY_ORDERED(TTYInit, 0);

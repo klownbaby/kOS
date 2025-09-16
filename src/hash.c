@@ -17,16 +17,16 @@
 #include "hash.h"
 
 /* Hash a string using our constant */
-uint32_t
-hashstr(char *str)
+ULONG
+HashStr(CHAR *str)
 {
     // use our awful constant lol
-    uint32_t hash = HASH_CONSTANT;
-    uint32_t c = 0;
-    char *tmp = str;
+    ULONG hash = HASH_CONSTANT;
+    ULONG c = 0;
+    CHAR *tmp = str;
 
     // hash the fucking string
-    while ((c = (uint32_t)*tmp++))
+    while ((c = (ULONG)*tmp++))
     {
         // wow! what a sophisticated algorithm!
         hash = ((hash << 5) + hash) + c;

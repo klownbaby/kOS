@@ -20,31 +20,29 @@
 #include <stddef.h>
 #include <stdbool.h>
 
+/* Define constants for conversions */
 #define DECIMAL 10
-#define HEX 16
-#define BINARY 2
+#define HEX     16
+#define BINARY  2
 
+/* Standard I/O function definitions */
+CHAR * 
+KIToA(int value, CHAR *str, int base);
 
-char* 
-kitoa(int value, char* str, int base);
+ULONG
+KAToI(const CHAR *str);
 
-uint32_t
-katoi(const char *str);
+VOID
+KMemSet(VOID *dest, register int data, register SIZE length);
 
-void
-kmemset(void* dest, register int data, register size_t length);
+VOID
+KMemCopy(VOID *dest, VOID *src, register SIZE size);
 
-void
-kmemcpy(void* dest, void* src, register size_t size);
+VOID 
+KPanic(CHAR *msg);
 
-void 
-kpanic(char* msg);
+VOID 
+KPutS(const CHAR *str);
 
-void 
-kputs(const char* str);
-
-void 
-printk(const char* fmt, ...);
-
-void 
-sprintk(const char* fmt, char* buffer, ...);
+VOID 
+KPrint(const CHAR *fmt, ...);

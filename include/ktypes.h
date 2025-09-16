@@ -1,23 +1,76 @@
 #pragma once
 
 #include <stdint.h>
+#include <stddef.h>
+
+#include "multiboot.h"
 
 /* Boolean types */
 #define TRUE  1
 #define FALSE 0
 
+/* Alias common types */
+typedef void     VOID;
+typedef int32_t  LONG;
+typedef uint32_t ULONG;
+typedef uint16_t UINT16;
+typedef uint8_t  UINT8;
+typedef uint8_t  BOOLEAN;
+typedef size_t   SIZE;
+typedef char     CHAR;
+typedef unsigned char UCHAR;
+typedef multiboot_info_t MULTIBOOT_INFO;
+
 /* Define function pointer types */
-typedef void (*module_entry_t)(void);
-typedef void (*keyboard_notify_cb)(uint8_t scan, uint8_t pressed);
+typedef VOID (*MODULE_ENTRY)(VOID);
+typedef LONG (*PROC_ENTRY)(ULONG argc, CHAR **argv);
+typedef VOID (*KEYBOARD_NOTIFY)(UINT8 scan, UINT8 pressed);
+
+/* Define process handle type (process cr3 phys) */
+typedef struct _PROC_HANDLE {
+    ULONG cr3;
+    ULONG size;
+    PROC_ENTRY entry;
+} PROC_HANDLE;
 
 /* Define a temporary file type */
-typedef struct file {
-    void* buf;
-    uint32_t size;
-} file_t;
+typedef struct _FILE {
+    VOID* buffer;
+    ULONG size;
+} FILE;
+
+/* Hardware text mode color constants */
+typedef enum _VGA_COLOR {
+	VGA_COLOR_BLACK = 0,
+	VGA_COLOR_BLUE = 1,
+	VGA_COLOR_GREEN = 2,
+	VGA_COLOR_CYAN = 3,
+	VGA_COLOR_RED = 4,
+	VGA_COLOR_MAGENTA = 5,
+	VGA_COLOR_BROWN = 6,
+	VGA_COLOR_LIGHT_GREY = 7,
+	VGA_COLOR_DARK_GREY = 8,
+	VGA_COLOR_LIGHT_BLUE = 9,
+	VGA_COLOR_LIGHT_GREEN = 10,
+	VGA_COLOR_LIGHT_CYAN = 11,
+	VGA_COLOR_LIGHT_RED = 12,
+	VGA_COLOR_LIGHT_MAGENTA = 13,
+	VGA_COLOR_LIGHT_BROWN = 14,
+	VGA_COLOR_WHITE = 15,
+} VGA_COLOR;
+
+
+/* Define global tty state context */
+typedef struct _TTY_STATE {
+    SIZE      row;
+    SIZE      col;
+
+    VGA_COLOR fgColor;
+    VGA_COLOR bgColor;
+} TTY_STATE;
 
 /* Define a standard status check return value */
-typedef enum kstatus {
+typedef enum _KSTATUS {
     STATUS_SUCCESS,
     STATUS_FAILED,
     STATUS_INVALID,
@@ -25,55 +78,41 @@ typedef enum kstatus {
     STATUS_INSUFFICIENT_SPACE,
     STATUS_IN_USE,
     STATUS_UNKNOWN
-} kstatus_t;
+} KSTATUS;
 
 /* Keypress scan code enum for readability */
-typedef enum keypress {
+typedef enum _KEYPRESS {
     KEY_BACKSPACE = 14,
     KEY_ENTER = 28,
     KEY_TILDE = 41,
     KEY_SHIFT = 42,
     KEY_CAPS = 54,
     KEY_UP_ARROW = 96,
-} keypress_t;
+} KEYPRESS;
 
 /* Epoch date type */
-typedef union epoch_date {
-    uint16_t raw;
+typedef union _EPOCH_DATE {
+    UINT16 raw;
 
     struct {
-        uint8_t year : 7;
-        uint8_t month : 4;
-        uint8_t day : 5;
+        UINT8 year : 7;
+        UINT8 month : 4;
+        UINT8 day : 5;
     } fields;
-} epoch_date_t;
+} EPOCH_DATE;
 
 /* Physical memory bitmap entry */
-typedef struct pmm_bitmap_entry {
+typedef struct _PMM_BITMAP_ENTRY {
     /* Set single bitfield for efficiency */
-    uint8_t used: 1;
-} pmm_bitmap_entry_t;
+    UINT8 used: 1;
+} PMM_BITMAP_ENTRY;
 
 /* Heap free list */
-typedef struct free_chunk {
+typedef struct _FREE_CHUNK {
     /* Size of free buffer */
-    uint32_t size;
+    ULONG size;
     /* Next free buffer node */
-    struct free_chunk* next;
+    struct _FREE_CHUNK* next;
     /* Previous free buffer node */
-    struct free_chunk* prev;
-} free_chunk_t;
-
-typedef struct write_callback {
-    /* Current callback */
-    void (*cb)(void* data);
-    /* Next callback in list */
-    struct write_callback* next;
-} write_callback_t;
-
-typedef struct pipe {
-    /* Write notification callback */
-    write_callback_t* write_cb_list;
-    /* Pointer to data buffer */
-    void* buf;
-} pipe_t;
+    struct _FREE_CHUNK* prev;
+} FREE_CHUNK;

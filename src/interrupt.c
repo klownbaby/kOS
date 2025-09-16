@@ -18,13 +18,15 @@
 #include "drivers/tty.h"
 #include "drivers/vga.h"
 
-__attribute__((aligned(0x10))) static idt_entry_t idt[256];
+/* Create the actual IDT */
+__attribute__((aligned(0x10))) static IDT_ENTRY idt[MAX_INTERRUPTS];
 
-static idtr_t idtr;
-static isr_t interrupt_handlers[256];
+/* IDT register and interrupt handler table */
+static IDTR idtr;
+static ISR interruptHandlers[MAX_INTERRUPTS];
 
-// string value of exceptions from a given ISR
-static const char* exception_messages[] = {
+/* String value of exceptions from a given ISR */
+static const CHAR* exception_messages[] = {
     "Division By Zero",
     "Debug",
     "Non Maskable Interrupt",
@@ -59,151 +61,150 @@ static const char* exception_messages[] = {
     "Reserved"
 };
 
-extern void 
-load_idt(idtr_t*);
-
-static void 
-__pic_init() 
+/* Initialize PIC */
+static VOID 
+picInit(VOID) 
 {
     // setup master and slave PIC
-    outb(PIC_CMD_PORT_MASTER, 0x11);
-    outb(PIC_CMD_PORT_SLAVE, 0x11);
+    __outb(PIC_CMD_PORT_MASTER, 0x11);
+    __outb(PIC_CMD_PORT_SLAVE, 0x11);
 
     // setup vector offsets
-    outb(PIC_DATA_PORT_MASTER, 0x20);
-    outb(PIC_DATA_PORT_SLAVE, 0x28);
+    __outb(PIC_DATA_PORT_MASTER, 0x20);
+    __outb(PIC_DATA_PORT_SLAVE, 0x28);
 
-    outb(PIC_DATA_PORT_MASTER, 0x04);
-    outb(PIC_DATA_PORT_SLAVE, 0x02);
+    __outb(PIC_DATA_PORT_MASTER, 0x04);
+    __outb(PIC_DATA_PORT_SLAVE, 0x02);
 
-    outb(PIC_DATA_PORT_MASTER, 0x01);
-    outb(PIC_DATA_PORT_SLAVE, 0x01);
+    __outb(PIC_DATA_PORT_MASTER, 0x01);
+    __outb(PIC_DATA_PORT_SLAVE, 0x01);
 
-    outb(PIC_DATA_PORT_MASTER, 0xFF);
-    outb(PIC_DATA_PORT_SLAVE, 0xFF);
+    __outb(PIC_DATA_PORT_MASTER, 0xFF);
+    __outb(PIC_DATA_PORT_SLAVE, 0xFF);
 
     // unmask IRQ1, IRQ0, and IRQ8
-    outb(PIC_DATA_PORT_MASTER, 0x7C);
+    __outb(PIC_DATA_PORT_MASTER, 0x7C);
 }
 
-void 
-idt_init() 
+
+VOID 
+IdtInit(VOID) 
 {
     // setup idt register data structure
-    idtr.limit = (uint16_t) (sizeof(idt) * 256) - 1;
-    idtr.base = (uint32_t) &idt;
+    idtr.limit = (UINT16) (sizeof(idt) * 256) - 1;
+    idtr.base = (ULONG) &idt;
 
     // setup ISR exception gates + syscalls
-    idt_set_gate(0, (uint32_t) isr0);
-    idt_set_gate(1, (uint32_t) isr1);
-    idt_set_gate(2, (uint32_t) isr2);
-    idt_set_gate(3, (uint32_t) isr3);
-    idt_set_gate(4, (uint32_t) isr4);
-    idt_set_gate(5, (uint32_t) isr5);
-    idt_set_gate(6, (uint32_t) isr6);
-    idt_set_gate(7, (uint32_t) isr7);
-    idt_set_gate(8, (uint32_t) isr8);
-    idt_set_gate(9, (uint32_t) isr9);
-    idt_set_gate(10, (uint32_t) isr10);
-    idt_set_gate(11, (uint32_t) isr11);
-    idt_set_gate(12, (uint32_t) isr12);
-    idt_set_gate(13, (uint32_t) isr13);
-    idt_set_gate(14, (uint32_t) isr14);
-    idt_set_gate(15, (uint32_t) isr15);
-    idt_set_gate(16, (uint32_t) isr16);
-    idt_set_gate(17, (uint32_t) isr17);
-    idt_set_gate(18, (uint32_t) isr18);
-    idt_set_gate(19, (uint32_t) isr19);
-    idt_set_gate(20, (uint32_t) isr20);
-    idt_set_gate(21, (uint32_t) isr21);
-    idt_set_gate(22, (uint32_t) isr22);
-    idt_set_gate(23, (uint32_t) isr23);
-    idt_set_gate(24, (uint32_t) isr24);
-    idt_set_gate(25, (uint32_t) isr25);
-    idt_set_gate(26, (uint32_t) isr26);
-    idt_set_gate(27, (uint32_t) isr27);
-    idt_set_gate(28, (uint32_t) isr28);
-    idt_set_gate(29, (uint32_t) isr29);
-    idt_set_gate(30, (uint32_t) isr30);
-    idt_set_gate(31, (uint32_t) isr31);
-    idt_set_gate(128, (uint32_t) isr128);
-    idt_set_gate(177, (uint32_t) isr177);
+    IdtSetGate(0, (ULONG) isr0);
+    IdtSetGate(1, (ULONG) isr1);
+    IdtSetGate(2, (ULONG) isr2);
+    IdtSetGate(3, (ULONG) isr3);
+    IdtSetGate(4, (ULONG) isr4);
+    IdtSetGate(5, (ULONG) isr5);
+    IdtSetGate(6, (ULONG) isr6);
+    IdtSetGate(7, (ULONG) isr7);
+    IdtSetGate(8, (ULONG) isr8);
+    IdtSetGate(9, (ULONG) isr9);
+    IdtSetGate(10, (ULONG) isr10);
+    IdtSetGate(11, (ULONG) isr11);
+    IdtSetGate(12, (ULONG) isr12);
+    IdtSetGate(13, (ULONG) isr13);
+    IdtSetGate(14, (ULONG) isr14);
+    IdtSetGate(15, (ULONG) isr15);
+    IdtSetGate(16, (ULONG) isr16);
+    IdtSetGate(17, (ULONG) isr17);
+    IdtSetGate(18, (ULONG) isr18);
+    IdtSetGate(19, (ULONG) isr19);
+    IdtSetGate(20, (ULONG) isr20);
+    IdtSetGate(21, (ULONG) isr21);
+    IdtSetGate(22, (ULONG) isr22);
+    IdtSetGate(23, (ULONG) isr23);
+    IdtSetGate(24, (ULONG) isr24);
+    IdtSetGate(25, (ULONG) isr25);
+    IdtSetGate(26, (ULONG) isr26);
+    IdtSetGate(27, (ULONG) isr27);
+    IdtSetGate(28, (ULONG) isr28);
+    IdtSetGate(29, (ULONG) isr29);
+    IdtSetGate(30, (ULONG) isr30);
+    IdtSetGate(31, (ULONG) isr31);
+    IdtSetGate(128, (ULONG) isr128);
+    IdtSetGate(177, (ULONG) isr177);
 
     // init programmable interrupt controller (PIC)
-    __pic_init();
+    picInit();
 
     // set IRQ gates
-    idt_set_gate(32, (uint32_t) irq0);
-    idt_set_gate(33, (uint32_t) irq1);
-    idt_set_gate(34, (uint32_t) irq2);
-    idt_set_gate(35, (uint32_t) irq3);
-    idt_set_gate(36, (uint32_t) irq4);
-    idt_set_gate(37, (uint32_t) irq5);
-    idt_set_gate(38, (uint32_t) irq6);
-    idt_set_gate(39, (uint32_t) irq7);
-    idt_set_gate(40, (uint32_t) irq8);
-    idt_set_gate(41, (uint32_t) irq9);
-    idt_set_gate(42, (uint32_t) irq10);
-    idt_set_gate(43, (uint32_t) irq11);
-    idt_set_gate(44, (uint32_t) irq12);
-    idt_set_gate(45, (uint32_t) irq13);
-    idt_set_gate(46, (uint32_t) irq14);
-    idt_set_gate(47, (uint32_t) irq15);
+    IdtSetGate(32, (ULONG) irq0);
+    IdtSetGate(33, (ULONG) irq1);
+    IdtSetGate(34, (ULONG) irq2);
+    IdtSetGate(35, (ULONG) irq3);
+    IdtSetGate(36, (ULONG) irq4);
+    IdtSetGate(37, (ULONG) irq5);
+    IdtSetGate(38, (ULONG) irq6);
+    IdtSetGate(39, (ULONG) irq7);
+    IdtSetGate(40, (ULONG) irq8);
+    IdtSetGate(41, (ULONG) irq9);
+    IdtSetGate(42, (ULONG) irq10);
+    IdtSetGate(43, (ULONG) irq11);
+    IdtSetGate(44, (ULONG) irq12);
+    IdtSetGate(45, (ULONG) irq13);
+    IdtSetGate(46, (ULONG) irq14);
+    IdtSetGate(47, (ULONG) irq15);
 
     // call extern idt load fucntion defined in __idt.S
-    load_idt(&idtr);
+    LoadIdt(&idtr);
 
     BOOT_LOG("IDT Loaded.")
 
     // check if interrupts are successfully enabled
-    KASSERT_PANIC(!__check_interrupts_enabled(), "Interrupt init fail!");
+    KASSERT_PANIC(!__checkInterruptsEnabled(), "Interrupt init fail!");
 }
 
-void 
-register_interrupt_handler(uint8_t index, isr_t handler) 
+VOID 
+RegisterInterruptHandler(UINT8 index, ISR handler) 
 {
     // set interrupt handler entry in table
-    interrupt_handlers[index] = handler;
+    interruptHandlers[index] = handler;
 }
 
-void 
-isr_handler(i_register_t registers) 
+VOID 
+IsrHandler(INTERRUPT_REGISTER_CONTEXT registers) 
 {
     // handle ISR exceptions
-    if (registers.int_no < 32) {
+    if (registers.intNum < 32) {
         // set text color to red for exceptions
-        tty_setcolor(VGA_COLOR_RED, VGA_COLOR_BLACK);
+        TTYSetColor(VGA_COLOR_RED, VGA_COLOR_BLACK);
 
-        tty_write("\nKERNEL PANIC! ");
-        tty_write(exception_messages[registers.int_no]);
+        TTYWrite("\nKERNEL PANIC! ");
+        TTYWrite(exception_messages[registers.intNum]);
             
         // stop execution
-        hlt();
+        __hlt();
 
     // handle syscall ISR
-    } else if (registers.int_no == 128) {
-        isr_t handler = interrupt_handlers[registers.int_no];
+    } else if (registers.intNum == 128) {
+        ISR handler = interruptHandlers[registers.intNum];
 
         handler(registers);
     }
 }
 
-void 
-irq_handler(i_register_t registers) 
+VOID 
+irq_handler(INTERRUPT_REGISTER_CONTEXT registers) 
 {
     // call IRQ handler associated with interrupt number
-    if (interrupt_handlers[registers.int_no] != 0) {
-        isr_t handler = interrupt_handlers[registers.int_no];
+    if (interruptHandlers[registers.intNum] != 0) {
+        ISR handler = interruptHandlers[registers.intNum];
         handler(registers);
     }
 
     // send EOI instruction to PIC
-    if (registers.int_no >= 40) outb(PIC_CMD_PORT_SLAVE, 0x20);
-    outb(PIC_CMD_PORT_MASTER, 0x20);
+    if (registers.intNum >= 40) __outb(PIC_CMD_PORT_SLAVE, 0x20);
+    __outb(PIC_CMD_PORT_MASTER, 0x20);
 }
 
-void 
-idt_set_gate(uint8_t index, uint32_t handler) 
+VOID 
+IdtSetGate(UINT8 index, ULONG handler) 
 {
     // setup IDT gate, permissions, offset, etc.
     idt[index].isr_low = handler & 0xFFFF;
@@ -218,5 +219,5 @@ idt_set_gate(uint8_t index, uint32_t handler)
     }
 }
 
-MODULE_ENTRY_ORDERED(idt_init, 2);
+MODULE_ENTRY_ORDERED(IdtInit, 2);
 

@@ -1,6 +1,6 @@
-global load_gdt
+global LoadGdt
 
-load_gdt:
+LoadGdt:
     mov eax, [esp+4]
     lgdt [eax]
 

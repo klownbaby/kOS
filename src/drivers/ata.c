@@ -18,40 +18,40 @@
 #include "drivers/ata.h"
 
 /* Select a drive to read/write */
-static void 
-select_drive(uint8_t bus, uint8_t dn)
+static VOID 
+selectDrive(UINT8 bus, UINT8 dn)
 {
     switch (bus)
     {
         // master bus
         case ATA_MASTER:
-            if (dn == ATA_MASTER) outb(DRIVE_SEL, MASTER_DRIVE);
-            else outb(DRIVE_SEL, SLAVE_DRIVE);
+            if (dn == ATA_MASTER) __outb(DRIVE_SEL, MASTER_DRIVE);
+            else __outb(DRIVE_SEL, SLAVE_DRIVE);
             break;
         // slave bus
         case ATA_SLAVE:
-            if (dn == ATA_MASTER) outb(ATA_SLAVE_BASE + 6, SLAVE_DRIVE);
-            else outb(ATA_SLAVE_BASE + 6, SLAVE_DRIVE);
+            if (dn == ATA_MASTER) __outb(ATA_SLAVE_BASE + 6, SLAVE_DRIVE);
+            else __outb(ATA_SLAVE_BASE + 6, SLAVE_DRIVE);
             break;
         default:
-            kpanic("Invalid bus!");
+            KPanic("Invalid bus!");
             break;
     }
 }
 
 /* Wait 400 nano seconds for read delay */
-static void 
-delay_400ns()
+static VOID 
+delay400Ns(VOID)
 {
     // ah fuck it, this will do for now
-    for (int i = 0; i < 4; i++);
+    for (ULONG i = 0; i < 4; i++);
 }
 
 /* Get drive status */
-drive_status_t 
-drive_status(uint8_t drive)
+DRIVE_STATUS 
+AtaDriveStatus(UINT8 drive)
 {
-    uint8_t status = inb(STATUS);
+    UINT8 status = __inb(STATUS);
 
     // check if drive is busy first
     if (status & (1 << BSY)) return BSY;
@@ -61,46 +61,46 @@ drive_status(uint8_t drive)
     return status & (1 >> DF);
 }
 
-/* Read n sectors from disk into outdata */
-void 
-read_sectors(
-    uint8_t drive,
-    uint32_t sector_count,
-    uint32_t lba,
-    void* outdata
+/* Read n sectors from disk into outData */
+VOID 
+AtaReadSectors(
+    UINT8 drive,
+    ULONG sectorCount,
+    ULONG lba,
+    VOID *outData
 )
 {
-    uint16_t* tmp = NULL;
+    UINT16* tmp = NULL;
 
     // this is messy, but leaving for now
     // select our drive, lba, and sector count
-    outb(DRIVE_SEL, drive | (uint8_t) ((lba >> 24) & 0xF));
-    outb(FEATURES, 0x0);
-    outb(SECT_CNT, sector_count);
-    outb(SECT_NUM, (uint8_t) lba);
-    outb(CYL_LOW, (uint8_t) lba >> 8);
-    outb(CYL_HIGH, (uint8_t) lba >> 16);
-    outb(COMMAND, READ_SECTORS);
+    __outb(DRIVE_SEL, drive | (UINT8)((lba >> 24) & 0xF));
+    __outb(FEATURES, 0x0);
+    __outb(SECT_CNT, sectorCount);
+    __outb(SECT_NUM, (UINT8) lba);
+    __outb(CYL_LOW, (UINT8) lba >> 8);
+    __outb(CYL_HIGH, (UINT8) lba >> 16);
+    __outb(COMMAND, READ_SECTORS);
 
     // dereference our out pointer as word pointer
-    tmp = (uint16_t*)outdata;
+    tmp = (UINT16 *)outData;
 
     // pretty sure 256 byte sectors
-    for(int i = 0; i < (sector_count * 256); i += 256)
+    for(ULONG i = 0; i < (sectorCount * 256); i += 256)
     {
         // poll drive status
-        while(drive_status(0) == BSY);
+        while(AtaDriveStatus(0) == BSY);
 
-        for(int j = 0; j < 256; ++j) 
+        for(ULONG j = 0; j < 256; ++j) 
         {
             // copy one word at a time
-            tmp[j + i] = inw(ATA_BASE);
+            tmp[j + i] = __inw(ATA_BASE);
         }
 
         // ensure we delay
-        delay_400ns();
+        delay400Ns();
     }
 
     // set our out pointer
-    outdata = (void*)tmp;
+    outData = (VOID *)tmp;
 }

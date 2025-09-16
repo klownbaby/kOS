@@ -22,17 +22,17 @@
 #define KERNEL_HEAP_DEFAULT_SIZE 8 * MB
 
 /* Kernel heap function defs */
-void
-dump_freelist(void);
+VOID 
+KMallocInit(VOID);
 
-void
-ksbrk(size_t size);
+VOID
+DumpFreeList(VOID);
 
-void 
-kmalloc_init(void);
+VOID
+KSbrk(SIZE size);
 
-void*
-kmalloc(size_t size);
+VOID*
+KMalloc(SIZE size);
 
-void 
-kfree(void* addr);
+VOID 
+KFree(VOID* addr);

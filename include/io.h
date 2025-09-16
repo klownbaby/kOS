@@ -16,24 +16,16 @@
 
 #pragma once
 
-#include <stdint.h>
+#include "ktypes.h"
 
+/* Define reboot contants */
 #define KBRD_INTRFC 0x64
 #define KBRD_RESET 0xFE
 
-/*
-
-Contains all I/O functions (some inline for optimization)
-
-Some other useful assembly mappings to clear interrupts, set interrupts,
-and halt cpu execution which are useful in many branches
-
-*/
-
 /* Read a byte from a word-sized port */
-static inline uint8_t inb(uint16_t port) 
+static inline UINT8 __inb(UINT16 port) 
 {
-    uint8_t ret;
+    UINT8 ret;
 
     __asm__ __volatile__( "inb %w1, %b0" : "=a"(ret) : "Nd"(port) : "memory" );
 
@@ -41,9 +33,9 @@ static inline uint8_t inb(uint16_t port)
 }
 
 /* Read a word from a word-sized port */
-static inline uint16_t inw(uint16_t port) 
+static inline UINT16 __inw(UINT16 port) 
 {
-    uint16_t ret;
+    UINT16 ret;
 
     __asm__ __volatile__( "inw %1, %0" : "=a"(ret) : "Nd"(port));
 
@@ -51,36 +43,36 @@ static inline uint16_t inw(uint16_t port)
 }
 
 /* Write a byte to a word-sized port */
-static inline void outb(uint16_t port, uint8_t byte) 
+static inline VOID __outb(UINT16 port, UINT8 byte) 
 {
     __asm__ __volatile__( "outb %0, %1" : : "a"(byte), "Nd"(port) : "memory" );
 }
 
 /* Clear interrupts */
-__attribute__((used)) static void cli() 
+static inline VOID __cli(VOID) 
 {
     __asm__ __volatile__( "cli" );
 }
 
 /* Set (re-enable) interrupts */
-__attribute__((used)) static void sti() 
+static inline VOID __sti(VOID) 
 {
     __asm__ __volatile__( "sti" );
 }
 
 /* Halt all CPU execution and loop infinitely */
-__attribute__((noreturn, used)) static void hlt() 
+__attribute__((noreturn)) static inline VOID __hlt(VOID) 
 {
     __asm__ __volatile__( "hlt" );
 
     for(;;);
 }
 
-__attribute__((noreturn, used)) static void warm_reboot()
+__attribute__((noreturn)) static VOID __warmReboot(VOID)
 {
     // send cpu reset signal
-    outb(KBRD_INTRFC, KBRD_RESET);
+    __outb(KBRD_INTRFC, KBRD_RESET);
 
     // halt all execution
-    hlt();
+    __hlt();
 }

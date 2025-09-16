@@ -16,34 +16,34 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <ktypes.h>
 
-void
-handle_clear(uint32_t argc, char **argv);
+VOID
+HandleClear(ULONG argc, CHAR **argv);
 
-void
-handle_reboot(uint32_t argc, char **argv);
+VOID
+HandleReboot(ULONG argc, CHAR **argv);
 
-void
-handle_dumpt(uint32_t argc, char **argv);
+VOID
+HandleDumpt(ULONG argc, CHAR **argv);
 
-void
-handle_dumpfs(uint32_t argc, char **argv);
+VOID
+HandleDumpfs(ULONG argc, CHAR **argv);
 
-void
-handle_dumpfl(uint32_t argc, char **argv);
+VOID
+HandleDumpfl(ULONG argc, CHAR **argv);
 
-void
-handle_neofetch(uint32_t argc, char **argv);
+VOID
+HandleNeofetch(ULONG argc, CHAR **argv);
 
-void
-handle_poke(uint32_t argc, char **argv);
+VOID
+HandlePoke(ULONG argc, CHAR **argv);
 
-void
-handle_prod(uint32_t argc, char **argv);
+VOID
+HandleProd(ULONG argc, CHAR **argv);
 
-void
-handle_ls(uint32_t argc, char **argv);
+VOID
+HandleLs(ULONG argc, CHAR **argv);
 
-void
-handle_cat(uint32_t argc, char **argv);
+VOID
+HandleCat(ULONG argc, CHAR **argv);

@@ -18,11 +18,13 @@
 
 #include <stdint.h>
 
+/* Define ATA bases */
 #define ATA_BASE           0x1F0
 #define ATA_SLAVE_BASE     0x170
 #define ATA_MASTER          0x00
 #define ATA_SLAVE           0x01
 
+/* Define ATA offsets */
 #define DATA        ATA_BASE + 0
 #define ERREG       ATA_BASE + 1
 #define FEATURES    ATA_BASE + 1
@@ -34,14 +36,15 @@
 #define STATUS      ATA_BASE + 7
 #define COMMAND     ATA_BASE + 7
 
-
+/* Define drive constants */
 #define MASTER_DRIVE        0xE0
 #define SLAVE_DRIVE         0xF0
 #define IDENTIFY            0xEC
 #define READ_SECTORS        0x20
 #define WRITE_SECTORS       0x30
 
-typedef enum drive_status {
+/* ATA drive status */
+typedef enum _DRIVE_STATUS {
     ERR,
     IDX,
     CORR,
@@ -50,10 +53,11 @@ typedef enum drive_status {
     DF,
     RDY,
     BSY
-} drive_status_t;
+} DRIVE_STATUS;
 
-drive_status_t 
-drive_status(uint8_t drive);
+/* ATA function definitions */
+DRIVE_STATUS 
+AtaDriveStatus(UINT8 drive);
 
-void 
-read_sectors(uint8_t drive, uint32_t sector_count, uint32_t lba, void* outdata);
+VOID 
+AtaReadSectors(UINT8 drive, ULONG sector_count, ULONG lba, VOID* outdata);

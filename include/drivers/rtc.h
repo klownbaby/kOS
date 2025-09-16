@@ -16,6 +16,7 @@
 
 #pragma once
 
+/* Define CMOS and RTC constants */
 #define CMOS_BASE 0x70
 #define CMOS_DATA 0x71
 
@@ -27,5 +28,9 @@
 #define MONTH   0x08
 #define YEAR    0x09
 
-void rtc_init(void);
-void rtc_callback(void);
+/* RTC function definitions */
+VOID 
+RtcInit(VOID);
+
+VOID 
+RtcCallback(VOID);

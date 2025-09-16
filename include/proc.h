@@ -16,10 +16,14 @@
 
 #pragma once
 
-#include <ktypes.h>
+#include <stddef.h>
+#include "ktypes.h"
 
-/* Arbitrary hashing constant for simple string hashing, NOT SECURE */
-#define HASH_CONSTANT 53812897
+/* Define base virtual address for all kprocesses */
+#define KPROCESS_BASE        0xffff0000
 
-ULONG
-HashStr(CHAR *str);
+/* Define base virtual address for kprocess page directory list */
+#define KPROCESS_PDLIST_BASE 0xffcc0000
+
+PROC_HANDLE
+ProcessLoad(VOID *procBuffer, SIZE size);

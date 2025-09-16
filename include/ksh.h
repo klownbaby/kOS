@@ -23,22 +23,22 @@
 
 /* We need our hashmap and command list sizes at compile time */
 #define HASHMAP_SIZE \
-    (sizeof(cmd_hashmap) / sizeof(cmd_handler_t))
+    (sizeof(cmdHashmap) / sizeof(CMD_HANDLER))
 #define CMD_LIST_SIZE \
-    (sizeof(cmd_handlers) / sizeof(cmd_handler_t))
+    (sizeof(cmdHandlers) / sizeof(CMD_HANDLER))
 
 /* Command processor (callback) */
-typedef void (*cmd_proc_t)(uint32_t argc, char **argv);
+typedef VOID (*CMD_PROCESSOR)(ULONG argc, CHAR **argv);
 
 /* Defining a private struct for command handlers */
-typedef struct cmd_handler {
-    char *cmdstr;
-    cmd_proc_t proc;
-} cmd_handler_t;
+typedef struct _CMD_HANDLER {
+    CHAR *cmdstr;
+    CMD_PROCESSOR proc;
+} CMD_HANDLER;
 
 /* Shell function defs */
-void
-ksh_init();
+VOID
+KShellInit(VOID);
 
-void
-ksh_fini();
+VOID
+KShellFini(VOID);

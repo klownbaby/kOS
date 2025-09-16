@@ -18,38 +18,38 @@
 #include "drivers/rtc.h"
 #include "drivers/tty.h"
 
-bool 
-cmos_update()
+BOOLEAN 
+CmosUpdate()
 {
-    outb(CMOS_BASE, 0x0A);
+    __outb(CMOS_BASE, 0x0A);
 
-    return inb(CMOS_DATA) & 0x80;
+    return __inb(CMOS_DATA) & 0x80;
 }
 
-unsigned char 
-rtc_register(uint8_t rtc_reg)
+UCHAR 
+RtcRegister(UINT8 rtc_reg)
 {
-    outb(CMOS_BASE, rtc_reg);
+    __outb(CMOS_BASE, rtc_reg);
 
-    return inb(CMOS_DATA);
+    return __inb(CMOS_DATA);
 }
 
-void 
-rtc_callback()
+VOID 
+RtcCallback()
 {
-    unsigned char day;
-    unsigned char hour;
-    unsigned char minute;
-    unsigned char month;
+    UCHAR day;
+    UCHAR hour;
+    UCHAR minute;
+    UCHAR month;
+    BOOLEAN regb = RtcRegister(0x0B) & 0x04;
 
-    minute = rtc_register(MINUTE);
-    day = rtc_register(DAY);
-    hour = rtc_register(HOUR);
-    month = rtc_register(MONTH);
+    minute = RtcRegister(MINUTE);
+    day = RtcRegister(DAY);
+    hour = RtcRegister(HOUR);
+    month = RtcRegister(MONTH);
 
-    bool regb = rtc_register(0x0B) & 0x04;
-
-    if (!regb) {
+    if (!regb) 
+    {
         minute = (minute & 0x0F) + ((minute / 16) * 10);
         hour = ( (hour & 0x0F) + (((hour & 0x70) / 16) * 10) ) | (hour & 0x80);
         day = (day & 0x0F) + ((day / 16) * 10);
@@ -57,15 +57,15 @@ rtc_callback()
     }
 }
 
-void 
-rtc_init()
+VOID 
+RtcInit()
 {
-    // register_interrupt_handler(IRQ8, rtc_callback);
+    // RegisterInterruptHandler(IRQ8, RtcCallback);
 
-    // outb(0x70, 0x8A);	// select Status Register A, and disable NMI (by setting the 0x80 bit)
-    // outb(0x71, 0x20);	// write to CMOS/RTC RAM
+    // __outb(0x70, 0x8A);	// select Status Register A, and disable NMI (by setting the 0x80 bit)
+    // __outb(0x71, 0x20);	// write to CMOS/RTC RAM
 
     BOOT_LOG("RTC initialized.");
 }
 
-MODULE_ENTRY(rtc_init);
+MODULE_ENTRY(RtcInit);

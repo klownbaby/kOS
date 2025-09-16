@@ -20,14 +20,14 @@
 #include "drivers/vga.h"
 
 /* Converts int to ascii representation (used for printing) */
-char * 
-kitoa(int value, char *str, int base) 
+CHAR * 
+KIToA(int value, CHAR *str, int base) 
 {
-    char *rc;
-    char *ptr;
-    char *low;
-
-    unsigned int ucast;
+    CHAR *rc;
+    CHAR *ptr;
+    CHAR *low;
+    CHAR tmp;
+    ULONG ucast;
     
     // store unsigned value for later
     ucast = value;
@@ -65,7 +65,7 @@ kitoa(int value, char *str, int base)
 
     // invert the numbers.
     while (low < ptr) {
-        char tmp = *low;
+        tmp = *low;
 
         *low++ = *ptr;
         *ptr-- = tmp;
@@ -75,10 +75,10 @@ kitoa(int value, char *str, int base)
 }
 
 /* Convert ASCII string to integer */
-uint32_t
-katoi(const char *str)
+ULONG
+KAToI(const CHAR *str)
 {
-    uint32_t k = 0;
+    ULONG k = 0;
 
     while (*str)
     {
@@ -90,33 +90,33 @@ katoi(const char *str)
 }
 
 /* Put string */
-void 
-kputs(const char *str)
+VOID 
+KPutS(const CHAR *str)
 {
-    tty_write(str);
+    TTYWrite(str);
 }
 
 /* Kernel printf targeting tty output */
-void 
-printk(const char *fmt, ...) 
+VOID 
+KPrint(const CHAR *fmt, ...) 
 {
     // init args and string buffer
     va_list ap;
-    char* buffer;
-    char c;
+    CHAR *buffer;
+    CHAR c;
     int i;
 
     va_start(ap, fmt);
 
     // loop through string
     for(i = 0; (c = fmt[i] & 0xff) != 0; i++) {
-        // if token not found, write raw character
+        // if token not found, write raw CHARacter
         if (c != '%') {
-            tty_putc(c);
+            TTYPutC(c);
             continue;
         }
 
-        // increment character pointer
+        // increment CHARacter pointer
         c = fmt[++i] & 0xff;
 
         // check for null termination
@@ -125,59 +125,60 @@ printk(const char *fmt, ...)
         switch(c) {
             case 'd':
                 // handle int to ascii conversion
-                kitoa(va_arg(ap, int), buffer, DECIMAL);
+                KIToA(va_arg(ap, int), buffer, DECIMAL);
 
                 // write filled buffer
-                tty_write(buffer);
+                TTYWrite(buffer);
                 break;
             case 'x':
                 // handle hex conversion
-                kitoa(va_arg(ap, int), buffer, HEX);
+                KIToA(va_arg(ap, int), buffer, HEX);
                 
                 // write filled buffer
-                tty_write(buffer);
+                TTYWrite(buffer);
                 break;
             case 'c':
-                // write character passed
-                tty_putc(va_arg(ap, int));
+                // write CHARacter passed
+                TTYPutC(va_arg(ap, int));
                 break;
             case 's':
-                // convert arg to string (char*) and write to tty
-                tty_write(va_arg(ap, char*));
+                // convert arg to string (CHAR*) and write to tty
+                TTYWrite(va_arg(ap, CHAR*));
                 break;
             case '%':
                 // handle double percent (i.e. printing a % symbol)
-                tty_write("%");
+                TTYWrite("%");
                 break;
             default:
-                // otherwise, just write the fucking character
-                tty_write("%");
-                tty_write(&c);
+                // otherwise, just write the fucking CHARacter
+                TTYWrite("%");
+                TTYWrite(&c);
                 break;
         }
     }
 }
 
 /* WIP */
-void 
-sprintk(const char* fmt, char* buffer, ...) 
+VOID 
+KSPrint(const CHAR *fmt, CHAR *buffer, ...) 
 {
     // init args and string buffer
     va_list ap;
-    char c;
+    CHAR *tmp;
+    CHAR c;
     int i;
 
     va_start(ap, fmt);
 
     // loop through string
     for(i = 0; (c = fmt[i] & 0xff) != 0; i++) {
-        // if token not found, write raw character
+        // if token not found, write raw CHARacter
         if (c != '%') {
             buffer[i] = c;
             continue;
         }
 
-        // increment character pointer
+        // increment CHARacter pointer
         c = fmt[++i] & 0xff;
 
         // check for null termination
@@ -186,33 +187,28 @@ sprintk(const char* fmt, char* buffer, ...)
         switch(c) {
             case 'd':
                 // handle int to ascii conversion
-                kitoa(va_arg(ap, int), buffer, DECIMAL);
+                KIToA(va_arg(ap, int), buffer, DECIMAL);
                 break;
             case 'x':
-                {
-                    char* tmp;
-                    // handle hex conversion
-                    kitoa(va_arg(ap, int), tmp, HEX);
+                // handle hex conversion
+                KIToA(va_arg(ap, int), tmp, HEX);
 
-                    kstrcat(buffer, tmp); 
-                    break;
-                }
+                KStrCat(buffer, tmp); 
+                break;
             case 'c':
-                // write character passed
-                buffer[i] = (char) va_arg(ap, int);
+                // write CHARacter passed
+                buffer[i] = (CHAR)va_arg(ap, int);
                 break;
             case 's':
-                // convert arg to string (char*) and write to tty
-                {
-                    char* tmp = va_arg(ap, char*);
-                    break;
-                }
+                // convert arg to string (CHAR*) and write to tty
+                tmp = va_arg(ap, CHAR *);
+                break;
             case '%':
                 // handle double percent (i.e. printing a % symbol)
                 buffer[i] = '%';
                 break;
             default:
-                // otherwise, just write the fucking character
+                // otherwise, just write the fucking CHARacter
                 buffer[i] = c;
                 break;
         }
@@ -220,12 +216,12 @@ sprintk(const char* fmt, char* buffer, ...)
 }
 
 /* Kernel memset, nearly identical to glibc implementation */
-void
-kmemset(void* dest, register int data, register size_t length) 
+VOID
+KMemSet(VOID *dest, register int data, register SIZE length) 
 {
-    // Cast destination pointer to char pointer to dereference later
-    unsigned char* ptr = (unsigned char*)dest;
-    size_t i;
+    // Cast destination pointer to CHAR pointer to dereference later
+    UINT8 *ptr = (UINT8 *)dest;
+    SIZE i;
 
     // Loop through each byte until end of data
     for (i = 0; i < length; ++i) 
@@ -235,12 +231,12 @@ kmemset(void* dest, register int data, register size_t length)
     }
 }
 
-void
-kmemcpy(void* dest, void* src, register size_t size)
+VOID
+KMemCopy(VOID *dest, VOID *src, register SIZE size)
 {
-    unsigned char* dptr = (unsigned char*)dest;
-    unsigned char* sptr = (unsigned char*)src;
-    size_t i;
+    UINT8 *dptr = (UINT8 *)dest;
+    UINT8 *sptr = (UINT8 *)src;
+    SIZE i = 0;
 
     for (i = 0; i < size; ++i)
     {
@@ -250,13 +246,14 @@ kmemcpy(void* dest, void* src, register size_t size)
 }
 
 /* Kernel panic/exception handler, nothing fancy */
-__attribute__((noreturn)) void 
-kpanic(char* msg)
+__attribute__((noreturn)) VOID 
+KPanic(CHAR *msg)
 {
-    vga_setcolor(VGA_COLOR_RED, VGA_COLOR_BLACK);
+    VgaSetColor(VGA_COLOR_RED, VGA_COLOR_BLACK);
+
     // generic error handler
-    printk("Exception encountered! %s\n", msg);
+    KPrint("Exception encountered! %s\n", msg);
 
     // halt all execution
-    hlt();
+    __hlt();
 }

@@ -32,7 +32,7 @@ SECTIONS
 		{
 				*(.text)
 		}
- 
+
 		/* Read-only data. */
 		.rodata ALIGN(4K) : AT(ADDR(.rodata))
 		{

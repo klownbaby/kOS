@@ -20,58 +20,58 @@
 #include "drivers/tty.h"
 
 /* Define our global bs */
-static fat16_bs_t bs;
-static fat_context_t fat_ctx;
+static FAT16_BS bs;
+static FAT_CONTEXT fatCtx;
 
 /* Allocate buffer for clusters, read all data into buffer */
-static void *
-read_all_clusters(uint32_t cluster, uint32_t size)
+static VOID *
+readAllClusters(ULONG cluster, ULONG size)
 {
-    uint8_t *data = NULL;
-    uint32_t data_offset = 0;
-    uint32_t data_size = 0;
-    uint32_t cluster_lba = 0;
-    uint32_t nclusters = 0;
+    UINT8 *data = NULL;
+    ULONG dataOffset = 0;
+    ULONG dataSize = 0;
+    ULONG clusterLba = 0;
+    ULONG numClusters = 0;
 
     // ahhh this is shitty, works for now (minimum of one cluster)
-    nclusters = ((size / bs.sectors_per_cluster) / 512) + 1;
-    data_size = (nclusters * bs.sectors_per_cluster) * 512;
+    numClusters = ((size / bs.sectors_per_cluster) / 512) + 1;
+    dataSize = (numClusters * bs.sectors_per_cluster) * 512;
 
     // allocate minimum-sized buffer (aligned to sector size)
-    data = kmalloc(data_size);
+    data = KMalloc(dataSize);
 
     // ensure we zero-out our buffer
-    kmemset(data, 0, data_size);
+    KMemSet(data, 0, dataSize);
 
     // get LBA of cluster
-    cluster_lba = CLUSTER_TO_LBA(cluster);
+    clusterLba = CLUSTER_TO_LBA(cluster);
 
-    for (uint32_t i = 0; i < nclusters; ++i)
+    for (ULONG i = 0; i < numClusters; ++i)
     {
         // get offset into data buffer
-        data_offset = (i * bs.sectors_per_cluster) * 512;
+        dataOffset = (i * bs.sectors_per_cluster) * 512;
 
         // sectors into data buffer at offset
-        read_sectors(
+        AtaReadSectors(
              SLAVE_DRIVE,
              bs.sectors_per_cluster,
-             cluster_lba,
-             data + data_offset);
+             clusterLba,
+             data + dataOffset);
     }
 
     // CALLER owns this now!
     return data;
 }
 
-static bool
-compare_name(char *name, dir_entry_t *dentry)
+static BOOLEAN
+compareName(CHAR *name, DIR_ENTRY *dentry)
 {
-    bool match = FALSE;
-    char strname[9] = { 0 };
+    BOOLEAN match = FALSE;
+    CHAR strname[9] = { 0 };
 
-    kstrncpy(strname, (const char *)dentry->name, 8);
+    KStrNCopy(strname, (const CHAR *)dentry->name, 8);
 
-    if (kstrncmp(name, strname, kstrlen(name)) == 0)
+    if (KStrNCmp(name, strname, KStrLen(name)) == 0)
     {
         match = TRUE;
     }
@@ -79,47 +79,47 @@ compare_name(char *name, dir_entry_t *dentry)
     return match;
 }
 
-static void
-init_bs(void)
+static VOID
+initBs(VOID)
 {
-    void *first_sector = NULL;
+    VOID *firstSector = NULL;
 
     // allocate buffer of sector size
-    first_sector = kmalloc(512);
-    kmemset(first_sector, 0, 512);
+    firstSector = KMalloc(512);
+    KMemSet(firstSector, 0, 512);
 
     // read first sector into our buffer
-    read_sectors(SLAVE_DRIVE, 1, 0, first_sector);
+    AtaReadSectors(SLAVE_DRIVE, 1, 0, firstSector);
 
-    kmemcpy(&bs, first_sector, sizeof(fat16_bs_t));
+    KMemCopy(&bs, firstSector, sizeof(FAT16_BS));
 
     // finally, free our buffer
-    kfree(first_sector);
+    KFree(firstSector);
 }
 
 /* Read file into memory (only from root dir for the moment) */
-void *
-fat_open(char *path, uint32_t *outsize)
+VOID *
+FatOpen(CHAR *path, ULONG *outsize)
 {
-    void *data = NULL;
-    uint32_t next_dentry_offset = 0;
-    dir_entry_t dentry = { 0 };
-    char strname[9] = { 0 };
+    VOID *data = NULL;
+    DIR_ENTRY dentry = { 0 };
+    ULONG nextDentryOffset = 0;
+    CHAR strname[9] = { 0 };
 
-    for (uint16_t i = 0; i < bs.root_entry_count; ++i)
+    for (UINT16 i = 0; i < bs.root_entry_count; ++i)
     {   
         // get next offset
-        next_dentry_offset = i * sizeof(dir_entry_t);
+        nextDentryOffset = i * sizeof(DIR_ENTRY);
 
         // copy that bitch over
-        kmemcpy(&dentry, fat_ctx.root_sector + next_dentry_offset, sizeof(dir_entry_t));
+        KMemCopy(&dentry, fatCtx.root_sector + nextDentryOffset, sizeof(DIR_ENTRY));
 
         // only caring about directories and files for now
         if (dentry.attr != DIRECTORY && dentry.attr != FILE) continue;
 
-        if (compare_name(path, &dentry))
+        if (compareName(path, &dentry))
         {
-            data = read_all_clusters(dentry.low_cluster, dentry.size);
+            data = readAllClusters(dentry.low_cluster, dentry.size);
             break;
         }
     }
@@ -130,116 +130,116 @@ fat_open(char *path, uint32_t *outsize)
 }
 
 /* Dump a directory entry, temporary */
-void
-fat_dump_dentry(dir_entry_t *dentry)
+VOID
+FatDumpDentry(DIR_ENTRY *dentry)
 {
     // align dynamic length strings to column
-    char strname[9] = { ' ' };
-    epoch_date_t date = (epoch_date_t)dentry->crt_date;
+    CHAR strname[9] = { ' ' };
+    EPOCH_DATE date = (EPOCH_DATE)dentry->crt_date;
 
     // copy name to null terminated scratch buffer
-    kstrncpy(strname, (const char*)dentry->name, 8);
+    KStrNCopy(strname, (const CHAR*)dentry->name, 8);
 
     // dump that JAWN
-    printk("%d/%d/%d ", date.fields.day, date.fields.month, date.fields.year);
+    KPrint("%d/%d/%d ", date.fields.day, date.fields.month, date.fields.year);
 
     // oooo fancy color shit!
     if (dentry->attr == DIRECTORY)
     {
-        tty_writecolor(strname, VGA_COLOR_LIGHT_BLUE, VGA_COLOR_BLACK);
+        TTYWriteColor(strname, VGA_COLOR_LIGHT_BLUE, VGA_COLOR_BLACK);
     } else {
-        printk("%s", strname);
+        KPrint("%s", strname);
     }
 
-    printk("%d\n", dentry->size);
+    KPrint("%d\n", dentry->size);
 }
 
 /* Dump all contents of a buffer as if it were a directory */
-void
-fat_dump_directory(void *buffer)
+VOID
+FatDumpDirectory(VOID *buffer)
 {
-    uint32_t dentry = (uint32_t)buffer;
+    ULONG dentry = (ULONG)buffer;
 
-    while (((dir_entry_t *)dentry)->attr != 0)
+    while (((DIR_ENTRY *)dentry)->attr != 0)
     {
         // dump each entry
-        fat_dump_dentry((dir_entry_t *)dentry);
+        FatDumpDentry((DIR_ENTRY *)dentry);
 
         // iterate
-        dentry += sizeof(dir_entry_t);
+        dentry += sizeof(DIR_ENTRY);
     }
 }
 
 /* Dump root directory */
-void
-fat_dump_root(void)
+VOID
+FatDumpRoot(VOID)
 {
-    uint32_t next_dentry_offset = 0;
-    dir_entry_t dentry = { 0 };
-    char strname[9] = { 0 };
+    ULONG nextDentryOffset = 0;
+    DIR_ENTRY dentry = { 0 };
+    CHAR strname[9] = { 0 };
 
-    for (uint16_t i = 0; i < bs.root_entry_count; ++i)
+    for (UINT16 i = 0; i < bs.root_entry_count; ++i)
     {   
         // get next offset
-        next_dentry_offset = i * sizeof(dir_entry_t);
+        nextDentryOffset = i * sizeof(DIR_ENTRY);
 
         // copy that bitch over
-        kmemcpy(&dentry, fat_ctx.root_sector + next_dentry_offset, sizeof(dir_entry_t));
+        KMemCopy(&dentry, fatCtx.root_sector + nextDentryOffset, sizeof(DIR_ENTRY));
 
         // only caring about directories and files for now
         if (dentry.attr != DIRECTORY && dentry.attr != FILE) continue;
 
-        fat_dump_dentry(&dentry);
+        FatDumpDentry(&dentry);
     }
 }
 
 /* Dump our BIOS parameter block to tty */
-void
-fat_dump_bs(void)
+VOID
+FatDumpBs(VOID)
 {
-    printk("BIOS Parameter Block:\n");
-    printk("    OEM name            -> %s\n", bs.oem_name);
-    printk("    Sectors per cluster -> %d\n", bs.sectors_per_cluster);
-    printk("    Bytes per sector    -> %d\n", bs.bytes_per_sector);
-    printk("    Root entry count    -> %d\n", bs.root_entry_count);
-    printk("    Table size          -> %d\n", bs.table_size_16);
-    printk("    Table count         -> %d\n", bs.table_count);
+    KPrint("BIOS Parameter Block:\n");
+    KPrint("    OEM name            -> %s\n", bs.oem_name);
+    KPrint("    Sectors per cluster -> %d\n", bs.sectors_per_cluster);
+    KPrint("    Bytes per sector    -> %d\n", bs.bytes_per_sector);
+    KPrint("    Root entry count    -> %d\n", bs.root_entry_count);
+    KPrint("    Table size          -> %d\n", bs.table_size_16);
+    KPrint("    Table count         -> %d\n", bs.table_count);
 }
 
 /* Initialize FAT filesystem, duh */
-void
-fat_init(void)
+VOID
+FatInit(VOID)
 {
-    uint32_t next_dentry_offset = 0;
-    uint32_t n_root_sectors = 0;
-    dir_entry_t dentry = { 0 };
+    ULONG nextDentryOffset = 0;
+    ULONG numRootSectors = 0;
+    DIR_ENTRY dentry = { 0 };
 
     // ensure our boot sector is initialized
-    init_bs();
+    initBs();
 
     // allocate and zero our root sector
-    fat_ctx.root_sector = kmalloc(512);
-    kmemset(fat_ctx.root_sector, 0, 512);
+    fatCtx.root_sector = KMalloc(512);
+    KMemSet(fatCtx.root_sector, 0, 512);
 
     // calculate number of root sectors
-    n_root_sectors =
+    numRootSectors =
         ((bs.root_entry_count * 32) + (bs.bytes_per_sector - 1)) / bs.bytes_per_sector;
 
     // get root directory lba and offset of data sectors
-    fat_ctx.root_lba =
+    fatCtx.root_lba =
         bs.reserved_sector_count + (bs.table_count * bs.table_size_16);
-    fat_ctx.data_lba =
-        fat_ctx.root_lba + n_root_sectors;
-    fat_ctx.fat_lba = bs.reserved_sector_count;
+    fatCtx.data_lba =
+        fatCtx.root_lba + numRootSectors;
+    fatCtx.fat_lba = bs.reserved_sector_count;
 
     // allocate and zero our data sector
-    fat_ctx.data_sector = kmalloc(1024);
-    kmemset(fat_ctx.data_sector, 0, 1024);
+    fatCtx.data_sector = KMalloc(1024);
+    KMemSet(fatCtx.data_sector, 0, 1024);
 
     // read one sector at our root dir logical block address
-    read_sectors(SLAVE_DRIVE, 1, fat_ctx.root_lba, fat_ctx.root_sector);
-    read_sectors(SLAVE_DRIVE, 1, fat_ctx.data_lba, fat_ctx.data_sector);
-    read_sectors(SLAVE_DRIVE, 1, fat_ctx.fat_lba, fat_ctx.fat_sector);
+    AtaReadSectors(SLAVE_DRIVE, 1, fatCtx.root_lba, fatCtx.root_sector);
+    AtaReadSectors(SLAVE_DRIVE, 1, fatCtx.data_lba, fatCtx.data_sector);
+    AtaReadSectors(SLAVE_DRIVE, 1, fatCtx.fat_lba, fatCtx.fat_sector);
 }
 
-MODULE_ENTRY(fat_init);
+MODULE_ENTRY(FatInit);
