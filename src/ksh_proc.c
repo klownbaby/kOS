@@ -110,7 +110,7 @@ HandleProd(ULONG argc, CHAR **argv)
 
     buffer = KMalloc(32);
 
-    (VOID)ProcessLoad(buffer, 32);
+    (VOID)ProcLoad(buffer, 32);
 
     KFree(buffer);
 }

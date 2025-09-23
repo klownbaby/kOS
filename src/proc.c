@@ -18,7 +18,7 @@
 
 /* Load a process */
 PROC_HANDLE
-ProcessLoad(VOID *procBuffer, SIZE size)
+ProcLoad(VOID *procBuffer, SIZE size)
 {
     PROC_HANDLE handle = { 0 };
     ULONG proc_page = 0;

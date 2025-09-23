@@ -16,10 +16,6 @@
 
 #include "kernel.h"
 #include "drivers/tty.h"
-#include "drivers/keyboard.h"
-#include "drivers/rtc.h"
-#include "drivers/pit.h"
-#include "drivers/fat.h"
 
 /* Initialize early essential modules */
 static KSTATUS
@@ -27,20 +23,20 @@ modulesInit(VOID)
 {
     KSTATUS status = STATUS_FAILED;
     MODULE_ENTRY *modules = NULL;
-    ULONG dynmod_size = 0;
-    ULONG num_modules = 0;
+    ULONG dynmodSize = 0;
+    ULONG numModules = 0;
 
     // get size of .dynmod section in bytes
-    dynmod_size = (ULONG)((ULONG)&_dynmod_end - (ULONG)&_dynmod_start);
-    KASSERT_GOTO_SUCCESS(dynmod_size == 0);
+    dynmodSize = (ULONG)((ULONG)&_dynmod_end - (ULONG)&_dynmod_start);
+    KASSERT_GOTO_SUCCESS(dynmodSize == 0);
 
     // calculate number of entry points
-    num_modules = dynmod_size / sizeof(ULONG);
+    numModules = dynmodSize / sizeof(ULONG);
 
     // get first module entry point
     modules = (MODULE_ENTRY *)&_dynmod_start;
 
-    for (ULONG i = 0; i < num_modules; ++i)
+    for (ULONG i = 0; i < numModules; ++i)
     {
         // call each entry point
         modules[i]();

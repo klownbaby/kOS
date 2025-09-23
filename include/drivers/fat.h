@@ -28,41 +28,41 @@
     __type == 0x10 ? "dir" : "file"
 
 #define CLUSTER_TO_LBA(__cluster) \
-    (fatCtx.data_lba + ((__cluster - 2) * bs.sectors_per_cluster))
+    (fatCtx.dataLba + ((__cluster - 2) * bs.sectorsPerCluster))
 
 typedef struct _FAT_CONTEXT {
     /* Common LBAs */
-    ULONG  fat_lba;
-    ULONG  root_lba;
-    ULONG  data_lba;
+    ULONG  fatLba;
+    ULONG  rootLba;
+    ULONG  dataLba;
 
-    UINT16 *fat_sector;
-    UINT8  *root_sector;
-    UINT8  *data_sector;
+    UINT16 *fatSector;
+    UINT8  *rootSector;
+    UINT8  *dataSector;
 } FAT_CONTEXT;
 
 /* Define FAT16 BIOS parameter block */
 typedef struct _FAT16_BS {
-  UINT8  bootjmp[3];
-	UINT8  oem_name[8];
-	UINT16 bytes_per_sector;
-	UINT8	 sectors_per_cluster;
-	UINT16 reserved_sector_count;
-	UINT8  table_count;
-	UINT16 root_entry_count;
-	UINT16 total_sectors_16;
-	UINT8	 media_type;
-	UINT16 table_size_16;
-	UINT16 sectors_per_track;
-	UINT16 head_side_count;
-	ULONG  hidden_sector_count;
-	ULONG  total_sectors_32;
-  UINT8	 bios_drive_num;
+  UINT8  bootJmp[3];
+	UINT8  oemName[8];
+	UINT16 bytesPerSector;
+	UINT8	 sectorsPerCluster;
+	UINT16 reservedSectorCount;
+	UINT8  tableCount;
+	UINT16 rootEntryCount;
+	UINT16 totalSectors16;
+	UINT8	 mediaType;
+	UINT16 tableSize16;
+	UINT16 sectorsPerTrack;
+	UINT16 headSideCount;
+	ULONG  hiddenSectorCount;
+	ULONG  totalSectors32;
+  UINT8	 biosDriveNum;
 	UINT8	 reserved1;
-	UINT8	 boot_signature;
-	ULONG  volume_id;
-	UINT8	 volume_label[11];
-	UINT8	 fat_type_label[8];
+	UINT8	 bootSignature;
+	ULONG  volumeId;
+	UINT8	 volumeLabel[11];
+	UINT8	 fatTypeLabel[8];
 } __attribute__((packed)) FAT16_BS;
 
 typedef struct _DIR_ENTRY {
@@ -71,11 +71,11 @@ typedef struct _DIR_ENTRY {
     UINT8  attr;
     UINT8  reserved;
     UINT8  time[3];
-    UINT16 crt_date;
-    UINT16 acc_date;
-    UINT16 high_cluster;
-    UINT8  written_date[4];
-    UINT16 low_cluster;
+    UINT16 crtDate;
+    UINT16 accDate;
+    UINT16 highCluster;
+    UINT8  writtenDate[4];
+    UINT16 lowCluster;
     ULONG  size;
 } DIR_ENTRY;
 

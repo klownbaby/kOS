@@ -26,4 +26,7 @@
 #define KPROCESS_PDLIST_BASE 0xffcc0000
 
 PROC_HANDLE
-ProcessLoad(VOID *procBuffer, SIZE size);
+ProcLoad(VOID *procBuffer, SIZE size);
+
+KSTATUS
+ProcExec(PROC_HANDLE *handle);

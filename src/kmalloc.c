@@ -186,6 +186,9 @@ success:
     // start of our alloc is just after chunk metadata
     alloc = (VOID *)((ULONG)foundChunk + sizeof(FREE_CHUNK));
 
+    // by default, zero each newly allocated buffer
+    KMemSet(alloc, 0, size);
+
 fail:
     return alloc;
 }
