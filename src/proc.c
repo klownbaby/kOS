@@ -17,19 +17,22 @@
 #include "kernel.h"
 
 /* Load a process */
-PROC_HANDLE
-ProcLoad(VOID *procBuffer, SIZE size)
+KSTATUS
+ProcLoad(PROC_HANDLE *handle)
 {
-    PROC_HANDLE handle = { 0 };
-    ULONG proc_page = 0;
+    KSTATUS status =  STATUS_UNKNOWN;
+    ULONG procPage = 0;
     ULONG cr3Phys = 0;
     ULONG *cr3Virt = NULL;
 
+    // ensure this bitch is not NULL
+    KASSERT_GOTO_FAIL_ERR(handle == NULL, STATUS_INSUFFICIENT_SPACE);
+
     // size must be aligned on page boundary
-    if (!IS_PAGE_ALIGNED(size))
+    if (!IS_PAGE_ALIGNED(handle->size))
     {
         // align our size up on page boundary
-        size = PAGE_ALIGN_UP(size);
+        handle->size = PAGE_ALIGN_UP(handle->size);
     }
 
     // get start vaddr of kprocess page directory list
@@ -47,49 +50,50 @@ ProcLoad(VOID *procBuffer, SIZE size)
     // map kernel into process address space
     KMemCopy(cr3Virt, g_KernelPageDir, PAGE_SIZE);
 
-    for (ULONG i = 0; i < size; i += PAGE_SIZE)
+    for (ULONG i = 0; i < handle->size; i += PAGE_SIZE)
     {
         // allocate new physical page
-        proc_page = PmmAllocNext();
+        procPage = PmmAllocNext();
         KASSERT_GOTO_FAIL_MSG(
-            proc_page == 0,
+            procPage == 0,
             "Failed to allocate physical pages for process\n");
 
         // map a new page
         PmmMapPage(
             cr3Virt,
-            proc_page,
+            procPage,
             (KPROCESS_BASE + i));
     }
 
     // copy process data to newly mapped pages
-    KMemCopy((VOID *)KPROCESS_BASE, procBuffer, size);
+    KMemCopy((VOID *)KPROCESS_BASE, handle->buffer, handle->size);
 
     // set process handle members
-    handle.cr3 = cr3Phys;
-    handle.entry = NULL;
-    handle.size = size;
+    handle->cr3 = cr3Phys;
+    handle->entry = (PROC_ENTRY)KPROCESS_BASE;
+
+    status = STATUS_SUCCESS;
 
 fail:
-    return handle;
+    return status;
 }
 
 KSTATUS
 ProcExec(PROC_HANDLE *handle)
 {
     KSTATUS status = STATUS_UNKNOWN;
-    int procRet = 0;
+    LONG procRet = 0;
 
     // each process has it's own address space
     __setCr3(handle->cr3);
 
     // call process entry
-    procRet = handle->entry(NULL, NULL);
+    procRet = handle->entry();
 
     // swap cr3 back to kernel page directory
     __setCr3((ULONG)g_KernelPageDir);
 
-    KPrint("Process returned %d\n", procRet);
+    KPrint("Process returned %x\n", procRet);
 
     return status;
 }

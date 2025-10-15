@@ -43,6 +43,9 @@ VOID
 HandleProd(ULONG argc, CHAR **argv);
 
 VOID
+HandleExec(ULONG argc, CHAR **argv);
+
+VOID
 HandleLs(ULONG argc, CHAR **argv);
 
 VOID

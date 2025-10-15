@@ -25,8 +25,8 @@
 /* Define base virtual address for kprocess page directory list */
 #define KPROCESS_PDLIST_BASE 0xffcc0000
 
-PROC_HANDLE
-ProcLoad(VOID *procBuffer, SIZE size);
+KSTATUS
+ProcLoad(PROC_HANDLE *handle);
 
 KSTATUS
 ProcExec(PROC_HANDLE *handle);

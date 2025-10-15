@@ -60,11 +60,6 @@ RtcCallback()
 VOID 
 RtcInit()
 {
-    // RegisterInterruptHandler(IRQ8, RtcCallback);
-
-    // __outb(0x70, 0x8A);	// select Status Register A, and disable NMI (by setting the 0x80 bit)
-    // __outb(0x71, 0x20);	// write to CMOS/RTC RAM
-
     BOOT_LOG("RTC initialized.");
 }
 

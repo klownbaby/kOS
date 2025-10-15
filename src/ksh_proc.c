@@ -17,6 +17,7 @@
 #include "kernel.h"
 #include "drivers/tty.h"
 #include "drivers/fat.h"
+#include "ktypes.h"
 
 /* Handle clear ksh command (clear screen) */
 VOID
@@ -105,14 +106,44 @@ fail:
 VOID
 HandleProd(ULONG argc, CHAR **argv)
 {
+    // do nothing for now
+    return;
+}
+
+VOID
+HandleExec(ULONG argc, CHAR **argv)
+{
+    KSTATUS status = STATUS_UNKNOWN;
     PROC_HANDLE handle = { 0 };
-    VOID *buffer = NULL;    
 
-    buffer = KMalloc(32);
+    KASSERT_GOTO_FAIL_MSG(argc < 2, "Usage: exec [path]\n");
 
-    (VOID)ProcLoad(buffer, 32);
+    // should we just dump the root directory?
+    KASSERT_GOTO_FAIL_MSG(
+        argv[1][0] == '/' && argv[1][1] == '\0',
+        "Not a valid executable!")
 
-    KFree(buffer);
+    // if not, find the requested directory
+    handle.buffer = FatOpen(argv[1], &handle.size);
+    KASSERT_GOTO_FAIL_MSG(handle.buffer == NULL, "Path not found!\n");
+
+    status = ProcLoad(&handle);
+    KASSERT_GOTO_FAIL_MSG(
+        status != STATUS_SUCCESS,
+        "Failed to load process!");
+
+    status = ProcExec(&handle);
+
+    GOTO_SUCCESS;
+
+fail:
+    if (handle.buffer)
+    {
+        KFree(handle.buffer);
+    }
+
+success:
+    return;
 }
 
 VOID

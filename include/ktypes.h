@@ -53,7 +53,7 @@ typedef multiboot_info_t MULTIBOOT_INFO;
 
 /* Define function pointer types */
 typedef VOID    (*MODULE_ENTRY)(VOID);
-typedef LONG    (*PROC_ENTRY)(ULONG argc, CHAR **argv);
+typedef LONG    (*PROC_ENTRY)(VOID);
 typedef VOID    (*KEYBOARD_NOTIFY)(UINT8 scan, UINT8 pressed);
 typedef KSTATUS (*FILE_READ)(VOID *outBuffer, SIZE size);
 typedef KSTATUS (*FILE_WRITE)(VOID *inBuffer, SIZE size);
@@ -77,6 +77,7 @@ typedef struct _PROC_HANDLE {
     ULONG size;
     FILE fileBindings[MAX_FILE_DESCRIPTORS];
     PROC_ENTRY entry;
+    VOID* buffer;
 } PROC_HANDLE;
 
 /* Hardware text mode color constants */
