@@ -17,7 +17,6 @@
 #include "kernel.h"
 #include "drivers/tty.h"
 #include "drivers/fat.h"
-#include "ktypes.h"
 
 /* Handle clear ksh command (clear screen) */
 VOID
@@ -125,6 +124,7 @@ HandleExec(ULONG argc, CHAR **argv)
 
     // if not, find the requested directory
     handle.buffer = FatOpen(argv[1], &handle.size);
+
     KASSERT_GOTO_FAIL_MSG(handle.buffer == NULL, "Path not found!\n");
 
     status = ProcLoad(&handle);

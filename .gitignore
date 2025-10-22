@@ -9,4 +9,6 @@ gnu-efi/
 fs/
 fs/fs.img
 OVMF.fd
+executable/bin/*.o
+executable/bin/*.exe
 

@@ -20,10 +20,12 @@
 #include "ktypes.h"
 
 /* Define base virtual address for all kprocesses */
-#define KPROCESS_BASE        0xffff0000
+#define KPROCESS_BASE        0x3fff0000
+
+#define KPROCESS_CR3_VIRT    0x2acc0000
 
 /* Define base virtual address for kprocess page directory list */
-#define KPROCESS_PDLIST_BASE 0xffcc0000
+#define KPROCESS_PDLIST_BASE 0x8acc0000
 
 KSTATUS
 ProcLoad(PROC_HANDLE *handle);

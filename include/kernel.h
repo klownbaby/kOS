@@ -31,6 +31,7 @@
 #include "ksh.h"
 #include "proc.h"
 #include "exec.h"
+#include "pe.h"
 
 /* Module entry point macro for unordered initialization */
 #define MODULE_ENTRY(__entry) \

@@ -125,6 +125,3 @@ PmmMapPage(ULONG *pd, ULONG paddr, ULONG vaddr);
 
 ULONG
 PmmVirtToPhys(ULONG *pd, ULONG vaddr);
-
-VOID 
-pmm_display_mm(MULTIBOOT_INFO *mbd);

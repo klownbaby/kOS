@@ -5,12 +5,18 @@ ASMDIR := $(SRCDIR)/asm
 DRIVERSDIR := $(SRCDIR)/drivers
 INCLUDEDIR := ./include
 
+EXECUTABLESDIR := ./executable
+EXECUTABLESRCS := $(wildcard $(EXECUTABLESDIR)/src/*.c)
+EXECUTABLEOBJS := $(patsubst $(EXECUTABLESDIR)/src/%.c,$(EXECUTABLESDIR)/bin/%.o,$(EXECUTABLESRCS))
+EXECUTABLES := $(patsubst $(EXECUTABLESDIR)/src/%.c,$(EXECUTABLESDIR)/bin/%.exe,$(EXECUTABLESRCS))
+
 RUST ?= 0
 RUSTTARGET := x86_64-kos
 RUSTBIN := ./lib/target
 RUSTENTRY := $(RUSTBIN)/$(RUSTTARGET)/debug/libkOS.a
 
 CC := i686-elf
+EXECC := gcc -m32
 DOCKER := docker run -it --rm -v .:/root/env kos
 ASC := nasm -f elf32
 EMU := qemu-system-x86_64 -hda
@@ -21,11 +27,18 @@ CTARGETS := $(SRCDIR)/*.c $(DRIVERSDIR)/*.c
 ASMTARGETS := $(ASMDIR)/*.S
 ISO := $(OBJECTDIR)/$(KERNELTARGET).iso
 
-
-.PHONY: all kernel env image verify grub fs vfs run debug clean
+.PHONY: all kernel env image verify grub fs vfs run debug clean exec execclean
 
 all: kernel image run
 
+exec: execclean $(EXECUTABLES)
+
+$(EXECUTABLEOBJS): $(EXECUTABLESRCS)
+	$(DOCKER) $(EXECC) -c -nostdlib -ffreestanding -fno-stack-protector -fno-stack-check -fshort-wchar -mno-red-zone -o $@ $<
+
+$(EXECUTABLES): $(EXECUTABLEOBJS)
+	$(DOCKER) ld -m i386pe -nostdlib --exclude-symbols main --image-base 0x3fff0000 --subsystem console -o $@ $<
+	
 kernel: clean
 	$(ASC) $(ASMDIR)/boot.S -o $(OBJECTDIR)/boot.o
 	$(ASC) $(ASMDIR)/gdt.S -o $(OBJECTDIR)/_gdt.o
@@ -41,9 +54,6 @@ ifeq ($(RUST),1)
 else
 	$(DOCKER) $(CC)-gcc -T linker.ld -o $(BOOTDIR)/$(KERNELTARGET).bin -ffreestanding -O2 -nostdlib $(OBJECTS) -lgcc
 endif
-
-obj:
-	objcopy -j .text -j .sdata -j .data -j .rodata -j .rdata -j .bss -j .reloc --target=pei-x86-64 your_elf_file.so boot.efi
 
 env:
 	docker build env -t kos
@@ -68,11 +78,12 @@ grub:
 run: $(ISO)
 	$(EMU) $(ISO) -hdb ./fs/fs.img
 
-efi:
-	$(EMU) $(ISO) -hdb ./fs/fs.img -drive if=pflash,format=raw,readonly=on,file=./OVMF.fd
-
 debug: clean kernel image $(ISO)
 	$(EMU) $(ISO) -s -S -hdb fs.img
+
+execclean:
+	rm -rf $(EXECUTABLESDIR)/bin/*.exe
+	rm -rf $(EXECUTABLESDIR)/bin/*.o
 
 clean:
 	rm -rf $(OBJECTDIR)/*.*
