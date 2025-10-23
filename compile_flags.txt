@@ -2,3 +2,5 @@
 ./include
 -I
 ./include/drivers
+-I
+./gnu-efi/inc

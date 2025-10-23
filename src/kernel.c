@@ -51,7 +51,7 @@ fail:
 
 /* Kernel entry point (init hardware and drivers) */
 VOID 
-kernel_main(volatile ULONG magic, volatile MULTIBOOT_INFO *mbd) 
+KernelMain(volatile ULONG magic, volatile MULTIBOOT_INFO *mbd) 
 {
     KSTATUS status = STATUS_FAILED;
 

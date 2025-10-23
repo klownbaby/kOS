@@ -19,10 +19,10 @@ stack_bottom:
     resb 16384 * 8
 stack_top:
 
-; Kernel entry, setup stack pointer and enter kernel_main()
+; Kernel entry, setup stack pointer and enter KernelMain()
 section .boot
 global _start
-extern kernel_main
+extern KernelMain
 _start:
     ; Set stack pointer
     mov esp, stack_top
@@ -30,10 +30,10 @@ _start:
     push eax
     xor ebp, ebp
 
-    ; Finally, jump to high level language (C lol)
-    call kernel_main
+    ; Finally, jump to high level language
+    call KernelMain
 
-; Fall-through in case kernel_main() returns (it shouldn't ever return)
+; Fall-through in case KernelMain() returns (it shouldn't ever return)
 halt:
     hlt
     jmp halt

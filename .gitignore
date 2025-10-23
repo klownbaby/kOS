@@ -3,12 +3,14 @@
 bin/*.o
 rbin/*
 lib/target/
-multiboot/boot/kos.bin
 bin/kos.iso
 gnu-efi/
 fs/
 fs/fs.img
 OVMF.fd
+multiboot/boot/*.bin
+multiboot/boot/*.lib
+multiboot/boot/*.exe
 executable/bin/*.o
 executable/bin/*.exe
 
