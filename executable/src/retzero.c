@@ -1,5 +1,8 @@
+__declspec(dllimport) void KPrint(const char *fmt, ...);
 
-int main()
+int __main()
 {
+    KPrint("Testing!\n");
+
     return 0;
 }

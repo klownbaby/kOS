@@ -33,6 +33,31 @@ typedef struct _IMAGE_DATA_DIRECTORY {
     UINT16 size;
 } IMAGE_DATA_DIRECTORY;
 
+typedef struct _IMAGE_THUNK_DATA {
+    union {
+        ULONG forwarderString;
+        ULONG function;
+        ULONG ordinal;
+        ULONG addressOfData;
+    } u;
+} IMAGE_THUNK_DATA;
+
+typedef struct _IMAGE_IMPORT_DESCRIPTOR {
+    union {
+        ULONG characteristics;
+        ULONG originalFirstThunk;
+    } u;
+    ULONG timeDateStamp;
+    ULONG forwarderChain;
+    ULONG name;
+    ULONG firstThunk;
+} IMAGE_IMPORT_DESCRIPTOR;
+
+typedef struct _IMAGE_IMPORT_BY_NAME {
+    UINT16 hint;
+    CHAR   name[1];
+} IMAGE_IMPORT_BY_NAME;
+
 typedef struct _IMAGE_SECTION_HEADER {
   UINT8  name[8];
   union {

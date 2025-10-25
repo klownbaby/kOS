@@ -14,35 +14,14 @@
  * Have fun creating kOS (pronounced "Chaos")
  */
 
-#pragma once
+#include "kernel.h"
 
-#include <stdint.h>
-#include <stddef.h>
-#include <stdbool.h>
+VOID *
+ResolveKSym(CHAR *name)
+{
+    VOID *funcAddress = NULL;
 
-/* Define constants for conversions */
-#define DECIMAL 10
-#define HEX     16
-#define BINARY  2
+    funcAddress = KPrint;
 
-/* Standard I/O function definitions */
-CHAR * 
-KIToA(int value, CHAR *str, int base);
-
-ULONG
-KAToI(const CHAR *str);
-
-VOID
-KMemSet(VOID *dest, register int data, register SIZE length);
-
-VOID
-KMemCopy(VOID *dest, VOID *src, register SIZE size);
-
-VOID 
-KPanic(CHAR *msg);
-
-VOID 
-KPutS(const CHAR *str);
-
-VOID 
-KPrint(const CHAR *fmt, ...);
+    return funcAddress;
+}

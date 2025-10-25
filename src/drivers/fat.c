@@ -40,11 +40,11 @@ readAllClusters(ULONG cluster, ULONG size)
     // allocate minimum-sized buffer (aligned to sector size)
     data = KMalloc(dataSize);
 
-    // get LBA of cluster
-    clusterLba = CLUSTER_TO_LBA(cluster);
-
     for (ULONG i = 0; i < numClusters; ++i)
     {
+        // get LBA of cluster
+        clusterLba = CLUSTER_TO_LBA(cluster);
+
         // get offset into data buffer
         dataOffset = (i * bs.sectorsPerCluster) * 512;
 
@@ -54,6 +54,10 @@ readAllClusters(ULONG cluster, ULONG size)
              bs.sectorsPerCluster,
              clusterLba,
              data + dataOffset);
+
+        cluster = fatCtx.fatSector[cluster];
+
+        if (cluster == 0xff) break;
     }
 
     // CALLER owns this now!

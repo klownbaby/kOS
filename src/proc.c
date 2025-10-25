@@ -14,11 +14,46 @@
  * Have fun creating kOS (pronounced "Chaos")
  */
 
-#include "proc.h"
 #include "kernel.h"
+#include "ktypes.h"
 #include "pe.h"
-#include "pmm.h"
-#include "stdio.h"
+
+/* Resolves all image imports, requires KPROCESS_BASE to be mapped */
+static KSTATUS
+resolveImports(IMAGE_IMPORT_DESCRIPTOR *importDesc)
+{
+    KSTATUS status = STATUS_UNKNOWN;
+    IMAGE_THUNK_DATA *thunk = NULL;
+    IMAGE_THUNK_DATA *orgThunk = NULL;
+    IMAGE_IMPORT_BY_NAME *importByName = NULL;
+    VOID *funcAddress = NULL;
+    CHAR funcName[30] = { 0 };
+
+    thunk = (IMAGE_THUNK_DATA *)((ULONG)KPROCESS_BASE + importDesc->firstThunk);
+    orgThunk = (IMAGE_THUNK_DATA *)((ULONG)KPROCESS_BASE + importDesc->u.originalFirstThunk);
+    importByName = (IMAGE_IMPORT_BY_NAME *)((ULONG)KPROCESS_BASE + orgThunk->u.addressOfData);
+
+    while (thunk->u.addressOfData != 0)
+    {
+        // copy funciton name to temp variable
+        KStrCopy(funcName, importByName->name);
+
+        // lookup function address
+        funcAddress = ResolveKSym(importByName->name);
+        KASSERT_GOTO_FAIL_ERR_MSG(
+            funcAddress == NULL,
+            STATUS_NOT_FOUND,
+            "Could not resolve imported symbol!");
+
+        thunk->u.function = (ULONG)funcAddress;
+        thunk += sizeof(IMAGE_THUNK_DATA);
+    }
+
+    status = STATUS_SUCCESS;
+
+fail:
+    return status;
+}
 
 /* Load a process */
 KSTATUS
@@ -30,9 +65,11 @@ ProcLoad(PROC_HANDLE *handle)
     ULONG *cr3Virt = NULL;
     ULONG sizeOfImage = 0;
     ULONG sizeOfHeaders = 0;
+    ULONG importRva = 0;
     IMAGE_DOS_HEADER *dosHeader = NULL;
     IMAGE_PE_HEADER *peHeader = NULL;
     IMAGE_SECTION_HEADER *sections = NULL;
+    IMAGE_IMPORT_DESCRIPTOR *importDesc = NULL;
 
     // ensure this bitch is not NULL
     KASSERT_GOTO_FAIL_ERR(handle == NULL, STATUS_INSUFFICIENT_SPACE);
@@ -47,11 +84,13 @@ ProcLoad(PROC_HANDLE *handle)
     // read PE header section mappings/virtual size of image
     dosHeader = (IMAGE_DOS_HEADER *)handle->buffer;
     peHeader = (IMAGE_PE_HEADER *)((ULONG)dosHeader + (dosHeader->e_lfanew));
+
+    // get all sections
     sections = (IMAGE_SECTION_HEADER *)((ULONG)&peHeader->optionalHeader +
                    (ULONG)peHeader->fileHeader.sizeOfOptionalHeader);
 
     // virtual size of image/headers
-    sizeOfImage = peHeader->optionalHeader.sizeOfImage;
+    sizeOfImage = PAGE_ALIGN_UP(peHeader->optionalHeader.sizeOfImage);
     sizeOfHeaders = peHeader->optionalHeader.sizeOfHeaders;
 
     // get start vaddr of kprocess page directory list
@@ -91,6 +130,9 @@ ProcLoad(PROC_HANDLE *handle)
             (KPROCESS_BASE + i));
     }
 
+    // zero out image address space
+    KMemSet((VOID *)KPROCESS_BASE, 0, sizeOfImage);
+
     // copy PE header to process base
     KMemCopy((VOID *)KPROCESS_BASE, handle->buffer, sizeOfHeaders);
 
@@ -102,6 +144,14 @@ ProcLoad(PROC_HANDLE *handle)
             (VOID *)((ULONG)handle->buffer + (ULONG)sections[i].pointerToRawData),
             sections[i].sizeOfRawData);
     }
+
+    // get import descriptor
+    importRva = peHeader->optionalHeader.dataDirectory[2].virtualAddress;
+    importDesc = (IMAGE_IMPORT_DESCRIPTOR *)((ULONG)KPROCESS_BASE + importRva);
+
+    // resolve necessary imports
+    status = resolveImports(importDesc);
+    KASSERT_GOTO_FAIL(status != STATUS_SUCCESS);
 
     // set proc entry
     handle->entry = (PROC_ENTRY)((ULONG)KPROCESS_BASE +

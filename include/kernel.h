@@ -32,6 +32,7 @@
 #include "proc.h"
 #include "exec.h"
 #include "pe.h"
+#include "syms.h"
 
 /* Module entry point macro for unordered initialization */
 #define MODULE_ENTRY(__entry) \

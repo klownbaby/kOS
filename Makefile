@@ -28,7 +28,7 @@ RUSTBIN := ./lib/target
 RUSTENTRY := $(RUSTBIN)/$(RUSTTARGET)/debug/libkOS.a
 
 CC := i686-elf
-EXECC := gcc -m32
+EXECC := i686-w64-mingw32-gcc -m32
 DOCKER := docker run -it --rm -v .:/root/env kos
 ASC := nasm -f elf32
 EMU := qemu-system-x86_64
@@ -69,10 +69,11 @@ endif
 exec: exec-clean $(EXECUTABLES)
 
 $(EXECUTABLEOBJS): $(EXECUTABLESRCS)
-	$(DOCKER) $(EXECC) -c -nostdlib -ffreestanding -fno-stack-protector -fno-stack-check -fshort-wchar -mno-red-zone -o $@ $<
+	$(DOCKER) $(EXECC) -c -nostdlib -mms-bitfields -fms-extensions -ffreestanding -fno-stack-protector -fno-stack-check -fshort-wchar -mno-red-zone -o $@ $<
 
 $(EXECUTABLES): $(EXECUTABLEOBJS)
-	$(DOCKER) ld -m i386pe -nostdlib --exclude-symbols main --image-base 0x3fff0000 --subsystem console -o $@ $<
+	$(DOCKER) ld -m i386pe -Lmultiboot/boot -lkoslib -nostdlib --image-base 0x3fff0000 --subsystem console -o $@ $<
+	cp $@ ./fs/root/
 
 # Build bootable EFI image
 efi-build: clean $(EFIIMGS)
