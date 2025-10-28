@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include <stdint.h>
 #include "ktypes.h"
 
 /* Define FAT attribute types */
@@ -96,4 +95,4 @@ VOID
 FatDumpRoot(VOID);
 
 VOID *
-FatOpen(CHAR *path, ULONG *outsize);
+FatOpen(CHAR *path, ULONG *outSize);

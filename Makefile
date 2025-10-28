@@ -69,7 +69,7 @@ endif
 exec: exec-clean $(EXECUTABLES)
 
 $(EXECUTABLEOBJS): $(EXECUTABLESRCS)
-	$(DOCKER) $(EXECC) -c -nostdlib -mms-bitfields -fms-extensions -ffreestanding -fno-stack-protector -fno-stack-check -fshort-wchar -mno-red-zone -o $@ $<
+	$(DOCKER) $(EXECC) -c -I $(EXECUTABLESDIR)/include -I $(INCLUDEDIR) -nostdlib -mms-bitfields -fms-extensions -ffreestanding -fno-stack-protector -fno-stack-check -fshort-wchar -mno-red-zone -o $@ $<
 
 $(EXECUTABLES): $(EXECUTABLEOBJS)
 	$(DOCKER) ld -m i386pe -Lmultiboot/boot -lkoslib -nostdlib --image-base 0x3fff0000 --subsystem console -o $@ $<

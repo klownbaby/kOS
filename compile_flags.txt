@@ -4,3 +4,7 @@
 ./include/drivers
 -I
 ./gnu-efi/inc
+-I
+./executable/include
+
+-fdeclspec

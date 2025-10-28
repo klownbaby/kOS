@@ -15,6 +15,7 @@
  */
 
 #include "kernel.h"
+#include "kmalloc.h"
 #include "ktypes.h"
 #include "pe.h"
 
@@ -31,10 +32,12 @@ resolveImports(IMAGE_IMPORT_DESCRIPTOR *importDesc)
 
     thunk = (IMAGE_THUNK_DATA *)((ULONG)KPROCESS_BASE + importDesc->firstThunk);
     orgThunk = (IMAGE_THUNK_DATA *)((ULONG)KPROCESS_BASE + importDesc->u.originalFirstThunk);
-    importByName = (IMAGE_IMPORT_BY_NAME *)((ULONG)KPROCESS_BASE + orgThunk->u.addressOfData);
 
-    while (thunk->u.addressOfData != 0)
+    for (ULONG i = 0; thunk[i].u.addressOfData != 0; ++i)
     {
+        importByName = (IMAGE_IMPORT_BY_NAME *)((ULONG)KPROCESS_BASE +
+                        orgThunk[i].u.addressOfData);
+
         // copy funciton name to temp variable
         KStrCopy(funcName, importByName->name);
 
@@ -45,8 +48,7 @@ resolveImports(IMAGE_IMPORT_DESCRIPTOR *importDesc)
             STATUS_NOT_FOUND,
             "Could not resolve imported symbol!");
 
-        thunk->u.function = (ULONG)funcAddress;
-        thunk += sizeof(IMAGE_THUNK_DATA);
+        thunk[i].u.function = (ULONG)funcAddress;
     }
 
     status = STATUS_SUCCESS;

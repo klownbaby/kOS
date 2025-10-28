@@ -15,13 +15,23 @@
  */
 
 #include "kernel.h"
+#include "string.h"
 
 VOID *
 ResolveKSym(CHAR *name)
 {
     VOID *funcAddress = NULL;
 
-    funcAddress = KPrint;
+    // for now just assume 100 entries and iterate
+    for (ULONG i = 0; i < 100; ++i)
+    {
+        // eventually this will be a hashmap
+        if (KStrNCmp(name, g_KernelSyms[i].name, KStrLen(name)) == 0)
+        {
+            funcAddress = g_KernelSyms[i].funcAddress;
+            break;
+        }
+    }
 
     return funcAddress;
 }

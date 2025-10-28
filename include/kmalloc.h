@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <stddef.h>
+#include "ktypes.h"
 
 /* Define our default kernel heap size */
 #define KERNEL_HEAP_DEFAULT_SIZE 8 * MB
@@ -31,8 +31,8 @@ DumpFreeList(VOID);
 VOID
 KSbrk(SIZE size);
 
-VOID*
+VOID *
 KMalloc(SIZE size);
 
 VOID 
-KFree(VOID* addr);
+KFree(VOID *addr);

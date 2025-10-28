@@ -18,5 +18,8 @@
 
 #include "ktypes.h"
 
+#define DEFINE_SYMBOL(__sym) \
+    { .name = #__sym, .funcAddress = __sym }
+
 VOID *
 ResolveKSym(CHAR *name);

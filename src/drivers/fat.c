@@ -99,7 +99,7 @@ initBs(VOID)
 
 /* Read file into memory (only from root dir for the moment) */
 VOID *
-FatOpen(CHAR *path, ULONG *outsize)
+FatOpen(CHAR *path, ULONG *outSize)
 {
     VOID *data = NULL;
     DIR_ENTRY dentry = { 0 };
@@ -124,7 +124,7 @@ FatOpen(CHAR *path, ULONG *outsize)
         }
     }
 
-    *outsize = dentry.size;
+    *outSize = dentry.size;
 
     return data;
 }

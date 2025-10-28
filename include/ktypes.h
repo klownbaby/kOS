@@ -147,3 +147,10 @@ typedef struct _FREE_CHUNK {
     /* Previous free buffer node */
     struct _FREE_CHUNK* prev;
 } FREE_CHUNK;
+
+typedef struct _KSYMBOL {
+    /* ASCII name of symbol */
+    CHAR *name;
+    /* Virtual address of function */
+    VOID *funcAddress;
+} KSYMBOL;

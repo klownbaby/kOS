@@ -16,9 +16,7 @@
 
 #pragma once
 
-#include <stdint.h>
-#include <stddef.h>
-#include <stdbool.h>
+#include "ktypes.h"
 
 /* Define constants for conversions */
 #define DECIMAL 10
