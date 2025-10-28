@@ -15,9 +15,6 @@
  */
 
 #include "kernel.h"
-#include "kmalloc.h"
-#include "ktypes.h"
-#include "pe.h"
 
 /* Resolves all image imports, requires KPROCESS_BASE to be mapped */
 static KSTATUS
