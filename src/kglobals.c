@@ -36,6 +36,12 @@ ULONG g_KernelEnd = 0;
 ULONG g_HeapStart = 0x77a00000;
 ULONG g_HeapEnd = 0;
 
+/* Next virtual address mapping for a process cr3 */
+ULONG g_NextProcessPdVirt = KPROCESS_PDLIST_BASE;
+
+/* Current process linked list */
+LIST_ENTRY *g_ProcessListHead = NULL;
+
 /* Global kernel symbol table, manually setting 100 entries for now */
 KSYMBOL g_KernelSyms[100] = {
     DEFINE_SYMBOL(KIToA),
@@ -68,6 +74,10 @@ KSYMBOL g_KernelSyms[100] = {
     DEFINE_SYMBOL(KeyboardScanToChar),
     DEFINE_SYMBOL(KeyboardSetInputBuffer),
     DEFINE_SYMBOL(KGetScan),
+    DEFINE_SYMBOL(ProcInit),
     DEFINE_SYMBOL(ProcLoad),
     DEFINE_SYMBOL(ProcExec),
+    DEFINE_SYMBOL(ProcClose),
+    DEFINE_SYMBOL(ProcDumpList),
+    DEFINE_SYMBOL(PmmDumpPageDir),
 };

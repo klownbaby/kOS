@@ -1,4 +1,5 @@
 #include "klib.h"
+#include "ktypes.h"
 #include "kutils.h"
 
 /* Handle clear ksh command (clear screen) */
@@ -17,7 +18,7 @@ HandleReboot(ULONG argc, CHAR **argv)
 VOID
 HandleDumpt(ULONG argc, CHAR **argv)
 {
-    KPrint("Not implemented yet..\n");
+    PmmDumpPageDir();
 }
 
 /* Handle dumpfs ksh command (dump FAT BIOS parameter block) */
@@ -94,37 +95,44 @@ VOID
 HandleExec(ULONG argc, CHAR **argv)
 {
     KSTATUS status = STATUS_UNKNOWN;
-    PROC_HANDLE handle = { 0 };
+    PROC_HANDLE *handle = NULL;
 
     KASSERT_GOTO_FAIL_MSG(argc < 2, "Usage: exec [path]\n");
 
-    // should we just dump the root directory?
+    // init process handle
+    status = ProcInit(&handle);
+    KASSERT_GOTO_FAIL_MSG(
+        status != STATUS_SUCCESS, "Failed to init process!\n");
+
+    // TODO: make this check more robust
     KASSERT_GOTO_FAIL_MSG(
         argv[1][0] == '/' && argv[1][1] == '\0',
         "Not a valid executable!")
 
     // if not, find the requested directory
-    handle.buffer = FatOpen(argv[1], &handle.size);
+    handle->buffer = FatOpen(argv[1], &handle->size);
+    KASSERT_GOTO_FAIL_MSG(handle->buffer == NULL, "Path not found!\n");
 
-    KASSERT_GOTO_FAIL_MSG(handle.buffer == NULL, "Path not found!\n");
-
-    status = ProcLoad(&handle);
+    // map the process into memory
+    status = ProcLoad(handle);
     KASSERT_GOTO_FAIL_MSG(
-        status != STATUS_SUCCESS,
-        "Failed to load process!");
+        status != STATUS_SUCCESS, "Failed to load process!");
 
-    status = ProcExec(&handle);
-
-    GOTO_SUCCESS;
+    // finally, start the process
+    (VOID)ProcExec(handle);
 
 fail:
-    if (handle.buffer)
+    if (handle)
     {
-        KFree(handle.buffer);
+        ProcClose(handle);
     }
+}
 
-success:
-    return;
+/* Handle `ps` command (list processes) */
+VOID
+HandlePs(ULONG argc, CHAR **argv)
+{
+    ProcDumpList();
 }
 
 VOID

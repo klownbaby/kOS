@@ -33,6 +33,7 @@
 #include "exec.h"
 #include "pe.h"
 #include "syms.h"
+#include "list.h"
 
 /* Module entry point macro for unordered initialization */
 #define MODULE_ENTRY(__entry) \
@@ -74,6 +75,12 @@ extern ULONG g_KernelEnd;
 /* Kernel heap */
 extern ULONG g_HeapStart;
 extern ULONG g_HeapEnd;
+
+/* Next virtual address mapping for a process cr3 */
+extern ULONG g_NextProcessPdVirt;
+
+/* Current process linked list */
+extern LIST_ENTRY *g_ProcessListHead;
 
 /* Global kernel symbol table, manually setting 100 entries for now */
 extern KSYMBOL g_KernelSyms[100];

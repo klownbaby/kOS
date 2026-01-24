@@ -77,7 +77,19 @@ DLLIMPORT
 VOID KMemCopy(VOID *dest, VOID *src, register SIZE size);
 
 DLLIMPORT
+KSTATUS ProcInit(PROC_HANDLE **outHandle);
+
+DLLIMPORT
 KSTATUS ProcLoad(PROC_HANDLE *handle);
 
 DLLIMPORT
 KSTATUS ProcExec(PROC_HANDLE *handle);
+
+DLLIMPORT
+KSTATUS ProcClose(PROC_HANDLE *handle);
+
+DLLIMPORT
+VOID ProcDumpList();
+
+DLLIMPORT
+VOID PmmDumpPageDir();

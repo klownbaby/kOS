@@ -13,7 +13,7 @@ static ULONG inputBufferHead = 0;
 static CMD_HANDLER cmdHashmap[0x1000] = { 0 };
 
 /* Our command strings and their associated processors (callbacks) */
-static const CMD_HANDLER cmdHandlers[11] = {
+static const CMD_HANDLER cmdHandlers[] = {
     { .cmdstr = "clear", .proc = HandleClear },
     { .cmdstr = "reboot", .proc = HandleReboot },
     { .cmdstr = "dumpt", .proc = HandleDumpt },
@@ -24,7 +24,8 @@ static const CMD_HANDLER cmdHandlers[11] = {
     { .cmdstr = "prod", .proc = HandleProd },
     { .cmdstr = "exec", .proc = HandleExec },
     { .cmdstr = "ls", .proc = HandleLs },
-    { .cmdstr = "cat", .proc = HandleCat }
+    { .cmdstr = "cat", .proc = HandleCat },
+    { .cmdstr = "ps", .proc = HandlePs }
 };
 
 /* Build out our initial hashmap for command processors (callbacks) */

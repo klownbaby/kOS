@@ -25,14 +25,23 @@
 /* Define KPROCESS CR3 vaddr for all kprocesses */
 #define KPROCESS_CR3_VIRT    0x2acc0000
 
-/* Define KPROCESS data meta data statid vaddr */
+/* Define KPROCESS metadata static vaddr */
 #define KPROCESS_DATA        0x1fff0000
 
 /* Define base virtual address for kprocess page directory list */
 #define KPROCESS_PDLIST_BASE 0x8acc0000
 
 KSTATUS
+ProcInit(PROC_HANDLE **outHandle);
+
+KSTATUS
 ProcLoad(PROC_HANDLE *handle);
 
 KSTATUS
 ProcExec(PROC_HANDLE *handle);
+
+KSTATUS
+ProcClose(PROC_HANDLE *handle);
+
+VOID
+ProcDumpList();

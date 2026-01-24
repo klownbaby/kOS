@@ -59,6 +59,11 @@ typedef VOID    (*KEYBOARD_NOTIFY)(UINT8 scan, UINT8 pressed);
 typedef KSTATUS (*FILE_READ)(VOID *outBuffer, SIZE size);
 typedef KSTATUS (*FILE_WRITE)(VOID *inBuffer, SIZE size);
 
+typedef struct _LIST_ENTRY {
+    struct _LIST_ENTRY *next;
+    struct _LIST_ENTRY *prev;
+} LIST_ENTRY;
+
 /* Define a temporary file type */
 typedef struct _FILE {
     FILE_READ read;
@@ -74,11 +79,13 @@ typedef enum _FILE_DESCRIPTOR {
 
 /* Define process handle type (process cr3 phys) */
 typedef struct _PROC_HANDLE {
+    LIST_ENTRY listEntry;
+
     ULONG cr3;
     ULONG size;
     FILE fileBindings[MAX_FILE_DESCRIPTORS];
     PROC_ENTRY entry;
-    VOID* buffer;
+    VOID *buffer;
 } PROC_HANDLE;
 
 /* Hardware text mode color constants */

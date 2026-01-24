@@ -55,7 +55,7 @@ VOID
 KernelMain(volatile ULONG magic, volatile MULTIBOOT_INFO *mbd) 
 {
     KSTATUS status = STATUS_FAILED;
-    PROC_HANDLE initProcHandle = { 0 };
+    PROC_HANDLE *initProcHandle = NULL;
 
     // set GRUB multiboot info global at start
     g_Mbd = (MULTIBOOT_INFO *)mbd;
@@ -69,19 +69,24 @@ KernelMain(volatile ULONG magic, volatile MULTIBOOT_INFO *mbd)
     // print a dope ass message
     TTYNeofetch();
 
-    // load init process
-    initProcHandle.buffer = FatOpen("SH", &initProcHandle.size);
-    KASSERT_GOTO_FAIL_MSG(
-        initProcHandle.buffer == NULL,
-        "Could not find init process on disk!");
-
-    status = ProcLoad(&initProcHandle);
+    // initialize init proccess (lol)
+    status = ProcInit(&initProcHandle);
     KASSERT_GOTO_FAIL_MSG(
         status != STATUS_SUCCESS,
-        "Failed to load init process!");
+        "Failed to initialize init process!");
+
+    // load init process
+    initProcHandle->buffer = FatOpen("SH", &initProcHandle->size);
+    KASSERT_GOTO_FAIL_MSG(
+        initProcHandle->buffer == NULL,
+        "Could not find init process on disk!");
+
+    status = ProcLoad(initProcHandle);
+    KASSERT_GOTO_FAIL_MSG(
+        status != STATUS_SUCCESS, "Failed to load init process!");
 
     // start init process
-    status = ProcExec(&initProcHandle);
+    status = ProcExec(initProcHandle);
 
     // we should never return..
     KPanic("Returned from init process!");
