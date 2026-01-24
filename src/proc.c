@@ -300,12 +300,12 @@ ProcDumpList()
     do
     {
         // dump process metadata
-        KPrint("\nProcess %x\n", current);
+        KPrint("Process %x\n", current);
         KPrint("    next   => %x\n", current->listEntry.next);
         KPrint("    prev   => %x\n", current->listEntry.prev);
         KPrint("    cr3    => %x\n", current->cr3);
         KPrint("    entry  => %x\n", current->entry);
-        KPrint("    buffer => %x\n", current->buffer);
+        KPrint("    buffer => %x\n\n", current->buffer);
 
         // iterate
         current = (PROC_HANDLE *)current->listEntry.next;

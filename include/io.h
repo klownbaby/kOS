@@ -68,7 +68,7 @@ __attribute__((noreturn)) static inline VOID __hlt(VOID)
     for(;;);
 }
 
-__attribute__((noreturn)) static VOID __warmReboot(VOID)
+__attribute__((noreturn)) static inline VOID __warmReboot(VOID)
 {
     // send cpu reset signal
     __outb(KBRD_INTRFC, KBRD_RESET);

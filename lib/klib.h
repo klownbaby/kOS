@@ -1,4 +1,5 @@
 #include "ktypes.h"
+#include "io.h"
 
 #if 0
 #define DLLIMPORT __declspec(dllimport)

@@ -12,6 +12,7 @@ HandleClear(ULONG argc, CHAR **argv)
 VOID
 HandleReboot(ULONG argc, CHAR **argv)
 {
+    __warmReboot();
 }
 
 /* Handle dumpt ksh command (dump page tables) */
