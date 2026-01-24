@@ -171,7 +171,8 @@ VOID
 IsrHandler(INTERRUPT_REGISTER_CONTEXT registers) 
 {
     // handle ISR exceptions
-    if (registers.intNum < 32) {
+    if (registers.intNum < 32)
+    {
         // set text color to red for exceptions
         TTYSetColor(VGA_COLOR_RED, VGA_COLOR_BLACK);
 
@@ -190,17 +191,20 @@ IsrHandler(INTERRUPT_REGISTER_CONTEXT registers)
 }
 
 VOID 
-irq_handler(INTERRUPT_REGISTER_CONTEXT registers) 
+IrqHandler(INTERRUPT_REGISTER_CONTEXT registers) 
 {
     // call IRQ handler associated with interrupt number
-    if (interruptHandlers[registers.intNum] != 0) {
+    if (interruptHandlers[registers.intNum] != 0)
+    {
         ISR handler = interruptHandlers[registers.intNum];
         handler(registers);
     }
 
     // send EOI instruction to PIC
     if (registers.intNum >= 40) __outb(PIC_CMD_PORT_SLAVE, 0x20);
-    __outb(PIC_CMD_PORT_MASTER, 0x20);
+    {
+        __outb(PIC_CMD_PORT_MASTER, 0x20);
+    }
 }
 
 VOID 

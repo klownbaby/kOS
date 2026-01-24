@@ -70,6 +70,7 @@ compareName(CHAR *name, DIR_ENTRY *dentry)
     BOOLEAN match = FALSE;
     CHAR strname[9] = { 0 };
 
+    // for now, not supporting LFNs
     KStrNCopy(strname, (const CHAR *)dentry->name, 8);
 
     if (KStrNCmp(name, strname, KStrLen(name)) == 0)
@@ -95,6 +96,26 @@ initBs(VOID)
 
     // finally, free our buffer
     KFree(firstSector);
+}
+
+/* Find file or directory entry in directory blob */
+static KSTATUS
+findEntryInDirecotry(VOID *dir)
+{
+    KSTATUS status = STATUS_UNKNOWN;
+    ULONG dentry = (ULONG)dir;
+
+    while (((DIR_ENTRY *)dentry)->attr != 0)
+    {
+        // dump each entry
+        FatDumpDentry((DIR_ENTRY *)dentry);
+
+        // iterate
+        dentry += sizeof(DIR_ENTRY);
+    }
+   
+fail:
+    return status;
 }
 
 /* Read file into memory (only from root dir for the moment) */
@@ -125,6 +146,8 @@ FatOpen(CHAR *path, ULONG *outSize)
     }
 
     *outSize = dentry.size;
+
+    (VOID)findEntryInDirecotry(data);
 
     return data;
 }

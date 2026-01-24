@@ -72,8 +72,8 @@ extern ULONG g_KernelStart;
 extern ULONG g_KernelEnd;
 
 /* Kernel heap */
-extern UINT8 *g_HeapStart;
-extern UINT8 *g_HeapEnd;
+extern ULONG g_HeapStart;
+extern ULONG g_HeapEnd;
 
 /* Global kernel symbol table, manually setting 100 entries for now */
 extern KSYMBOL g_KernelSyms[100];

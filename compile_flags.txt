@@ -5,6 +5,10 @@
 -I
 ./gnu-efi/inc
 -I
-./executable/include
+./lib
+-I
+./executable/retzero/include
+-I
+./executable/sh/include
 
 -fdeclspec

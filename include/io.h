@@ -20,14 +20,14 @@
 
 /* Define reboot contants */
 #define KBRD_INTRFC 0x64
-#define KBRD_RESET 0xFE
+#define KBRD_RESET  0xFE
 
 /* Read a byte from a word-sized port */
 static inline UINT8 __inb(UINT16 port) 
 {
     UINT8 ret;
 
-    __asm__ __volatile__( "inb %w1, %b0" : "=a"(ret) : "Nd"(port) : "memory" );
+    __asm__ __volatile__("inb %1, %0" : "=a"(ret) : "Nd"(port));
 
     return ret;
 }
@@ -37,7 +37,7 @@ static inline UINT16 __inw(UINT16 port)
 {
     UINT16 ret;
 
-    __asm__ __volatile__( "inw %1, %0" : "=a"(ret) : "Nd"(port));
+    __asm__ __volatile__("inw %1, %0" : "=a"(ret) : "Nd"(port));
 
     return ret;
 }
@@ -45,25 +45,25 @@ static inline UINT16 __inw(UINT16 port)
 /* Write a byte to a word-sized port */
 static inline VOID __outb(UINT16 port, UINT8 byte) 
 {
-    __asm__ __volatile__( "outb %0, %1" : : "a"(byte), "Nd"(port) : "memory" );
+    __asm__ __volatile__("outb %0, %1" : : "a"(byte), "Nd"(port) : "memory");
 }
 
 /* Clear interrupts */
 static inline VOID __cli(VOID) 
 {
-    __asm__ __volatile__( "cli" );
+    __asm__ __volatile__("cli");
 }
 
 /* Set (re-enable) interrupts */
 static inline VOID __sti(VOID) 
 {
-    __asm__ __volatile__( "sti" );
+    __asm__ __volatile__("sti");
 }
 
 /* Halt all CPU execution and loop infinitely */
 __attribute__((noreturn)) static inline VOID __hlt(VOID) 
 {
-    __asm__ __volatile__( "hlt" );
+    __asm__ __volatile__("hlt");
 
     for(;;);
 }

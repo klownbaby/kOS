@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <stdint.h>
+#include "ktypes.h"
 
 /* For now, max input buffer size */
 #define KSH_INPUTBUF_SIZE 0xFF

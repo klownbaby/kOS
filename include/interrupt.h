@@ -16,8 +16,7 @@
 
 #pragma once
 
-#include <stdint.h>
-#include <stdbool.h>
+#include "ktypes.h"
 
 /* Define some constats */
 #define INTERRUPT_GATE       0x8E
@@ -82,20 +81,19 @@ typedef struct {
 typedef VOID (*ISR)(INTERRUPT_REGISTER_CONTEXT);
 
 /* Checks whether interrupts are enabled */
-static inline bool __checkInterruptsEnabled() 
+static inline ULONG __checkInterruptsEnabled() 
 {
-    ULONG flags;
+    ULONG flags = 0;
 
-    __asm__ __volatile__ ("pushf\n\t"
-                           "pop %0"
+    __asm__ __volatile__ ("pushf\n"
+                          "pop %0"
                            : "=g"(flags));
 
     return flags & (1 << 9);
 }
 
 /* Assembly-defined extern for IDT load */
-extern VOID 
-LoadIdt(IDTR *);
+extern VOID LoadIdt(IDTR *idtr);
 
 /* Function definitions for idt setup and interrupts */
 VOID

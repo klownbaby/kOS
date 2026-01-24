@@ -16,6 +16,7 @@
 
 #include "kernel.h"
 #include "drivers/tty.h"
+#include "drivers/fat.h"
 
 /* Initialize early essential modules */
 static KSTATUS
@@ -54,6 +55,7 @@ VOID
 KernelMain(volatile ULONG magic, volatile MULTIBOOT_INFO *mbd) 
 {
     KSTATUS status = STATUS_FAILED;
+    PROC_HANDLE initProcHandle = { 0 };
 
     // set GRUB multiboot info global at start
     g_Mbd = (MULTIBOOT_INFO *)mbd;
@@ -67,9 +69,22 @@ KernelMain(volatile ULONG magic, volatile MULTIBOOT_INFO *mbd)
     // print a dope ass message
     TTYNeofetch();
 
-    // start our awful shell
-    KShellInit();
+    // load init process
+    initProcHandle.buffer = FatOpen("SH", &initProcHandle.size);
+    KASSERT_GOTO_FAIL_MSG(
+        initProcHandle.buffer == NULL,
+        "Could not find init process on disk!");
 
+    status = ProcLoad(&initProcHandle);
+    KASSERT_GOTO_FAIL_MSG(
+        status != STATUS_SUCCESS,
+        "Failed to load init process!");
+
+    // start init process
+    status = ProcExec(&initProcHandle);
+
+    // we should never return..
+    KPanic("Returned from init process!");
 fail:
     // hang
     for(;;);

@@ -12,9 +12,7 @@ DRIVERSDIR := $(SRCDIR)/drivers
 INCLUDEDIR := ./include
 
 EXECUTABLESDIR := ./executable
-EXECUTABLESRCS := $(wildcard $(EXECUTABLESDIR)/src/*.c)
-EXECUTABLEOBJS := $(patsubst $(EXECUTABLESDIR)/src/%.c,$(EXECUTABLESDIR)/bin/%.o,$(EXECUTABLESRCS))
-EXECUTABLES := $(patsubst $(EXECUTABLESDIR)/src/%.c,$(EXECUTABLESDIR)/bin/%.exe,$(EXECUTABLESRCS))
+EXECUTABLES := $(wildcard $(EXECUTABLESDIR)/*)
 
 GNUEFIDIR := ./gnu-efi
 EFISRCS := $(wildcard $(SRCDIR)/boot/*.c)
@@ -27,8 +25,7 @@ RUSTTARGET := x86_64-kos
 RUSTBIN := ./lib/target
 RUSTENTRY := $(RUSTBIN)/$(RUSTTARGET)/debug/libkOS.a
 
-CC := i686-elf
-EXECC := i686-w64-mingw32-gcc -m32
+CC := i686-elf-gcc
 DOCKER := docker run -it --rm -v .:/root/env kos
 ASC := nasm -f elf32
 EMU := qemu-system-x86_64
@@ -39,7 +36,7 @@ CTARGETS := $(SRCDIR)/*.c $(DRIVERSDIR)/*.c
 ASMTARGETS := $(ASMDIR)/*.S
 ISO := $(OBJECTDIR)/$(KERNELTARGET).iso
 
-.PHONY: all kernel env image verify grub grub-rescue fs vfs run debug clean exec exec-clean efi-build efi-run
+.PHONY: all kernel env image verify grub grub-rescue fs vfs run debug clean exec exec-clean efi-build efi-run $(EXECUTABLES)
 
 all: kernel image run
 
@@ -52,28 +49,25 @@ kernel: clean
 	$(ASC) $(ASMDIR)/boot.S -o $(OBJECTDIR)/boot.o
 	$(ASC) $(ASMDIR)/gdt.S -o $(OBJECTDIR)/_gdt.o
 	$(ASC) $(ASMDIR)/idt.S -o $(OBJECTDIR)/_idt.o
-	$(DOCKER) $(CC)-gcc -g -I $(INCLUDEDIR) -c $(CTARGETS) -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Wno-incompatible-pointer-types
+	$(DOCKER) $(CC) -g -I $(INCLUDEDIR) -c $(CTARGETS) -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Wno-incompatible-pointer-types
 
 	mv ./*.o $(OBJECTDIR)
 
 ifeq ($(RUST),1)
 	CARGO_TARGET_DIR=$(RUSTBIN) cargo build --target ./lib/$(RUSTTARGET).json
 	mv $(RUSTBIN)/$(RUSTTARGET)/debug/libkr.a $(RUSTENTRY)
-	$(DOCKER) $(CC)-gcc -T linker.ld -o $(BOOTDIR)/$(KERNELTARGET).bin -ffreestanding -O2 -nostdlib $(OBJECTS) $(RUSTENTRY) -lgcc
+	$(DOCKER) $(CC) -T linker.ld -o $(BOOTDIR)/$(KERNELTARGET).bin -ffreestanding -O2 -nostdlib $(OBJECTS) $(RUSTENTRY) -lgcc
 else
-	$(DOCKER) $(CC)-gcc -T linker.ld -o $(BOOTDIR)/$(KERNELTARGET).bin -ffreestanding -O2 -nostdlib $(OBJECTS) -lgcc
-	$(DOCKER) ld -m i386pe -shared -e KernelMain --image-base 0x100000 --defsym=_dynmod_start=1 --defsym=_dynmod_end=1 --defsym=_kernel_start=1 --defsym=_kernel_end=1 --no-leading-underscore -o $(BOOTDIR)/$(KERNELTARGET).exe --subsystem console -ffreestanding -O2 -nostdlib $(OBJECTS)
+	$(DOCKER) $(CC) -T linker.ld -o $(BOOTDIR)/$(KERNELTARGET).bin -ffreestanding -O2 -nostdlib $(OBJECTS) -lgcc
+	$(DOCKER) ld -m i386pe -shared -e KernelMain --image-base 0x100000 --defsym=_dynmod_start=1 --defsym=_dynmod_end=1 --defsym=_kernel_start=1 --defsym=_kernel_end=1 --no-leading-underscore -o $(BOOTDIR)/$(KERNELTARGET)lib.lib --subsystem console -ffreestanding -O2 -nostdlib $(OBJECTS)
 endif
 
 # Build executables
-exec: exec-clean $(EXECUTABLES)
+exec: $(EXECUTABLES)
+	make fs
 
-$(EXECUTABLEOBJS): $(EXECUTABLESRCS)
-	$(DOCKER) $(EXECC) -c -I $(EXECUTABLESDIR)/include -I $(INCLUDEDIR) -nostdlib -mms-bitfields -fms-extensions -ffreestanding -fno-stack-protector -fno-stack-check -fshort-wchar -mno-red-zone -o $@ $<
-
-$(EXECUTABLES): $(EXECUTABLEOBJS)
-	$(DOCKER) ld -m i386pe -Lmultiboot/boot -lkoslib -nostdlib --image-base 0x3fff0000 --subsystem console -o $@ $<
-	cp $@ ./fs/root/
+$(EXECUTABLES):
+	$(DOCKER) make -C $@
 
 # Build bootable EFI image
 efi-build: clean $(EFIIMGS)
@@ -113,14 +107,10 @@ grub-rescue:
 	grub-mkrescue -o $(OBJECTDIR)/$(KERNELTARGET).iso multiboot
 
 run: $(ISO)
-	$(EMU) -hda $(ISO) -hdb ./fs/fs.img
+	$(EMU) -hda $(ISO) -hdb ./fs/fs.img -monitor stdio | tee monitor.log
 
 debug: clean kernel image $(ISO)
 	$(EMU) -hda $(ISO) -s -S -hdb ./fs/fs.img
-
-exec-clean:
-	rm -rf $(EXECUTABLESDIR)/bin/*.exe
-	rm -rf $(EXECUTABLESDIR)/bin/*.o
 
 clean:
 	rm -rf $(OBJECTDIR)/*.*

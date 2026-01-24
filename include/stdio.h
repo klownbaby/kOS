@@ -44,3 +44,12 @@ KPutS(const CHAR *str);
 
 VOID 
 KPrint(const CHAR *fmt, ...);
+
+UINT8
+KGetScan();
+
+CHAR
+KGetC();
+
+VOID
+KGetS(CHAR *str, ULONG max);

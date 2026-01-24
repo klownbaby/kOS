@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <ktypes.h>
+#include "ktypes.h"
 
 /* Arbitrary hashing constant for simple string hashing, NOT SECURE */
 #define HASH_CONSTANT 53812897

@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <ktypes.h>
+#include "ktypes.h"
 
 VOID
 HandleClear(ULONG argc, CHAR **argv);

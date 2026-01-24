@@ -11,6 +11,8 @@ OVMF.fd
 multiboot/boot/*.bin
 multiboot/boot/*.lib
 multiboot/boot/*.exe
-executable/bin/*.o
-executable/bin/*.exe
 
+executable/*/bin/*.o
+executable/*/bin/*.exe
+
+monitor.log

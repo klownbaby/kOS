@@ -22,7 +22,11 @@
 /* Define base virtual address for all kprocesses */
 #define KPROCESS_BASE        0x3fff0000
 
+/* Define KPROCESS CR3 vaddr for all kprocesses */
 #define KPROCESS_CR3_VIRT    0x2acc0000
+
+/* Define KPROCESS data meta data statid vaddr */
+#define KPROCESS_DATA        0x1fff0000
 
 /* Define base virtual address for kprocess page directory list */
 #define KPROCESS_PDLIST_BASE 0x8acc0000

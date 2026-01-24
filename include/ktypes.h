@@ -136,7 +136,7 @@ typedef union _EPOCH_DATE {
 typedef struct _PMM_BITMAP_ENTRY {
     /* Set single bitfield for efficiency */
     UINT8 used: 1;
-} PMM_BITMAP_ENTRY;
+} __attribute__((packed)) PMM_BITMAP_ENTRY;
 
 /* Heap free list */
 typedef struct _FREE_CHUNK {
@@ -154,3 +154,10 @@ typedef struct _KSYMBOL {
     /* Virtual address of function */
     VOID *funcAddress;
 } KSYMBOL;
+
+typedef struct _KEYSTROKE {
+    /* I8042 scan code */
+    UINT8 scan;
+    /* Key up/down */
+    UINT8 pressed;
+} KEYSTROKE;

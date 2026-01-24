@@ -15,9 +15,11 @@
  */
 
 #include <stdarg.h>
+
 #include "kernel.h"
 #include "drivers/tty.h"
 #include "drivers/vga.h"
+#include "drivers/keyboard.h"
 
 /* Converts int to ascii representation (used for printing) */
 CHAR * 
@@ -243,6 +245,52 @@ KMemCopy(VOID *dest, VOID *src, register SIZE size)
         // do the copy
         *dptr++ = *sptr++;
     }
+}
+
+/* Get next-pressed scan code */
+UINT8
+KGetScan()
+{
+    UINT8 scan = 0;
+    ULONG head = 0;
+
+    KeyboardSetInputBuffer(&scan, &head);
+
+    // wait for keypress
+    for (;;)
+    {
+        // check input buffer
+        KASSERT_GOTO_SUCCESS(scan != 0);
+
+        // wait for interrupt
+        __asm__ __volatile__("hlt");
+    }
+
+success:
+    return scan;
+}
+
+/* Get next keystroke character */
+CHAR
+KGetC()
+{
+    CHAR c = '\0';
+    UINT8 scan = 0;
+
+    // get next scan code
+    scan = KGetScan();
+
+    // convert to character
+    c = KeyboardScanToChar(scan);
+
+success:
+    return c;
+}
+
+/* Get string from keyboard input */
+VOID
+KGetS(CHAR *str, ULONG max)
+{
 }
 
 /* Kernel panic/exception handler, nothing fancy */

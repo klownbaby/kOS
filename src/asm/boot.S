@@ -1,9 +1,9 @@
 ; Setup Grub params
-MALIGN equ   1 << 0
-MEMINFO equ  1 << 1
-FLAGS equ    MALIGN | MEMINFO  
-MAGIC equ    0x1BADB002       
-CHECKSUM equ -(MAGIC + FLAGS) 
+MALIGN   equ  1 << 0
+MEMINFO  equ  1 << 1
+FLAGS    equ  MALIGN | MEMINFO  
+MAGIC    equ  0x1BADB002       
+CHECKSUM equ  -(MAGIC + FLAGS) 
 
 ; Setup multiboot signature, flags, and checksum
 section .multiboot

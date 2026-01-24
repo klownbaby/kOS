@@ -43,7 +43,7 @@ resolveImports(IMAGE_IMPORT_DESCRIPTOR *importDesc)
         KASSERT_GOTO_FAIL_ERR_MSG(
             funcAddress == NULL,
             STATUS_NOT_FOUND,
-            "Could not resolve imported symbol!");
+            "Could not resolve imported symbol!\n");
 
         thunk[i].u.function = (ULONG)funcAddress;
     }
@@ -113,6 +113,7 @@ ProcLoad(PROC_HANDLE *handle)
     // set new cr3 temporarily
     __setCr3(cr3Phys);
 
+    // start mapping process address space
     for (ULONG i = 0; i < sizeOfImage; i += PAGE_SIZE)
     {
         // allocate new physical page
@@ -156,6 +157,14 @@ ProcLoad(PROC_HANDLE *handle)
     handle->entry = (PROC_ENTRY)((ULONG)KPROCESS_BASE +
                         (ULONG)peHeader->optionalHeader.addressOfEntryPoint);
 
+    // finally, map process meta data
+    PmmMapPage(
+        cr3Virt,
+        PmmAllocNext(),
+        KPROCESS_DATA);
+
+    KMemCopy((VOID *)KPROCESS_DATA, handle, sizeof(PROC_HANDLE));
+
     // reset cr3 to kernel page directory
     __setCr3((ULONG)g_KernelPageDir);
 
@@ -168,6 +177,7 @@ fail:
     return status;
 }
 
+/* Execute loaded process */
 KSTATUS
 ProcExec(PROC_HANDLE *handle)
 {
@@ -185,5 +195,30 @@ ProcExec(PROC_HANDLE *handle)
 
     KPrint("Process returned %x\n", procRet);
 
+    return status;
+}
+
+/* Get current process handle */
+KSTATUS
+ProcCurrent(PROC_HANDLE *handle)
+{
+    KSTATUS status = STATUS_UNKNOWN;
+    PROC_HANDLE *current = NULL;
+
+    // check that we are executing from a valid process context
+    // jesus, this is awful TODO: change this plzz
+    KASSERT_GOTO_FAIL_ERR(
+        PmmVirtToPhys((ULONG *)KPROCESS_CR3_VIRT, KPROCESS_CR3_VIRT) < 0,
+        STATUS_NOT_FOUND);
+
+    // get current process meta data
+    current = (PROC_HANDLE *)KPROCESS_DATA;
+
+    // copy data to out pointer
+    KMemCopy(handle, current, sizeof(PROC_HANDLE));
+
+    status = STATUS_SUCCESS;
+
+fail:
     return status;
 }

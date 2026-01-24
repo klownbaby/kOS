@@ -1,7 +1,7 @@
 global LoadIdt
 
 [extern IsrHandler]
-[extern irq_handler]
+[extern IrqHandler]
 
 %macro ISR_NO_ERR 1
     global isr%1
@@ -38,21 +38,19 @@ LoadIdt:
     sti
     ret
 
-; Common ISR code
+; Common ISR stub
 isr_common_stub:
-    pusha ; Pushes edi,esi,ebp,esp,ebx,edx,ecx,eax
-    mov ax, ds ; Lower 16-bits of eax = ds.
-    push eax ; save the data segment descriptor
-    mov ax, 0x10  ; kernel data segment descriptor
+    pusha 
+    mov ax, ds
+    push eax
+    mov ax, 0x10
     mov ds, ax
     mov es, ax
     mov fs, ax
     mov gs, ax
 	
-    ; 2. Call C handler
     call IsrHandler
 	
-    ; 3. Restore state
     pop eax 
     mov ds, ax
     mov es, ax
@@ -60,9 +58,9 @@ isr_common_stub:
     mov gs, ax
 
     popa
-    add esp, 8 ; Cleans up the pushed error code and pushed ISR number
+    add esp, 8
     sti
-    iret ; pops 5 things at once: CS, EIP, EFLAGS, SS, and ESP
+    iret
 
 irq_common_stub:
     pusha 
@@ -74,8 +72,8 @@ irq_common_stub:
     mov fs, ax
     mov gs, ax
 
-    call irq_handler ; Different than the ISR code
-    pop ebx  ; Different than the ISR code
+    call IrqHandler
+    pop ebx
 
     mov ds, bx
     mov es, bx

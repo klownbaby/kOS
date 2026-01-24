@@ -61,4 +61,4 @@ CHAR
 KeyboardScanToChar(UINT8 scan);
 
 VOID
-KeyboardSetNotifyCallback(KEYBOARD_NOTIFY cb);
+KeyboardSetInputBuffer(VOID *newBuffer, ULONG *newHead);

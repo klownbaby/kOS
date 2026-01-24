@@ -43,17 +43,19 @@ static const ULONG uppercase[128] = {
 };
 
 /* Shift and caps lock state */
-BOOLEAN caps = false;
-BOOLEAN capsLock = false;
+static BOOLEAN caps = false;
+static BOOLEAN capsLock = false;
 
-/* Current keyboard notify callback */
-static KEYBOARD_NOTIFY notifyCb;
+/* Current input buffer to write keystrokes to */
+static VOID *inputBuffer = NULL;
+static ULONG *inputBufferHead = NULL;
 
 static VOID 
 keyboardNotifyCallback(INTERRUPT_REGISTER_CONTEXT registers) 
 {
     UCHAR scan = __inb(0x60) & 0x7F;
     UCHAR pressed = __inb(0x60) & 0x80;
+    UINT8 *currentInput = (UINT8 *)inputBuffer;
 
     // we can have the parent handle some of these (us)
     switch (scan)
@@ -70,11 +72,15 @@ keyboardNotifyCallback(INTERRUPT_REGISTER_CONTEXT registers)
     // we don't want to have the callback handle everything
     KASSERT_GOTO_SUCCESS(scan == 58 || scan == 42 || scan == 54);
 
-    // if no notify callback attached, we're done
-    KASSERT_GOTO_SUCCESS(notifyCb == NULL);
+    // only care about down strokes for now, TODO: change
+    KASSERT_GOTO_SUCCESS(pressed != 0);
 
-    // call our notification callback
-    notifyCb(scan, pressed);
+    // ensure input buffer is valid
+    KASSERT_GOTO_SUCCESS
+        ((currentInput == NULL) || (inputBufferHead == NULL));
+
+    // write scan code to head of buffer, then increment
+    currentInput[*inputBufferHead++] = scan;
 
 success:
     return;
@@ -97,12 +103,13 @@ KeyboardScanToChar(UINT8 scan)
     return (caps || capsLock) ? uppercase[scan] : lowercase[scan];
 }
 
-/* Set a keypress notification callback */
+/* Set input buffer for keystokes */
 VOID
-KeyboardSetNotifyCallback(KEYBOARD_NOTIFY cb)
+KeyboardSetInputBuffer(VOID *newBuffer, ULONG *newHead)
 {
-    // set our new notify callback
-    notifyCb = cb;
+    // TODO: For MP, lock this down
+    inputBuffer = newBuffer;
+    inputBufferHead = newHead;
 }
 
 MODULE_ENTRY_ORDERED(KeyboardInit, 5);

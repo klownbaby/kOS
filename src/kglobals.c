@@ -16,6 +16,8 @@
 
 #include "kernel.h"
 #include "drivers/fat.h"
+#include "drivers/tty.h"
+#include "drivers/keyboard.h"
 
  /* Number of enabled cores */
 ULONG g_NumCores = 0;
@@ -31,8 +33,8 @@ ULONG g_KernelStart = 0;
 ULONG g_KernelEnd = 0;
 
 /* Heap globals */
-UINT8 *g_HeapStart = (UINT8 *)0x7ff00000;
-UINT8 *g_HeapEnd = 0;
+ULONG g_HeapStart = 0x77a00000;
+ULONG g_HeapEnd = 0;
 
 /* Global kernel symbol table, manually setting 100 entries for now */
 KSYMBOL g_KernelSyms[100] = {
@@ -40,8 +42,19 @@ KSYMBOL g_KernelSyms[100] = {
     DEFINE_SYMBOL(KAToI),
     DEFINE_SYMBOL(KMemSet),
     DEFINE_SYMBOL(KMemCopy),
+    DEFINE_SYMBOL(KMemSet),
     DEFINE_SYMBOL(KPanic),
     DEFINE_SYMBOL(KPutS),
+    DEFINE_SYMBOL(KPrint),
+    DEFINE_SYMBOL(KStrLen),
+    DEFINE_SYMBOL(KStrSplit),
+    DEFINE_SYMBOL(TTYPutC),
+    DEFINE_SYMBOL(TTYPutCRelative),
+    DEFINE_SYMBOL(TTYClear),
+    DEFINE_SYMBOL(TTYNeofetch),
+    DEFINE_SYMBOL(TTYWrite),
+    DEFINE_SYMBOL(TTYWriteColor),
+    DEFINE_SYMBOL(HashStr),
     DEFINE_SYMBOL(KPrint),
     DEFINE_SYMBOL(DumpFreeList),
     DEFINE_SYMBOL(KSbrk),
@@ -50,5 +63,11 @@ KSYMBOL g_KernelSyms[100] = {
     DEFINE_SYMBOL(FatDumpBs),
     DEFINE_SYMBOL(FatDumpDentry),
     DEFINE_SYMBOL(FatDumpRoot),
+    DEFINE_SYMBOL(FatDumpDirectory),
     DEFINE_SYMBOL(FatOpen),
+    DEFINE_SYMBOL(KeyboardScanToChar),
+    DEFINE_SYMBOL(KeyboardSetInputBuffer),
+    DEFINE_SYMBOL(KGetScan),
+    DEFINE_SYMBOL(ProcLoad),
+    DEFINE_SYMBOL(ProcExec),
 };

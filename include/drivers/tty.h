@@ -16,9 +16,8 @@
 
 #pragma once
 
-#include <stddef.h>
-#include <stdbool.h>
-#include "vga.h"
+#include "ktypes.h"
+#include "drivers/vga.h"
 
 #define BOOT_LOG(msg) \
     TTYWrite("[ "); \
@@ -31,17 +30,17 @@
 VOID 
 TTYInit();
 
-VOID 
+VOID
 TTYWrite(const CHAR* str);
 
-VOID 
+VOID
 TTYWriteColor(const CHAR* str, VGA_COLOR fg, VGA_COLOR bg);
 
 VOID 
 TTYPutC(CHAR c);
 
 VOID 
-TTYPutCRelative(CHAR c, int relx, int rely, bool cursor);
+TTYPutCRelative(CHAR c, ULONG relx, ULONG rely, BOOLEAN cursor);
 
 VOID 
 TTYClear();

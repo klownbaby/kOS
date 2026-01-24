@@ -221,8 +221,8 @@ PmmVirtToPhys(ULONG *pd, ULONG vaddr)
 {
     ULONG pdIndex = 0;
     ULONG ptIndex = 0;
-    ULONG* pt = NULL;
-    int32_t paddr = -1;
+    ULONG *pt = NULL;
+    LONG paddr = -1;
 
     if (pd == NULL)
     {

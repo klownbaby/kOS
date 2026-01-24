@@ -95,15 +95,15 @@ KSbrk(SIZE size)
     }
 
     // start our mapping at the current tail of heap
-    mapStart = (ULONG)(g_HeapEnd - g_HeapStart);
+    mapStart = g_HeapEnd - g_HeapStart;
 
-    for (ULONG i = mapStart; i < size; i += PAGE_SIZE)
+    for (ULONG i = mapStart; i <= size; i += PAGE_SIZE)
     {
         // map a new page
         PmmMapPage(
             NULL,
             PmmAllocNext(),
-            (ULONG)g_HeapStart + i);
+            (g_HeapStart + i));
     }
 
     // increment our heap end pointer

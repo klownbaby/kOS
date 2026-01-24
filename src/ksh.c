@@ -121,7 +121,8 @@ keyboardNotifyCallback(UINT8 scan, UINT8 pressed)
 
     // ensure our input buffer is allocated
     KASSERT_GOTO_FAIL_MSG(
-        inputBuffer == NULL, "inputBuffer is not initialized!\n");
+        inputBuffer == NULL,
+        "inputBuffer is not initialized!\n");
 
     // ignore key up
     KASSERT_GOTO_FAIL(pressed != 0);
@@ -194,9 +195,6 @@ KShellInit()
     // allocate 256 byte input buffer
     inputBuffer = (CHAR *)KMalloc(KSH_INPUTBUF_SIZE);
     KMemSet(inputBuffer, 0, KSH_INPUTBUF_SIZE);
-
-    // set our keypress callback
-    KeyboardSetNotifyCallback(keyboardNotifyCallback);
 
     // write initial prompt
     TTYWriteColor("> ", VGA_COLOR_LIGHT_BLUE, VGA_COLOR_BLACK);

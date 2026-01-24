@@ -17,6 +17,7 @@
 #include "kernel.h"
 #include "drivers/tty.h"
 #include "drivers/vga.h"
+#include "ktypes.h"
 
 /* Init tty interface and set default color to white on black */
 VOID 
@@ -78,7 +79,7 @@ TTYPutC(CHAR c)
         {
             VgaScroll();
             --g_TTYState.row;
-        } 
+        }
     }
 
     // update cursor after string is written to tty
@@ -87,7 +88,7 @@ TTYPutC(CHAR c)
 
 /* Write a CHARacter to the screen relative to current g_TTYState */
 VOID 
-TTYPutCRelative(CHAR c, int relx, int rely, bool cursor)
+TTYPutCRelative(CHAR c, ULONG relx, ULONG rely, BOOLEAN cursor)
 {
     g_TTYState.col += relx;
     g_TTYState.row += rely;
