@@ -5,7 +5,6 @@ rbin/*
 lib/target/
 bin/kos.iso
 gnu-efi/
-fs/
 fs/fs.img
 OVMF.fd
 multiboot/boot/*.bin
