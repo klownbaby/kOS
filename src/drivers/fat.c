@@ -199,8 +199,13 @@ FatDumpRoot(VOID)
     ULONG nextDentryOffset = 0;
     DIR_ENTRY dentry = { 0 };
     CHAR strname[9] = { 0 };
+    ULONG rootEntries = 0;
 
-    for (UINT16 i = 0; i < bs.rootEntryCount; ++i)
+    // calculate number of root directory entries
+    rootEntries = ((bs.rootEntryCount * 32) +
+                   (bs.bytesPerSector - 1)) / bs.bytesPerSector;
+    
+    for (UINT16 i = 0; i < rootEntries; ++i)
     {   
         // get next offset
         nextDentryOffset = i * sizeof(DIR_ENTRY);
