@@ -255,8 +255,11 @@ ProcClose(PROC_HANDLE *handle)
     // delete entry from list
     ListDeleteEntry(&g_ProcessListHead, handle);
 
-    // free process buffer
-    KFree(handle->buffer);
+    // free process buffer if present
+    if (handle->buffer)
+    {
+        KFree(handle->buffer);
+    }
 
 fail:
     return status;
