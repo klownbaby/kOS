@@ -39,6 +39,7 @@ readAllClusters(ULONG cluster, ULONG size)
 
     // allocate minimum-sized buffer (aligned to sector size)
     data = KMalloc(dataSize);
+    KMemSet(data, 0, dataSize);
 
     for (ULONG i = 0; i < numClusters; ++i)
     {
@@ -146,8 +147,6 @@ FatOpen(CHAR *path, ULONG *outSize)
     }
 
     *outSize = dentry.size;
-
-    (VOID)findEntryInDirecotry(data);
 
     return data;
 }
