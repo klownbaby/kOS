@@ -30,7 +30,7 @@ DLLIMPORT
 VOID FatDumpRoot(VOID);
 
 DLLIMPORT
-VOID FatDumpDirectory(VOID *buffer);
+VOID FatDumpDirectory(VOID *buffer, ULONG size);
 
 DLLIMPORT
 CHAR **KStrSplit(CHAR *str, const CHAR delim, ULONG *elemCount);
@@ -94,3 +94,9 @@ VOID ProcDumpList();
 
 DLLIMPORT
 VOID PmmDumpPageDir();
+
+DLLIMPORT
+KSTATUS GetEnvVar(CHAR *name, VOID **outData, ULONG *outSize);
+
+DLLIMPORT
+KSTATUS SetEnvVar(CHAR *name, VOID *inData, ULONG inSize);

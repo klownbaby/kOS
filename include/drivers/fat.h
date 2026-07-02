@@ -69,14 +69,16 @@ typedef struct _DIR_ENTRY {
     UINT8  ext[3];
     UINT8  attr;
     UINT8  reserved;
-    UINT8  time[3];
+    UINT8  crt100;
+    UINT16 crtTime;
     UINT16 crtDate;
     UINT16 accDate;
     UINT16 highCluster;
-    UINT8  writtenDate[4];
+    UINT16 lastModifiedTime;
+    UINT16 lastModifiedDate;
     UINT16 lowCluster;
     ULONG  size;
-} DIR_ENTRY;
+} __attribute__((packed)) DIR_ENTRY;
 
 /* FAT function definitions */
 VOID
@@ -89,7 +91,7 @@ VOID
 FatDumpDentry(DIR_ENTRY *dentry);
 
 VOID
-FatDumpDirectory(VOID *buffer);
+FatDumpDirectory(VOID *buffer, ULONG size);
 
 VOID
 FatDumpRoot(VOID);

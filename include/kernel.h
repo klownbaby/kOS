@@ -34,6 +34,7 @@
 #include "pe.h"
 #include "syms.h"
 #include "list.h"
+#include "env.h"
 
 /* Module entry point macro for unordered initialization */
 #define MODULE_ENTRY(__entry) \

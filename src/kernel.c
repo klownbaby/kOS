@@ -76,7 +76,7 @@ KernelMain(volatile ULONG magic, volatile MULTIBOOT_INFO *mbd)
         "Failed to initialize init process!");
 
     // load init process
-    initProcHandle->buffer = FatOpen("SH", &initProcHandle->size);
+    initProcHandle->buffer = FatOpen("BIN/SH", &initProcHandle->size);
     KASSERT_GOTO_FAIL_MSG(
         initProcHandle->buffer == NULL,
         "Could not find init process on disk!");

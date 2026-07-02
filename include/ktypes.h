@@ -28,6 +28,9 @@
 /* Define maximum file descriptor index */
 #define MAX_FILE_DESCRIPTORS 3
 
+/* Define maximum environment variable size */
+#define MAX_ENV_VAR_DATA_SIZE 2048
+
 /* Define a standard status check return value */
 typedef enum _KSTATUS {
     STATUS_SUCCESS,
@@ -81,6 +84,7 @@ typedef enum _FILE_DESCRIPTOR {
 typedef struct _PROC_HANDLE {
     LIST_ENTRY listEntry;
 
+    CHAR name[24];
     ULONG cr3;
     ULONG size;
     FILE fileBindings[MAX_FILE_DESCRIPTORS];
@@ -168,3 +172,11 @@ typedef struct _KEYSTROKE {
     /* Key up/down */
     UINT8 pressed;
 } KEYSTROKE;
+
+typedef struct _ENV_ENTRY {
+    // somewhat redundant since we're gonna hash this bitch
+    // TODO: check this again
+    CHAR name[128];
+    UINT8 data[MAX_ENV_VAR_DATA_SIZE];
+    ULONG size;
+} ENV_ENTRY;

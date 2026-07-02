@@ -9,7 +9,7 @@ bin/kos.iso
 
 gnu-efi/
 
-fs/root/*.exe
+fs/root/bin/*.exe
 fs/fs.img
 
 OVMF.fd

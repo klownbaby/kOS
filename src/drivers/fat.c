@@ -35,7 +35,7 @@ readAllClusters(ULONG cluster, ULONG size)
 
     // ahhh this is shitty, works for now (minimum of one cluster)
     numClusters = ((size / bs.sectorsPerCluster) / 512) + 1;
-    dataSize = (numClusters * bs.sectorsPerCluster) * 512;
+    dataSize = (numClusters * bs.sectorsPerCluster) * bs.bytesPerSector;
 
     // allocate minimum-sized buffer (aligned to sector size)
     data = KMalloc(dataSize);
@@ -47,7 +47,7 @@ readAllClusters(ULONG cluster, ULONG size)
         clusterLba = CLUSTER_TO_LBA(cluster);
 
         // get offset into data buffer
-        dataOffset = (i * bs.sectorsPerCluster) * 512;
+        dataOffset = (i * bs.sectorsPerCluster) * bs.bytesPerSector;
 
         // sectors into data buffer at offset
         AtaReadSectors(
@@ -58,7 +58,7 @@ readAllClusters(ULONG cluster, ULONG size)
 
         cluster = fatCtx.fatSector[cluster];
 
-        if (cluster == 0xff) break;
+        if (cluster >= 0xfff8) break;
     }
 
     // CALLER owns this now!
@@ -100,23 +100,59 @@ initBs(VOID)
 }
 
 /* Find file or directory entry in directory blob */
-static KSTATUS
-findEntryInDirecotry(VOID *dir)
+static VOID *
+findEntryInDirecotry(CHAR **path, ULONG *outSize, ULONG next)
 {
-    KSTATUS status = STATUS_UNKNOWN;
-    ULONG dentry = (ULONG)dir;
+    VOID *data = NULL;
+    CHAR strname[9] = { 0 };
+    DIR_ENTRY dentry = { 0 };
+    ULONG nextDentryOffset = 0;
 
-    while (((DIR_ENTRY *)dentry)->attr != 0)
+    if (next > 0)
     {
-        // dump each entry
-        FatDumpDentry((DIR_ENTRY *)dentry);
+        data = findEntryInDirecotry(path, outSize, (next - 1));
+        KASSERT_GOTO_FAIL(data == NULL);
+    }
+    else
+    {
+        data = fatCtx.rootSector;
+    }
 
-        // iterate
-        dentry += sizeof(DIR_ENTRY);
+    // copy first dentry
+    KMemCopy(&dentry, data, sizeof(DIR_ENTRY));
+
+    while (dentry.name[0] != 0)
+    {   
+        // get next offset
+        nextDentryOffset += sizeof(DIR_ENTRY);
+
+        // copy that bitch over
+        KMemCopy(&dentry, data + nextDentryOffset, sizeof(DIR_ENTRY));
+
+        // only caring about directories and files for now
+        if (dentry.attr != DIRECTORY && dentry.attr != FILE) continue;
+
+        if (compareName(path[next], &dentry))
+        {
+            // free previous dir buffer
+            if (data != fatCtx.rootSector)
+            {
+                KFree(data);
+            }
+
+            data = readAllClusters(dentry.lowCluster, dentry.size);
+            *outSize = dentry.size;
+
+            GOTO_SUCCESS;
+        }
     }
    
 fail:
-    return status;
+    data = NULL;
+    *outSize = 0;
+
+success:
+    return data;
 }
 
 /* Read file into memory (only from root dir for the moment) */
@@ -124,29 +160,17 @@ VOID *
 FatOpen(CHAR *path, ULONG *outSize)
 {
     VOID *data = NULL;
-    DIR_ENTRY dentry = { 0 };
-    ULONG nextDentryOffset = 0;
-    CHAR strname[9] = { 0 };
+    CHAR **pathElems = NULL;
+    ULONG numDirs = 0;
 
-    for (UINT16 i = 0; i < bs.rootEntryCount; ++i)
-    {   
-        // get next offset
-        nextDentryOffset = i * sizeof(DIR_ENTRY);
+    pathElems = KStrSplit(path, '/', &numDirs);
 
-        // copy that bitch over
-        KMemCopy(&dentry, fatCtx.rootSector + nextDentryOffset, sizeof(DIR_ENTRY));
+    data = findEntryInDirecotry(pathElems, outSize, (numDirs - 1));
 
-        // only caring about directories and files for now
-        if (dentry.attr != DIRECTORY && dentry.attr != FILE) continue;
-
-        if (compareName(path, &dentry))
-        {
-            data = readAllClusters(dentry.lowCluster, dentry.size);
-            break;
-        }
+    if (pathElems)
+    {
+        KFree(pathElems);
     }
-
-    *outSize = dentry.size;
 
     return data;
 }
@@ -178,17 +202,25 @@ FatDumpDentry(DIR_ENTRY *dentry)
 
 /* Dump all contents of a buffer as if it were a directory */
 VOID
-FatDumpDirectory(VOID *buffer)
+FatDumpDirectory(VOID *buffer, ULONG size)
 {
-    ULONG dentry = (ULONG)buffer;
+    DIR_ENTRY dentry = { 0 };
+    ULONG nextDentryOffset = 0;
 
-    while (((DIR_ENTRY *)dentry)->attr != 0)
+    while (dentry.name[0] != 0)
     {
-        // dump each entry
-        FatDumpDentry((DIR_ENTRY *)dentry);
+        // get next offset
+        nextDentryOffset += sizeof(DIR_ENTRY);
 
-        // iterate
-        dentry += sizeof(DIR_ENTRY);
+        KPrint("Attempting to dump dentry..\n");
+
+        // copy that bitch over
+        KMemCopy(&dentry, buffer + nextDentryOffset, sizeof(DIR_ENTRY));
+
+        if (dentry.attr != DIRECTORY && dentry.attr != FILE) continue;
+
+        // dump each entry
+        FatDumpDentry(&dentry);
     }
 }
 
@@ -220,7 +252,7 @@ FatDumpRoot(VOID)
     }
 }
 
-/* Dump our BIOS parameter block to tty */
+/* Dump our BIOS parameter block to TTY */
 VOID
 FatDumpBs(VOID)
 {
@@ -244,29 +276,31 @@ FatInit(VOID)
     // ensure our boot sector is initialized
     initBs();
 
-    // allocate and zero our root sector
-    fatCtx.rootSector = KMalloc(512);
-    KMemSet(fatCtx.rootSector, 0, 512);
-
     // calculate number of root sectors
     numRootSectors =
         ((bs.rootEntryCount * 32) + (bs.bytesPerSector - 1)) / bs.bytesPerSector;
+
+    // allocate and zero our root sector
+    fatCtx.rootSector = KMalloc(numRootSectors * bs.bytesPerSector);
+    KMemSet(fatCtx.rootSector, 0, (numRootSectors * bs.bytesPerSector));
 
     // get root directory lba and offset of data sectors
     fatCtx.rootLba =
         bs.reservedSectorCount + (bs.tableCount * bs.tableSize16);
     fatCtx.dataLba =
-        fatCtx.rootLba + numRootSectors;
+        bs.reservedSectorCount + (bs.tableCount * bs.tableSize16) + numRootSectors;
     fatCtx.fatLba = bs.reservedSectorCount;
 
+    ULONG fatSectSize = (bs.tableCount * bs.tableSize16);
+    fatSectSize = ((fatSectSize + (bs.bytesPerSector - 1)) / bs.bytesPerSector) * bs.bytesPerSector;
+
     // allocate and zero our data sector
-    fatCtx.dataSector = KMalloc(1024);
-    KMemSet(fatCtx.dataSector, 0, 1024);
+    fatCtx.fatSector = KMalloc(fatSectSize);
+    KMemSet(fatCtx.fatSector, 0, fatSectSize);
 
     // read one sector at our root dir logical block address
-    AtaReadSectors(SLAVE_DRIVE, 1, fatCtx.rootLba, fatCtx.rootSector);
-    AtaReadSectors(SLAVE_DRIVE, 1, fatCtx.dataLba, fatCtx.dataSector);
-    AtaReadSectors(SLAVE_DRIVE, 1, fatCtx.fatLba, fatCtx.fatSector);
+    AtaReadSectors(SLAVE_DRIVE, numRootSectors, fatCtx.rootLba, fatCtx.rootSector);
+    AtaReadSectors(SLAVE_DRIVE, (fatSectSize / 512), fatCtx.fatLba, fatCtx.fatSector);
 }
 
 MODULE_ENTRY(FatInit);

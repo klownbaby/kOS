@@ -23,4 +23,4 @@ $(OBJS): $(SRCS)
 
 $(EXECUTABLE): $(OBJS)
 	$(LD) $(LDFLAGS) -o $@ $<
-	cp $@ $(FSDIR)
+	cp $@ $(FSDIR)/bin

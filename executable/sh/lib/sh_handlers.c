@@ -147,7 +147,7 @@ HandleLs(ULONG argc, CHAR **argv)
     // should we just dump the root directory?
     if (argv[1][0] == '/' && argv[1][1] == '\0')
     {
-        FatDumpRoot();        
+        FatDumpRoot();
         GOTO_SUCCESS;
     }
 
@@ -156,7 +156,7 @@ HandleLs(ULONG argc, CHAR **argv)
     KASSERT_GOTO_FAIL_MSG(dir == NULL, "Path not found!\n");
 
     // finally, dump that JAWN
-    FatDumpDirectory(dir);
+    FatDumpDirectory(dir, size);
 
 fail:
     if (dir)
@@ -193,5 +193,41 @@ fail:
         KFree(data);
     }
 
+    return;
+}
+
+VOID
+HandleGetEnv(ULONG argc, CHAR **argv)
+{
+    KSTATUS status = STATUS_UNKNOWN;
+    VOID *varData = NULL;
+    ULONG varSize = 0;
+
+    KASSERT_GOTO_FAIL_MSG(argc < 2, "Usage: getenv [name]\n");
+
+    status = GetEnvVar(argv[1], &varData, &varSize);
+    KASSERT_GOTO_FAIL_MSG(status != STATUS_SUCCESS, "Failed to get environment variable\n");
+
+    KPrint("%s = %s\n", argv[1], varData);
+    
+fail:
+    return;
+}
+
+VOID
+HandleSetEnv(ULONG argc, CHAR **argv)
+{
+    KSTATUS status = STATUS_UNKNOWN;
+    ULONG inSize = 0;
+
+    KASSERT_GOTO_FAIL_MSG(argc < 3, "Usage: setenv [name] [string]\n");
+
+    inSize = KStrLen(argv[2]);
+    KASSERT_GOTO_FAIL_MSG(inSize == 0, "Data cannot be empty!\n");
+
+    status = SetEnvVar(argv[1], argv[2], inSize);
+    KASSERT_GOTO_FAIL_MSG(status != STATUS_SUCCESS, "Failed to set environment variable\n");
+    
+fail:
     return;
 }

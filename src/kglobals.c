@@ -80,4 +80,6 @@ KSYMBOL g_KernelSyms[100] = {
     DEFINE_SYMBOL(ProcClose),
     DEFINE_SYMBOL(ProcDumpList),
     DEFINE_SYMBOL(PmmDumpPageDir),
+    DEFINE_SYMBOL(GetEnvVar),
+    DEFINE_SYMBOL(SetEnvVar)
 };

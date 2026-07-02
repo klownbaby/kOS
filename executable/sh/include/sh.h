@@ -55,3 +55,9 @@ HandleLs(ULONG argc, CHAR **argv);
 
 VOID
 HandleCat(ULONG argc, CHAR **argv);
+
+VOID
+HandleGetEnv(ULONG argc, CHAR **argv);
+
+VOID
+HandleSetEnv(ULONG argc, CHAR **argv);

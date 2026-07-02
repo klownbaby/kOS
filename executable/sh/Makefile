@@ -31,4 +31,4 @@ $(LIBOBJS): $(LIBSRCS)
 
 $(EXECUTABLE): $(LIBOBJS) $(OBJS)
 	$(LD) $(LDFLAGS) -o $@ $(OBJS) $(LIBOBJS)
-	cp $@ $(FSDIR)
+	cp $@ $(FSDIR)/bin

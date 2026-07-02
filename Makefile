@@ -36,9 +36,9 @@ CTARGETS := $(SRCDIR)/*.c $(DRIVERSDIR)/*.c
 ASMTARGETS := $(ASMDIR)/*.S
 ISO := $(OBJECTDIR)/$(KERNELTARGET).iso
 
-.PHONY: all kernel env image verify grub grub-rescue fs vfs run debug clean exec exec-clean efi-build efi-run $(EXECUTABLES)
+.PHONY: all kernel env image verify grub grub-rescue fs vfs run debug clean exec efi-build efi-run $(EXECUTABLES)
 
-all: kernel image run
+all: exec kernel image run
 
 grub: kernel image run
 
@@ -83,7 +83,7 @@ $(EFIIMGS): $(EFILIBS)
 	$(DOCKER) objcopy -j .text -j .sdata -j .data -j .rodata -j .dynamic -j .dynsym  -j .rel -j .rela -j .rel.* -j .rela.* -j .reloc --target efi-app-x86_64 --subsystem=10 $< $@
 
 efi-run:
-	qemu-system-x86_64 -bios OVMF.fd -hda $(ISO) -hdb ./fs/fs.img
+	qemu-system-x86_64 -bios OVMF.fd -hda $(ISO) -hdb fs/fs.img
 
 # Misc environment/GRUB shit
 env:
@@ -107,10 +107,10 @@ grub-rescue:
 	grub-mkrescue -o $(OBJECTDIR)/$(KERNELTARGET).iso multiboot
 
 run: $(ISO)
-	$(EMU) -hda $(ISO) -hdb ./fs/fs.img -monitor stdio | tee monitor.log
+	$(EMU) -hda $(ISO) -hdb fs/fs.img -monitor stdio | tee monitor.log
 
 debug: clean kernel image $(ISO)
-	$(EMU) -hda $(ISO) -s -S -hdb ./fs/fs.img
+	$(EMU) -hda $(ISO) -s -S -hdb fs/fs.img
 
 clean:
 	rm -rf $(OBJECTDIR)/*.*

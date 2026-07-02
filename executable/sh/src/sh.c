@@ -25,7 +25,9 @@ static const CMD_HANDLER cmdHandlers[] = {
     { .cmdstr = "exec", .proc = HandleExec },
     { .cmdstr = "ls", .proc = HandleLs },
     { .cmdstr = "cat", .proc = HandleCat },
-    { .cmdstr = "ps", .proc = HandlePs }
+    { .cmdstr = "ps", .proc = HandlePs },
+    { .cmdstr = "getenv", .proc =  HandleGetEnv },
+    { .cmdstr = "setenv", .proc = HandleSetEnv }
 };
 
 /* Build out our initial hashmap for command processors (callbacks) */
@@ -125,7 +127,6 @@ handleKeyPress(UINT8 scan)
             // remove CHAR from screen
             TTYPutCRelative('\0', -1, 0, TRUE);
             break;
-        // tilde key reboots
         case KEY_TILDE:
             TTYWrite("\n");
 
@@ -135,7 +136,6 @@ handleKeyPress(UINT8 scan)
             TTYWrite("\n");
             TTYWriteColor("> ", VGA_COLOR_LIGHT_BLUE, VGA_COLOR_BLACK);
             break;
-        // process keybuf on return
         case KEY_ENTER:
             TTYWrite("\n");
 
@@ -145,7 +145,6 @@ handleKeyPress(UINT8 scan)
             // write our prompt
             TTYWriteColor("> ", VGA_COLOR_LIGHT_BLUE, VGA_COLOR_BLACK);
             break;
-        // otherwise, write ascii
         default:
             // restrict CHAR count
             if (inputBufferHead == (KSH_INPUTBUF_SIZE - 1))

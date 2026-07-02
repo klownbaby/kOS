@@ -47,7 +47,12 @@ KStrNCopy(CHAR *dest, const CHAR *src, SIZE n)
     // Pretty loosey goosey way of doing this but fuck it
     for (SIZE i = 0; i < n; ++i)
     {
-        if (src[i] != '\0') dest[i] = src[i];
+        if (src[i] == '\0')
+        {
+            break;
+        }
+
+        dest[i] = src[i];
     }
 }
 
@@ -77,6 +82,7 @@ KStrNCmp(const CHAR *s1, const CHAR *s2, SIZE n)
     }
 
     KASSERT_GOTO_FAIL(n == 0);
+
     match = (*(UCHAR *)s1 - *(UCHAR *)s2);
 
 fail:
