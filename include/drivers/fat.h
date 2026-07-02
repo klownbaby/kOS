@@ -42,26 +42,26 @@ typedef struct _FAT_CONTEXT {
 
 /* Define FAT16 BIOS parameter block */
 typedef struct _FAT16_BS {
-  UINT8  bootJmp[3];
-	UINT8  oemName[8];
-	UINT16 bytesPerSector;
-	UINT8	 sectorsPerCluster;
-	UINT16 reservedSectorCount;
-	UINT8  tableCount;
-	UINT16 rootEntryCount;
-	UINT16 totalSectors16;
-	UINT8	 mediaType;
-	UINT16 tableSize16;
-	UINT16 sectorsPerTrack;
-	UINT16 headSideCount;
-	ULONG  hiddenSectorCount;
-	ULONG  totalSectors32;
-  UINT8	 biosDriveNum;
-	UINT8	 reserved1;
-	UINT8	 bootSignature;
-	ULONG  volumeId;
-	UINT8	 volumeLabel[11];
-	UINT8	 fatTypeLabel[8];
+    UINT8  bootJmp[3];
+    UINT8  oemName[8];
+    UINT16 bytesPerSector;
+    UINT8	 sectorsPerCluster;
+    UINT16 reservedSectorCount;
+    UINT8  tableCount;
+    UINT16 rootEntryCount;
+    UINT16 totalSectors16;
+    UINT8	 mediaType;
+    UINT16 tableSize16;
+    UINT16 sectorsPerTrack;
+    UINT16 headSideCount;
+    ULONG  hiddenSectorCount;
+    ULONG  totalSectors32;
+    UINT8	 biosDriveNum;
+    UINT8	 reserved1;
+    UINT8	 bootSignature;
+    ULONG  volumeId;
+    UINT8	 volumeLabel[11];
+    UINT8	 fatTypeLabel[8];
 } __attribute__((packed)) FAT16_BS;
 
 typedef struct _DIR_ENTRY {
