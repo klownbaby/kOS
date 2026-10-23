@@ -69,6 +69,7 @@ KStrCat(CHAR *dest, const CHAR *append)
     return save;
 }
 
+/* Standard case-sensitive string comparison... move along */
 ULONG
 KStrNCmp(const CHAR *s1, const CHAR *s2, SIZE n)
 {
@@ -87,6 +88,18 @@ KStrNCmp(const CHAR *s1, const CHAR *s2, SIZE n)
 
 fail:
     return match;
+}
+
+/* Case-insensitive string comparsion, duh */
+ULONG
+KStrNICmp(const CHAR *s1, const CHAR *s2, SIZE n)
+{
+    while (*s1 && (ToLower((unsigned char)*s1) == ToLower((unsigned char)*s2))) {
+        s1++;
+        s2++;
+    }
+    
+    return (ULONG)ToLower((unsigned char)*s1) - (ULONG)ToLower((unsigned char)*s2);
 }
 
 /* Get number of tokens in string */

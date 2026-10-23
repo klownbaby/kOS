@@ -19,6 +19,17 @@
 #include <ktypes.h>
 #include <stddef.h>
 
+/* Lil inline bitch-ass helper lowercase conversion */
+static inline CHAR ToLower(CHAR c)
+{
+    if (c >= 'A' && c <= 'Z')
+    {
+        return c + ('a' - 'A');
+    }
+
+    return c;
+}
+
 SIZE 
 KStrLen(const CHAR *str);
 
@@ -33,6 +44,9 @@ KStrCat(CHAR *src, const CHAR *append);
 
 ULONG
 KStrNCmp(const CHAR *s1, const CHAR *s2, SIZE n);
+
+ULONG
+KStrNICmp(const CHAR *s1, const CHAR *s2, SIZE n);
 
 ULONG
 KStrNTok(CHAR *str, const CHAR delim);

@@ -35,7 +35,8 @@ KIToA(int value, CHAR *str, int base)
     ucast = value;
 
     // check for supported base.
-    if (base < 2 || base > 36) {
+    if (base < 2 || base > 36)
+    {
         *str = '\0';
         return str;
     }
@@ -48,13 +49,17 @@ KIToA(int value, CHAR *str, int base)
     // remember where the numbers start.
     low = ptr;
 
-    do {
+    do
+    {
         // had to use this dirty trick for signed 32 bit integers
-        if (base == HEX && value < 0) {
+        if (base == HEX && value < 0)
+        {
             *ptr++ = "zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrstuvwxyz"[35 + ucast % base];
 
             ucast /= base;
-        } else {
+        }
+        else
+        {
             // modulo is negative for negative value. This trick makes abs() unnecessary.
             *ptr++ = "zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrstuvwxyz"[35 + value % base];
 
@@ -66,7 +71,8 @@ KIToA(int value, CHAR *str, int base)
     *ptr-- = '\0';
 
     // invert the numbers.
-    while (low < ptr) {
+    while (low < ptr)
+    {
         tmp = *low;
 
         *low++ = *ptr;
@@ -111,9 +117,11 @@ KPrint(const CHAR *fmt, ...)
     va_start(ap, fmt);
 
     // loop through string
-    for(i = 0; (c = fmt[i] & 0xff) != 0; i++) {
+    for(i = 0; (c = fmt[i] & 0xff) != 0; i++)
+    {
         // if token not found, write raw CHARacter
-        if (c != '%') {
+        if (c != '%')
+         {
             TTYPutC(c);
             continue;
         }
@@ -124,7 +132,8 @@ KPrint(const CHAR *fmt, ...)
         // check for null termination
         if (c == 0) break;
 
-        switch(c) {
+        switch(c)
+        {
             case 'd':
                 // handle int to ascii conversion
                 KIToA(va_arg(ap, int), buffer, DECIMAL);
@@ -145,7 +154,15 @@ KPrint(const CHAR *fmt, ...)
                 break;
             case 's':
                 // convert arg to string (CHAR*) and write to tty
-                TTYWrite(va_arg(ap, CHAR*));
+                TTYWrite(va_arg(ap, CHAR *));
+                break;
+            case 'r':
+                // convert to lowercase and write to tty
+                for (ULONG i = 0; i < KStrLen(va_arg(ap, CHAR *)); ++i)
+                {
+                    TTYPutC(ToLower(va_arg(ap, CHAR *)[i]));
+                }
+
                 break;
             case '%':
                 // handle double percent (i.e. printing a % symbol)

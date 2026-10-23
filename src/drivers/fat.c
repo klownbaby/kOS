@@ -181,7 +181,7 @@ FatDumpDentry(DIR_ENTRY *dentry)
 {
     // align dynamic length strings to column
     CHAR strname[9] = { ' ' };
-    EPOCH_DATE date = (EPOCH_DATE)dentry->crtDate;
+    EPOCH_DATE date = (EPOCH_DATE)dentry->lastModifiedDate;
 
     // copy name to null terminated scratch buffer
     KStrNCopy(strname, (const CHAR*)dentry->name, 8);
@@ -204,24 +204,19 @@ FatDumpDentry(DIR_ENTRY *dentry)
 VOID
 FatDumpDirectory(VOID *buffer, ULONG size)
 {
-    DIR_ENTRY dentry = { 0 };
+    DIR_ENTRY *dentry = NULL;
     ULONG nextDentryOffset = 0;
 
-    while (dentry.name[0] != 0)
+    dentry = (DIR_ENTRY *)buffer;
+
+    do
     {
-        // get next offset
-        nextDentryOffset += sizeof(DIR_ENTRY);
+        // dump the fucking thing
+        FatDumpDentry(dentry);
 
-        KPrint("Attempting to dump dentry..\n");
-
-        // copy that bitch over
-        KMemCopy(&dentry, buffer + nextDentryOffset, sizeof(DIR_ENTRY));
-
-        if (dentry.attr != DIRECTORY && dentry.attr != FILE) continue;
-
-        // dump each entry
-        FatDumpDentry(&dentry);
-    }
+        // iterate
+        dentry = (DIR_ENTRY *)((ULONG)dentry + sizeof(DIR_ENTRY));
+    } while (dentry->name[0]);
 }
 
 /* Dump root directory */
