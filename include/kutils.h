@@ -31,11 +31,11 @@
 
 /* Tack on a messge */
 #define KASSERT_GOTO_FAIL_MSG(__cond, __msg) \
-  if (__cond) { KPrint(__msg); goto fail; }
+  if (__cond) { KPrint(__msg); KPrint("\n"); goto fail; }
 
 /* Tack on a message and error */
 #define KASSERT_GOTO_FAIL_ERR_MSG(__cond, __err, __msg) \
-  if (__cond) { status = __err; KPrint(__msg); goto fail; }
+  if (__cond) { status = __err; KPrint(__msg); KPrint("\n"); goto fail; }
 
 /* For fast checks */
 #define KASSERT_GOTO_SUCCESS(__cond) if (__cond) { goto success; }

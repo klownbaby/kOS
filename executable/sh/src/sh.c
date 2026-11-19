@@ -3,6 +3,9 @@
 #include "kutils.h"
 #include "sh.h"
 
+/* Global resent working directory buffer, careful now.. */
+CHAR *pwd = NULL;
+
 /* Our keyboard input buffer */
 static CHAR *inputBuffer = NULL;
 
@@ -25,7 +28,9 @@ static const CMD_HANDLER cmdHandlers[] = {
     { .cmdstr = "exec", .proc = HandleExec },
     { .cmdstr = "ls", .proc = HandleLs },
     { .cmdstr = "cat", .proc = HandleCat },
+    { .cmdstr = "cd", .proc = HandleCd },
     { .cmdstr = "ps", .proc = HandlePs },
+    { .cmdstr = "pwd", .proc = HandlePwd },
     { .cmdstr = "getenv", .proc =  HandleGetEnv },
     { .cmdstr = "setenv", .proc = HandleSetEnv }
 };
@@ -170,15 +175,26 @@ fail:
 ULONG
 _main()
 {
+    ULONG status = 0;
     UINT8 scan = 0;
-    ULONG size = 0;
 
     // build our command processor hashmap
     buildHashMap();
 
-    // init input buffer
+    // alloc input buffer
     inputBuffer = KMalloc(KSH_INPUTBUF_SIZE);
+    KASSERT_GOTO_FAIL_ERR_MSG(inputBuffer == NULL, 1, "Failed to allocate input buffer");
+
+    // alloc pwd buffer
+    pwd = KMalloc(KSH_PWDBUF_SIZE);
+    KASSERT_GOTO_FAIL_ERR_MSG(pwd == NULL, 2, "Failed to allocate pwd buffer");
+
+    // zero init both
     KMemSet(inputBuffer, 0, KSH_INPUTBUF_SIZE);
+    KMemSet(pwd, 0, KSH_PWDBUF_SIZE);
+
+    // set init pwd to root
+    pwd[0] = '/';
 
     // write initial prompt
     TTYWriteColor("> ", VGA_COLOR_LIGHT_BLUE, VGA_COLOR_BLACK);
@@ -197,5 +213,6 @@ _main()
     // clean up
     KFree(inputBuffer);
 
-    return 0;
+fail:
+    return status;
 }

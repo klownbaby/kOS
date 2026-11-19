@@ -22,7 +22,7 @@ KStrLen(const CHAR *str)
     // Assume length at zero
     SIZE length = 0;
 
-    // Increment length when a CHARacter is present
+    // Increment length when a character is present
     while(str[length])
     {
         ++length;
@@ -94,12 +94,23 @@ fail:
 ULONG
 KStrNICmp(const CHAR *s1, const CHAR *s2, SIZE n)
 {
-    while (*s1 && (ToLower((unsigned char)*s1) == ToLower((unsigned char)*s2))) {
-        s1++;
-        s2++;
+    ULONG match = 0;
+    CHAR c1 = __toLower(*s1);
+    CHAR c2 = __toLower(*s2);
+
+    while (n && *s1 && (c1 == c2))
+    {
+        c1 = __toLower(*(s1++));
+        c2 = __toLower(*(s2++));
+        --n;
     }
+
+    KASSERT_GOTO_FAIL(n == 0);
+
+    match = (*(UCHAR *)s1 - *(UCHAR *)s2);
     
-    return (ULONG)ToLower((unsigned char)*s1) - (ULONG)ToLower((unsigned char)*s2);
+fail:
+    return match;
 }
 
 /* Get number of tokens in string */
@@ -160,7 +171,7 @@ KStrSplit(CHAR *str, const CHAR delim, ULONG *elemCount)
 
         if (elemSize == 0) break;
 
-        // allocate size + NULL CHARacter
+        // allocate size + NULL character
         elem = KMalloc(elemSize + 1);
 
         // zero out buffer

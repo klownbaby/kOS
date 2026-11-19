@@ -158,11 +158,7 @@ KPrint(const CHAR *fmt, ...)
                 break;
             case 'r':
                 // convert to lowercase and write to tty
-                for (ULONG i = 0; i < KStrLen(va_arg(ap, CHAR *)); ++i)
-                {
-                    TTYPutC(ToLower(va_arg(ap, CHAR *)[i]));
-                }
-
+                TTYWriteLow(va_arg(ap, CHAR *));
                 break;
             case '%':
                 // handle double percent (i.e. printing a % symbol)

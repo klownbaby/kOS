@@ -20,14 +20,16 @@
 #include <stddef.h>
 
 /* Lil inline bitch-ass helper lowercase conversion */
-static inline CHAR ToLower(CHAR c)
+static inline CHAR __toLower(CHAR c)
 {
+    CHAR ret = c;
+
     if (c >= 'A' && c <= 'Z')
     {
-        return c + ('a' - 'A');
+        ret = c + ('a' - 'A');
     }
 
-    return c;
+    return ret;
 }
 
 SIZE 

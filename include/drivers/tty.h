@@ -31,10 +31,16 @@ VOID
 TTYInit();
 
 VOID
-TTYWrite(const CHAR* str);
+TTYWrite(const CHAR *str);
+
+VOID 
+TTYWriteLow(const CHAR *str);
 
 VOID
-TTYWriteColor(const CHAR* str, VGA_COLOR fg, VGA_COLOR bg);
+TTYWriteColor(const CHAR *str, VGA_COLOR fg, VGA_COLOR bg);
+
+VOID 
+TTYWriteColorLow(const CHAR *str, VGA_COLOR fg, VGA_COLOR bg) ;
 
 VOID 
 TTYPutC(CHAR c);

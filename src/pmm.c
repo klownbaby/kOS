@@ -235,14 +235,14 @@ PmmVirtToPhys(ULONG *pd, ULONG vaddr)
 
     // ensure our page table is present
     KASSERT_GOTO_FAIL_MSG(
-        !IS_PRESENT(pd[pdIndex]), "Page table not mapped for vaddr!\n");
+        !IS_PRESENT(pd[pdIndex]), "Page table not mapped for vaddr!");
 
     // get virtual address for recursive mapping
     pt = (ULONG *)(PT_VADDR_BASE + (pdIndex * PAGE_SIZE));
 
     // ensure a frame has been mapped
     KASSERT_GOTO_FAIL_MSG(
-        !IS_PRESENT(pt[ptIndex]), "Frame not mapped in page table!\n");
+        !IS_PRESENT(pt[ptIndex]), "Frame not mapped in page table!");
 
     // ok, we're good
     paddr = pt[ptIndex] & ~(0xF);

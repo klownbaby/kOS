@@ -5,6 +5,9 @@
 /* For now, max input buffer size */
 #define KSH_INPUTBUF_SIZE 0xFF
 
+/* For now, max pwd buffer size */
+#define KSH_PWDBUF_SIZE   2048
+
 /* We need our hashmap and command list sizes at compile time */
 #define HASHMAP_SIZE \
     (sizeof(cmdHashmap) / sizeof(CMD_HANDLER))
@@ -19,6 +22,9 @@ typedef struct _CMD_HANDLER {
     CHAR *cmdstr;
     CMD_PROCESSOR proc;
 } CMD_HANDLER;
+
+/* Global pwd buffer ref */
+extern CHAR *pwd;
 
 VOID
 HandleClear(ULONG argc, CHAR **argv);
@@ -54,7 +60,13 @@ VOID
 HandleLs(ULONG argc, CHAR **argv);
 
 VOID
+HandlePwd(ULONG argc, CHAR **argv);
+
+VOID
 HandleCat(ULONG argc, CHAR **argv);
+
+VOID
+HandleCd(ULONG argc, CHAR **argv);
 
 VOID
 HandleGetEnv(ULONG argc, CHAR **argv);

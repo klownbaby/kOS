@@ -41,7 +41,7 @@ TTYInit(VOID)
 
 /* Write a string to tty output, with row, col tracking */
 VOID 
-TTYWrite(const CHAR* str) 
+TTYWrite(const CHAR *str) 
 {
     // loop through each CHARacter and putc to screen
     for (SIZE i = 0; i < KStrLen(str); ++i) 
@@ -51,8 +51,21 @@ TTYWrite(const CHAR* str)
     }
 }
 
+/* Write a string to tty output, with row, col tracking, force lowercase */
 VOID 
-TTYWriteColor(const CHAR* str, VGA_COLOR fg, VGA_COLOR bg) 
+TTYWriteLow(const CHAR *str) 
+{
+    // loop through each CHARacter and putc to screen
+    for (SIZE i = 0; i < KStrLen(str); ++i) 
+    {
+        // detect when a newline CHARacter is present
+        TTYPutC(__toLower(str[i]));
+    }
+}
+
+/* Write a string to tty output, with row, col tracking w/ color params */
+VOID 
+TTYWriteColor(const CHAR *str, VGA_COLOR fg, VGA_COLOR bg) 
 {
     // set color to desired
     VgaSetColor(fg, bg);
@@ -64,6 +77,21 @@ TTYWriteColor(const CHAR* str, VGA_COLOR fg, VGA_COLOR bg)
     VgaSetColor(g_TTYState.fgColor, g_TTYState.bgColor);
 }
 
+/* Write a string to tty output, with row, col tracking w/ color params, force lowercase */
+VOID 
+TTYWriteColorLow(const CHAR *str, VGA_COLOR fg, VGA_COLOR bg) 
+{
+    // set color to desired
+    VgaSetColor(fg, bg);
+
+    // loop through each CHARacter and putc to screen
+    TTYWriteLow(str);
+
+    // set color back to default tty state
+    VgaSetColor(g_TTYState.fgColor, g_TTYState.bgColor);
+}
+
+/* Write a character to tty */
 VOID 
 TTYPutC(CHAR c)
 {

@@ -1,5 +1,4 @@
 #include "ktypes.h"
-#include "io.h"
 
 #if 0
 #define DLLIMPORT __declspec(dllimport)
@@ -36,6 +35,18 @@ DLLIMPORT
 CHAR **KStrSplit(CHAR *str, const CHAR delim, ULONG *elemCount);
 
 DLLIMPORT
+SIZE KStrLen(const CHAR *str);
+
+DLLIMPORT
+VOID KStrCopy(CHAR *dest, const CHAR *src);
+
+DLLIMPORT
+CHAR *KStrCat(CHAR *dest, const CHAR *append);
+
+DLLIMPORT
+ULONG KStrNCmp(const CHAR *s1, const CHAR *s2, SIZE n);
+
+DLLIMPORT
 VOID KMemSet(VOID *dest, register int data, register SIZE length);
 
 DLLIMPORT
@@ -43,9 +54,6 @@ ULONG KAToI(const CHAR *str);
 
 DLLIMPORT
 ULONG HashStr(CHAR *str);
-
-DLLIMPORT
-SIZE KStrLen(const CHAR *str);
 
 DLLIMPORT
 VOID TTYPutCRelative(CHAR c, ULONG relx, ULONG rely, BOOLEAN cursor);

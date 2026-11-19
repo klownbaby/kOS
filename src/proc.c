@@ -137,7 +137,7 @@ ProcLoad(PROC_HANDLE *handle)
     cr3Phys = PmmAllocNext();
     KASSERT_GOTO_FAIL_MSG(
         cr3Phys == 0,
-        "Failed to allocate physical page for kprocess page directory\n");
+        "Failed to allocate physical page for kprocess page directory");
 
     // map process page directory in kernel page directory
     PmmMapPage(g_KernelPageDir, cr3Phys, (ULONG)cr3Virt);
@@ -165,7 +165,7 @@ ProcLoad(PROC_HANDLE *handle)
 
         KASSERT_GOTO_FAIL_MSG(
             procPage == 0,
-            "Failed to allocate physical pages for process\n");
+            "Failed to allocate physical pages for process");
 
         // map a new page
         PmmMapPage(
@@ -298,7 +298,7 @@ ProcDumpList()
 
     // get current process list head
     current = (PROC_HANDLE *)g_ProcessListHead;
-    KASSERT_GOTO_FAIL_MSG(current == NULL, "Process list empty!\n");
+    KASSERT_GOTO_FAIL_MSG(current == NULL, "Process list empty!");
 
     do
     {

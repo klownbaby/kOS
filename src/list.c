@@ -61,7 +61,7 @@ ListDeleteEntry(VOID **head, VOID *entry)
 
     // ensure list is valid
     currentHead = *((LIST_ENTRY **)head);
-    KASSERT_GOTO_FAIL_MSG(currentHead == NULL, "List not initialized\n!");
+    KASSERT_GOTO_FAIL_MSG(currentHead == NULL, "List not initialized!");
 
     toDelete = (LIST_ENTRY *)entry;
 

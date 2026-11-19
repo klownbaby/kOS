@@ -74,7 +74,7 @@ compareName(CHAR *name, DIR_ENTRY *dentry)
     // for now, not supporting LFNs
     KStrNCopy(strname, (const CHAR *)dentry->name, 8);
 
-    if (KStrNCmp(name, strname, KStrLen(name)) == 0)
+    if (KStrNICmp(name, strname, KStrLen(name)) == 0)
     {
         match = TRUE;
     }
@@ -101,7 +101,7 @@ initBs(VOID)
 
 /* Find file or directory entry in directory blob */
 static VOID *
-findEntryInDirecotry(CHAR **path, ULONG *outSize, ULONG next)
+findEntryInDirectory(CHAR **path, ULONG *outSize, ULONG next)
 {
     VOID *data = NULL;
     CHAR strname[9] = { 0 };
@@ -110,7 +110,7 @@ findEntryInDirecotry(CHAR **path, ULONG *outSize, ULONG next)
 
     if (next > 0)
     {
-        data = findEntryInDirecotry(path, outSize, (next - 1));
+        data = findEntryInDirectory(path, outSize, (next - 1));
         KASSERT_GOTO_FAIL(data == NULL);
     }
     else
@@ -163,9 +163,14 @@ FatOpen(CHAR *path, ULONG *outSize)
     CHAR **pathElems = NULL;
     ULONG numDirs = 0;
 
+    if (path[0] == '/')
+    {
+        ++path;
+    }
+
     pathElems = KStrSplit(path, '/', &numDirs);
 
-    data = findEntryInDirecotry(pathElems, outSize, (numDirs - 1));
+    data = findEntryInDirectory(pathElems, outSize, (numDirs - 1));
 
     if (pathElems)
     {
@@ -192,9 +197,9 @@ FatDumpDentry(DIR_ENTRY *dentry)
     // oooo fancy color shit!
     if (dentry->attr == DIRECTORY)
     {
-        TTYWriteColor(strname, VGA_COLOR_LIGHT_BLUE, VGA_COLOR_BLACK);
+        TTYWriteColorLow(strname, VGA_COLOR_LIGHT_BLUE, VGA_COLOR_BLACK);
     } else {
-        KPrint("%s", strname);
+        KPrint("%r", strname);
     }
 
     KPrint("%d\n", dentry->size);

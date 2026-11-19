@@ -171,7 +171,7 @@ KMalloc(SIZE size)
     // check that a suitable chunk was found
     KASSERT_GOTO_FAIL_MSG(
         foundChunk == NULL,
-        "Chunk of given size not available!\n");
+        "Chunk of given size not available!");
 
     if (foundChunk->size >= 0x30)
     {
