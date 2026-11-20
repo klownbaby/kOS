@@ -11,10 +11,8 @@ openFile(CHAR *path, ULONG *size, BOOLEAN setPwd)
     CHAR full[256] = {0};
     VOID *data = NULL;
     ULONG pwdSize = 0;
-    ULONG newEnd = 0;
 
-
-    // are we opening root?
+    // are we opening an absolute path?
     if (path[0] == '/')
     {
         data = FatOpen(path, size);
@@ -27,23 +25,30 @@ openFile(CHAR *path, ULONG *size, BOOLEAN setPwd)
             KStrCopy(pwd, path);
         }
     }
-    // are we opening a dir relative to pwd?
+    // are we opening a path relative to pwd?
     else if (KStrNCmp(path, pwd, KSH_PWDBUF_SIZE) != 0)
     {
+        pwdSize = KStrLen(pwd);
+
         KStrCopy(full, pwd);
+
+        // if we aren't appending to root pwd, then add a slash
+        if (pwd[0] == '/' && pwd[1] != '\0')
+        {
+            full[pwdSize++] = '/';
+        }
+
+        // append path to pwd in full buffer
         KStrCopy((CHAR *)(full + pwdSize), path);
 
-        pwdSize = KStrLen(pwd);
-        newEnd = KStrLen(full);
-
+        // try to open the file
         data = FatOpen(full, size);
         KASSERT_GOTO_FAIL(data == NULL);
 
         if (setPwd)
         {
-            pwd[pwdSize + 1] = '/';
-
-            KStrCopy((CHAR *)(pwd + 2), full);
+            KMemSet(pwd, 0, KSH_PWDBUF_SIZE);
+            KStrCopy(pwd, full);
         }
     }
     // are we just opening the pwd?
