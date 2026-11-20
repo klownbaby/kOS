@@ -5,62 +5,44 @@
 #include "io.h"
 
 /* Take the relative path and combine it with the pwd */
-static VOID *
-openFile(CHAR *path, ULONG *size, BOOLEAN setPwd)
+static VOID
+buildPath(CHAR *inPath, CHAR *outFull)
 {
-    CHAR full[256] = {0};
-    VOID *data = NULL;
     ULONG pwdSize = 0;
 
     // are we opening an absolute path?
-    if (path[0] == '/')
+    if (inPath[0] == '/')
     {
-        data = FatOpen(path, size);
-        KASSERT_GOTO_FAIL(data == NULL);
+        // full path is just our input
+        KStrCopy(outFull, inPath);
 
-        // discard and update pwd, full path already included
-        if (setPwd)
-        {
-            KMemSet(pwd, 0, KSH_PWDBUF_SIZE);
-            KStrCopy(pwd, path);
-        }
+        GOTO_SUCCESS;
     }
+
     // are we opening a path relative to pwd?
-    else if (KStrNCmp(path, pwd, KSH_PWDBUF_SIZE) != 0)
+    if (KStrNCmp(inPath, pwd, KSH_PWDBUF_SIZE) != 0)
     {
         pwdSize = KStrLen(pwd);
 
-        KStrCopy(full, pwd);
+        KStrCopy(outFull, pwd);
 
         // if we aren't appending to root pwd, then add a slash
         if (pwd[0] == '/' && pwd[1] != '\0')
         {
-            full[pwdSize++] = '/';
+            outFull[pwdSize++] = '/';
         }
 
         // append path to pwd in full buffer
-        KStrCopy((CHAR *)(full + pwdSize), path);
-
-        // try to open the file
-        data = FatOpen(full, size);
-        KASSERT_GOTO_FAIL(data == NULL);
-
-        if (setPwd)
-        {
-            KMemSet(pwd, 0, KSH_PWDBUF_SIZE);
-            KStrCopy(pwd, full);
-        }
+        KStrCopy((CHAR *)(outFull + pwdSize), inPath);
     }
-    // are we just opening the pwd?
+    // otherwise, we are just opening the current pwd
     else
     {
-        data = FatOpen(pwd, size);
-        KASSERT_GOTO_FAIL(data == NULL);
+        KStrCopy(outFull, pwd);
     }
 
-fail:
-    /* Caller owns this now!! */
-    return data;
+success:
+    return;
 }
 
 /* Handle clear ksh command (clear screen) */
@@ -158,6 +140,7 @@ VOID
 HandleExec(ULONG argc, CHAR **argv)
 {
     KSTATUS status = STATUS_UNKNOWN;
+    CHAR fullPath[256] = {0};
     PROC_HANDLE *handle = NULL;
 
     KASSERT_GOTO_FAIL_MSG(argc < 2, "Usage: exec [path]");
@@ -172,8 +155,10 @@ HandleExec(ULONG argc, CHAR **argv)
         argv[1][0] == '/' && argv[1][1] == '\0',
         "Not a valid executable!")
 
+    buildPath(argv[1], fullPath);
+
     // if not, find the requested directory
-    handle->buffer = FatOpen(argv[1], &handle->size);
+    handle->buffer = FatOpen(fullPath, &handle->size);
     KASSERT_GOTO_FAIL_MSG(handle->buffer == NULL, "Path not found!");
 
     // map the process into memory
@@ -202,6 +187,7 @@ VOID
 HandleLs(ULONG argc, CHAR **argv)
 {
     CHAR *path = NULL;
+    CHAR fullPath[256] = {0};
     VOID *dir = NULL;
     ULONG size = 0;
 
@@ -212,7 +198,8 @@ HandleLs(ULONG argc, CHAR **argv)
     }
     else
     {
-        path = argv[1];
+        buildPath(argv[1], fullPath);
+        path = fullPath;
     }
 
     // should we just dump the root directory?
@@ -224,7 +211,7 @@ HandleLs(ULONG argc, CHAR **argv)
     }
 
     // if not root, find the requested directory
-    dir = openFile(path, &size, FALSE);
+    dir = FatOpen(path, &size);
     KASSERT_GOTO_FAIL_MSG(dir == NULL, "Path not found!");
 
     // finally, dump that JAWN
@@ -251,40 +238,16 @@ HandlePwd(ULONG argc, CHAR **argv)
 VOID
 HandleCat(ULONG argc, CHAR **argv)
 {
-    CHAR *path = NULL;
-    BOOLEAN isRelPath = FALSE;
     CHAR *data = NULL;
-    ULONG relPathSize = 0;
+    CHAR fullPath[256] = {0};
     ULONG size = 0;
 
     KASSERT_GOTO_FAIL_MSG(argc < 2, "Usage: cat [file name]");
 
-    if (argv[1][0] != '/')
-    {
-        // yea, I know it's dangerous, overflow your heart out
-        relPathSize = KStrLen(pwd) + KStrLen(argv[1]);
-
-        path = KMalloc(relPathSize);
-        KASSERT_GOTO_FAIL_MSG(path == NULL, "Failed to allocate rel path");
-
-        // to ensure we free later
-        isRelPath = TRUE;
-
-        // zero that jawn out
-        KMemSet(path, 0, relPathSize);
-
-        // combine full and relative path
-        KStrCopy(path, pwd);
-        KStrCat(path, "/");
-        KStrCat(path, argv[1]);
-    }
-    else
-    {
-        path = argv[1];
-    }
+    buildPath(argv[1], fullPath);
 
     // open a handle (buffer) to our file
-    data = FatOpen(path, &size);
+    data = FatOpen(fullPath, &size);
     KASSERT_GOTO_FAIL_MSG(data == NULL, "File not found!");
 
     // just dump as if all data is valid ASCII for now
@@ -294,12 +257,6 @@ HandleCat(ULONG argc, CHAR **argv)
     }
 
 fail:
-    // path is only on heap if relative
-    if (isRelPath)
-    {
-        KFree(path);
-    }
-
     // ensure we free our buffer
     if (data)
     {
@@ -313,6 +270,7 @@ VOID
 HandleCd(ULONG argc, CHAR **argv)
 {
     VOID *dir = NULL;
+    CHAR fullPath[256] = {0};
     ULONG size = 0;
 
     KASSERT_GOTO_FAIL_MSG(argc != 2, "Usage: cd [path]");
@@ -327,8 +285,14 @@ HandleCd(ULONG argc, CHAR **argv)
     }
     else
     {
-        dir = openFile(argv[1], &size, TRUE);
+        buildPath(argv[1], fullPath);
+
+        dir = FatOpen(fullPath, &size);
         KASSERT_GOTO_FAIL_MSG(dir == NULL, "Path not found!");
+
+        // dir was found, update pwd
+        KMemSet(pwd, 0, KSH_PWDBUF_SIZE);
+        KStrCopy(pwd, fullPath);
     }
 
 fail:
