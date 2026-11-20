@@ -4,7 +4,7 @@
 #include "sh.h"
 #include "io.h"
 
-/* Take the relative path and combine it with the pwd */
+/* Process an unknown path input and convert to a full path */
 static VOID
 buildPath(CHAR *inPath, CHAR *outFull)
 {
